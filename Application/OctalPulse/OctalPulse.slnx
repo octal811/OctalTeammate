@@ -1,3 +1,6 @@
 <Solution>
   <Project Path="OctalPulse.API/OctalPulse.API.csproj" />
+  <Project Path="OctalPulse.Application/OctalPulse.Application.csproj" />
+  <Project Path="OctalPulse.Domain/OctalPulse.Domain.csproj" />
+  <Project Path="OctalPulse.Infrastructure/OctalPulse.Infrastructure.csproj" />
 </Solution>

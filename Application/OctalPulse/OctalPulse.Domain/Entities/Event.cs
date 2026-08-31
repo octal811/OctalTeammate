@@ -5,6 +5,10 @@ namespace OctalPulse.Domain.Entities;
 
 public class Event : AuditableEntity
 {
+    public Guid Id { get; set; }
+    public bool IsDeleted { get; set; }
+    public DateTime CreatedDate { get; set; }
+    public DateTime? ModifiedDate { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
     public EventType Type { get; set; }

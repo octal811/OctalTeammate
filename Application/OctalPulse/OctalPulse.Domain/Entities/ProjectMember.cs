@@ -4,6 +4,10 @@ namespace OctalPulse.Domain.Entities;
 
 public class ProjectMember : AuditableEntity
 {
+    public Guid Id { get; set; }
+    public bool IsDeleted { get; set; }
+    public DateTime CreatedDate { get; set; }
+    public DateTime? ModifiedDate { get; set; }
     public Guid ProjectId { get; set; }
     public Guid UserId { get; set; }
 

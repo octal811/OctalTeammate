@@ -3,8 +3,10 @@ using OctalPulse.Domain.Enums;
 
 namespace OctalPulse.Domain.Entities;
 
-public class UserProjectRole : DomainEntity
+public class UserProjectRole : CommonEntity
 {
+    public Guid Id { get; set; }
+    public bool IsDeleted { get; set; }
     public Guid ProjectMemberId { get; set; }
     public ProjectRole Role { get; set; }
 

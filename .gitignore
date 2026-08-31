@@ -399,3 +399,13 @@ FodyWeavers.xsd
 
 # JetBrains Rider
 *.sln.iml
+
+# OctalPulse - project logs
+**/Logs/
+**/Logs/*
+
+# OctalPulse - local configuration secrets
+appsettings.Development.json
+appsettings.Staging.json
+appsettings.Production.json
+**/appsettings.*.json

@@ -11,8 +11,43 @@ This document describes the OctaLTeammate database — the persistent data model
 
 The Domain layer holds the entities designed with **DDD** principles:
 
-- Every business entity derives from the abstract base class `DomainEntity`, which provides a `Guid Id` and an `IsDeleted` flag used as a **soft delete** trigger (rows are never hard-deleted; they are flagged and filtered out of queries).
-- Entities that track change history derive from `AuditableEntity` (adds `CreatedDate` and `ModifiedDate`).
+- `DomainEntity` — an empty **marker interface** tagging every business entity as part of the domain.
+- `CommonEntity : DomainEntity` — adds `Guid Id` and `bool IsDeleted` (used as a **soft delete** trigger; rows are flagged, never hard-deleted).
+- `AuditableEntity : CommonEntity` — adds `CreatedDate` and `ModifiedDate` for change tracking.
+
+Entities implement these interfaces, so every entity must explicitly declare `Id`, `IsDeleted`, and (for auditable ones) `CreatedDate`/`ModifiedDate`.
+
+### Base Interface Clarification
+
+| Interface | Extends | Members | Implemented by |
+|-----------|---------|---------|----------------|
+| `DomainEntity` | — | *(marker)* | `User` (+ all others via inheritance) |
+| `CommonEntity` | `DomainEntity` | `Id`, `IsDeleted` | `UserProjectRole` (no audit timestamps needed) |
+| `AuditableEntity` | `CommonEntity` | + `CreatedDate`, `ModifiedDate` | `Project`, `ProjectMember`, `Track`, `TrackMember`, `MajorTask`, `MinorTask`, `Event` |
+| `User` | `IdentityUser<Guid>, DomainEntity` | identity + business fields | — (cannot be a `CommonEntity`; its key is owned by Identity) |
+
+> `User` is a domain entity in behavior (implements the `DomainEntity` marker) but inherits from `IdentityUser<Guid>` (Microsoft Identity) because its key, hashed password, and login fields are managed by the Identity framework. It already declares `IsDeleted` separately.
+
+### Infrastructure / EF Core Mapping
+
+EF Core configuration lives in the `OctalPulse.Infrastructure` project:
+
+- **Configurations/** — one `IEntityTypeConfiguration<T>` per entity defining table names, key constraints, column lengths, enum-as-string conversions, indexes, delete behaviors, and the soft-delete query filter (`HasQueryFilter(e => !e.IsDeleted)`).
+- **Persistence/ApplicationDbContext** — `IdentityDbContext<User, IdentityRole<Guid>, Guid>` exposing a `DbSet` per entity. Configurations are auto-discovered via `ApplyConfigurationsFromAssembly`.
+- **DependencyInjection** — `AddInfrastructure()` registers the `ApplicationDbContext` bound to SQL Server using the `DefaultConnection` connection string.
+- **Persistence/Migrations** — the EF Core migration folder. The initial schema is `InitialCreate`; migrations are added with `dotnet ef migrations add <Name>` and applied with `dotnet ef database update`.
+
+### Creating / Applying Migrations
+
+```bash
+# from the API project directory
+dotnet ef migrations add InitialCreate --project ..\OctalPulse.Infrastructure\OctalPulse.Infrastructure.csproj --output-dir Persistence\Migrations
+dotnet ef database update
+```
+
+The connection string is read from `appsettings.json` -> `ConnectionStrings:DefaultConnection` (SQL Server).
+
+
 
 ## Conventions & Global Rules
 
@@ -28,7 +63,7 @@ The Domain layer holds the entities designed with **DDD** principles:
 
 | Entity | Table Name | Purpose |
 |--------|-----------|---------|
-| User | `AspNetUsers` (Identity) | Team members, their main role and rank |
+| User | `Users` | Team members, their main role and rank (custom Identity user) |
 | Project | `Projects` | A managed project container |
 | ProjectMember | `ProjectMembers` | User ↔ Project membership |
 | UserProjectRole | `UserProjectRoles` | Many roles a user can hold within one project |
@@ -42,7 +77,7 @@ The Domain layer holds the entities designed with **DDD** principles:
 
 ---
 
-## 1. User — `AspNetUsers`
+## 1. User — `Users`
 
 Represents a team member. Uses **Microsoft Identity** so login (email/password), password hashing, and roles are handled by the framework.
 

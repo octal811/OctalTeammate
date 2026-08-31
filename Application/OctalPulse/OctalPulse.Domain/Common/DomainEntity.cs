@@ -1,12 +1,18 @@
 namespace OctalPulse.Domain.Common;
 
-public abstract class DomainEntity
+
+public interface DomainEntity
+{
+    
+}
+
+public interface CommonEntity : DomainEntity
 {
     public Guid Id { get; set; }
     public bool IsDeleted { get; set; }
 }
 
-public abstract class AuditableEntity : DomainEntity
+public interface AuditableEntity : CommonEntity
 {
     public DateTime CreatedDate { get; set; }
     public DateTime? ModifiedDate { get; set; }

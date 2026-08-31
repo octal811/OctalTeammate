@@ -1,9 +1,10 @@
 using Microsoft.AspNetCore.Identity;
+using OctalPulse.Domain.Common;
 using OctalPulse.Domain.Enums;
 
 namespace OctalPulse.Domain.Entities;
 
-public class User : IdentityUser<Guid>
+public class User : IdentityUser<Guid>, DomainEntity
 {
     public string Name { get; set; } = string.Empty;
     public UserRole MainRole { get; set; }
