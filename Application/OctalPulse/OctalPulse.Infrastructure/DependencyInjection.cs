@@ -1,7 +1,11 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using OctalPulse.Application.Interface.Repositories;
+using OctalPulse.Application.Interface.Services;
 using OctalPulse.Infrastructure.Persistence;
+using OctalPulse.Infrastructure.Repositories;
+using OctalPulse.Infrastructure.Services;
 
 namespace OctalPulse.Infrastructure;
 
@@ -13,6 +17,23 @@ public static class DependencyInjection
             options.UseSqlServer(
                 configuration.GetConnectionString("DefaultConnection"),
                 sql => sql.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
+
+        services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
+        services.AddScoped<IEmailService, EmailService>();
+        services.AddScoped<INotificationService, NotificationService>();
+
+        services.AddScoped(typeof(IGenericRepository<>), typeof(BaseRepository<>));
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
+
+        services.AddScoped<IUserRepository, UserRepository>();
+        services.AddScoped<IProjectRepository, ProjectRepository>();
+        services.AddScoped<IProjectMemberRepository, ProjectMemberRepository>();
+        services.AddScoped<IUserProjectRoleRepository, UserProjectRoleRepository>();
+        services.AddScoped<ITrackRepository, TrackRepository>();
+        services.AddScoped<ITrackMemberRepository, TrackMemberRepository>();
+        services.AddScoped<IMajorTaskRepository, MajorTaskRepository>();
+        services.AddScoped<IMinorTaskRepository, MinorTaskRepository>();
+        services.AddScoped<IEventRepository, EventRepository>();
 
         return services;
     }

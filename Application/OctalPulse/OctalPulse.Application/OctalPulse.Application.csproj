@@ -6,4 +6,16 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="MediatR" Version="12.5.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Feature\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\OctalPulse.Domain\OctalPulse.Domain.csproj" />
+  </ItemGroup>
+
 </Project>
