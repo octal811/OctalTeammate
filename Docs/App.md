@@ -37,7 +37,7 @@ Everyone carries a **main role** (their specialty: `BackEnd`, `Mobile`, `Designe
 | **Track leads** | Users who lead a workstream | Curate their track, admit members, guard the track from accidental deletion |
 | **Administrators** | App operators (`Rank = Admin`) | Maintain the app: handle problems, and control API availability at runtime |
 
-Administrators are still regular members — they keep their own `MainRole` and project roles; the `Admin` rank only unlocks app-level capabilities (e.g. the API availability panel).
+Administrators are still regular members — they keep their own `MainRole` and project roles; the `Admin` rank only unlocks app-level capabilities (e.g. the API availability panel). Admin-gated routes are authorized against the live `User.Rank` value in the database, not a JWT claim, so a rank change applies immediately.
 
 ## Architecture at a Glance
 

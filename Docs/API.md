@@ -36,7 +36,7 @@ Register and login return an `AuthResponse` — a JWT access token plus a rotati
 
 - Access token: short-lived (default `15` minutes). Contains claims `sub`, `email`, `name`, `mainRole`, `rank`, `jti`, `iat`.
 - Refresh token: long-lived (default `7` days), stored **hashed** (SHA-256) in the `RefreshTokens` table and **single-use**. Each refresh rotates: the old token is revoked and a new pair is returned.
-- The `rank` claim is `Admin` or `Member`; the `AdminOnly` authorization policy requires `rank == "Admin"`.
+- The JWT carries a `rank` claim (`Admin` or `Member`) for client-side hints, but the **`AdminOnly` authorization policy does not trust the claim** — it loads the actual user from the database and requires `User.Rank == Admin`. A demoted/promoted user takes effect immediately, without re-login.
 
 ---
 
@@ -193,7 +193,7 @@ Validates the OTP and sets a new password. The user must log in again afterward 
 
 ## Admin — API Availability
 
-All routes in this group require a token whose `rank` claim is `Admin` (policy `AdminOnly`). A normal user gets `403 Forbidden`.
+All routes in this group are protected by the `AdminOnly` policy, which requires the caller to be an authenticated user whose **database record** has `Rank = Admin` (`ApiAvailabilityController` is `[Authorize(Policy = "AdminOnly")]`). A normal member gets `403 Forbidden`.
 
 ### POST `/api/admin/ApiAvailability/{key}/enable`
 
