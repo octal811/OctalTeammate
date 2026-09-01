@@ -29,6 +29,7 @@ public static class DependencyInjection
         services.AddMemoryCache();
         services.AddSingleton<ICacheService, CacheService>();
         services.AddScoped<IOtpService, OtpService>();
+        services.AddSingleton<IUserOperationLock, UserOperationLock>();
 
         services.AddScoped(typeof(IGenericRepository<>), typeof(BaseRepository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();

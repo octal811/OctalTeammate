@@ -56,6 +56,7 @@ app.UseMiddleware<OctalPulse.API.Middleware.ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
+app.UseMiddleware<OctalPulse.API.Middleware.UserOperationLockMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();
