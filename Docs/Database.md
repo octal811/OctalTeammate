@@ -23,7 +23,7 @@ Entities implement these interfaces, so every entity must explicitly declare `Id
 |-----------|---------|---------|----------------|
 | `DomainEntity` | — | *(marker)* | `User` (+ all others via inheritance) |
 | `CommonEntity` | `DomainEntity` | `Id`, `IsDeleted` | `UserProjectRole` (no audit timestamps needed) |
-| `AuditableEntity` | `CommonEntity` | + `CreatedDate`, `ModifiedDate` | `Project`, `ProjectMember`, `Track`, `TrackMember`, `MajorTask`, `MinorTask`, `Event`, `RefreshToken` |
+| `AuditableEntity` | `CommonEntity` | + `CreatedDate`, `ModifiedDate` | `Project`, `ProjectMember`, `Track`, `TrackMember`, `MajorTask`, `MinorTask`, `Event`, `RefreshToken`, `ApiAvailability` |
 | `User` | `IdentityUser<Guid>, DomainEntity` | identity + business fields | — (cannot be a `CommonEntity`; its key is owned by Identity) |
 
 > `User` is a domain entity in behavior (implements the `DomainEntity` marker) but inherits from `IdentityUser<Guid>` (Microsoft Identity) because its key, hashed password, and login fields are managed by the Identity framework. It already declares `IsDeleted` separately.
@@ -46,6 +46,14 @@ dotnet ef database update --project ..\OctalPulse.Infrastructure --startup-proje
 ```
 
 The connection string is read from `appsettings.json` -> `ConnectionStrings:DefaultConnection` (SQL Server). The API project is used as the startup project because it registers the `DbContext` and owns the configuration.
+
+### Migration History
+
+| Migration | Purpose |
+|-----------|---------|
+| `20260831185238_InitialCreate` | Baseline schema (all domain tables + Identity). |
+| `20260901140155_AddRefreshTokens` | Adds `RefreshTokens` for JWT session rotation. |
+| `20260901163212_AddApiAvailability` | Adds `ApiAvailability` for admin-controlled endpoint availability. |
 
 
 
