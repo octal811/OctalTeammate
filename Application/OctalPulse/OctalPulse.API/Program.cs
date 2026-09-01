@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
 using OctalPulse.API.Authorization;
 using OctalPulse.Application;
 using OctalPulse.Domain.Entities;
@@ -53,6 +54,11 @@ builder.Services
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
 var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>() ?? new JwtSettings();
+if (builder.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(jwtSettings.Key))
+{
+    jwtSettings.Key = "octal-developer-only-signing-key-0123456789abcdef";
+}
+
 builder.Services
     .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
@@ -78,12 +84,63 @@ builder.Services.AddAuthorization(options =>
         policy.Requirements.Add(new AdminOnlyRequirement()));
 });
 
+// ── Swagger / OpenAPI ────────────────────────────────────────────────────────
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
+{
+    options.SwaggerDoc("v1", new OpenApiInfo
+    {
+        Title = "OctalPulse API",
+        Version = "v1",
+        Description = "Team collaboration API for OctalTeammate."
+    });
+
+    options.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        Scheme = "bearer",
+        BearerFormat = "JWT",
+        In = ParameterLocation.Header,
+        Description = "Enter your JWT access token."
+    });
+
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+    {
+        [new OpenApiSecuritySchemeReference("Bearer", document)] = new List<string>()
+    });
+});
+
 // ── App ──────────────────────────────────────────────────────────────────────
 var app = builder.Build();
+
+if (app.Environment.IsDevelopment())
+{
+    app.Lifetime.ApplicationStarted.Register(() =>
+    {
+        var baseUrl = app.Urls.FirstOrDefault()?.TrimEnd('/');
+        if (!string.IsNullOrEmpty(baseUrl))
+        {
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo($"{baseUrl}/swagger")
+            {
+                UseShellExecute = true
+            });
+        }
+    });
+}
 
 Log.Information("OctalPulse started | log file → {LogFilePath}", logFilePath);
 
 app.UseMiddleware<OctalPulse.API.Middleware.ExceptionHandlingMiddleware>();
+
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "OctalPulse API v1");
+    });
+}
 
 app.UseHttpsRedirection();
 

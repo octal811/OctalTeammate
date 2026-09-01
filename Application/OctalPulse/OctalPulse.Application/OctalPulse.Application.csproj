@@ -12,10 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Feature\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\OctalPulse.Domain\OctalPulse.Domain.csproj" />
   </ItemGroup>
 
