@@ -18,4 +18,5 @@ public class User : IdentityUser<Guid>, DomainEntity
     public ICollection<MajorTask> AssignedMajorTasks { get; set; } = new List<MajorTask>();
     public ICollection<MinorTask> AssignedMinorTasks { get; set; } = new List<MinorTask>();
     public ICollection<Project> CreatedProjects { get; set; } = new List<Project>();
+    public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
 }

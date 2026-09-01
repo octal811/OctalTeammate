@@ -23,6 +23,13 @@ public static class DependencyInjection
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<INotificationService, NotificationService>();
 
+        services.Configure<JwtSettings>(configuration.GetSection("Jwt"));
+        services.AddScoped<IJwtService, JwtService>();
+
+        services.AddMemoryCache();
+        services.AddSingleton<ICacheService, CacheService>();
+        services.AddScoped<IOtpService, OtpService>();
+
         services.AddScoped(typeof(IGenericRepository<>), typeof(BaseRepository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
 
@@ -35,6 +42,7 @@ public static class DependencyInjection
         services.AddScoped<IMajorTaskRepository, MajorTaskRepository>();
         services.AddScoped<IMinorTaskRepository, MinorTaskRepository>();
         services.AddScoped<IEventRepository, EventRepository>();
+        services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
 
         return services;
     }

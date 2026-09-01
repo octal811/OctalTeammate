@@ -23,7 +23,7 @@ Entities implement these interfaces, so every entity must explicitly declare `Id
 |-----------|---------|---------|----------------|
 | `DomainEntity` | — | *(marker)* | `User` (+ all others via inheritance) |
 | `CommonEntity` | `DomainEntity` | `Id`, `IsDeleted` | `UserProjectRole` (no audit timestamps needed) |
-| `AuditableEntity` | `CommonEntity` | + `CreatedDate`, `ModifiedDate` | `Project`, `ProjectMember`, `Track`, `TrackMember`, `MajorTask`, `MinorTask`, `Event` |
+| `AuditableEntity` | `CommonEntity` | + `CreatedDate`, `ModifiedDate` | `Project`, `ProjectMember`, `Track`, `TrackMember`, `MajorTask`, `MinorTask`, `Event`, `RefreshToken` |
 | `User` | `IdentityUser<Guid>, DomainEntity` | identity + business fields | — (cannot be a `CommonEntity`; its key is owned by Identity) |
 
 > `User` is a domain entity in behavior (implements the `DomainEntity` marker) but inherits from `IdentityUser<Guid>` (Microsoft Identity) because its key, hashed password, and login fields are managed by the Identity framework. It already declares `IsDeleted` separately.
@@ -40,12 +40,12 @@ EF Core configuration lives in the `OctalPulse.Infrastructure` project:
 ### Creating / Applying Migrations
 
 ```bash
-# from the API project directory
-dotnet ef migrations add InitialCreate --project ..\OctalPulse.Infrastructure\OctalPulse.Infrastructure.csproj --output-dir Persistence\Migrations
-dotnet ef database update
+# from the Infrastructure project directory, using the API as startup project
+dotnet ef migrations add InitialCreate --project ..\OctalPulse.Infrastructure --startup-project ..\OctalPulse.API --output-dir Persistence\Migrations
+dotnet ef database update --project ..\OctalPulse.Infrastructure --startup-project ..\OctalPulse.API
 ```
 
-The connection string is read from `appsettings.json` -> `ConnectionStrings:DefaultConnection` (SQL Server).
+The connection string is read from `appsettings.json` -> `ConnectionStrings:DefaultConnection` (SQL Server). The API project is used as the startup project because it registers the `DbContext` and owns the configuration.
 
 
 
@@ -72,6 +72,7 @@ The connection string is read from `appsettings.json` -> `ConnectionStrings:Defa
 | MajorTask | `MajorTasks` | High-level task belonging to a track |
 | MinorTask | `MinorTasks` | Small actionable task belonging to a major task |
 | Event | `Events` | Calendar/scheduling items (meetings, deadlines, etc.) |
+| RefreshToken | `RefreshTokens` | Login/refresh session tokens (hashed, revocable) for JWT auth |
 
 > Identity also creates supporting tables: `AspNetRoles`, `AspNetUserRoles`, `AspNetUserClaims`, `AspNetUserLogins`, `AspNetUserTokens`, `AspNetRoleClaims`.
 
@@ -110,6 +111,7 @@ Represents a team member. Uses **Microsoft Identity** so login (email/password),
 | `AssignedMajorTasks` | MajorTask | 1 → Many |
 | `AssignedMinorTasks` | MinorTask | 1 → Many |
 | `CreatedProjects` | Project | 1 → Many |
+| `RefreshTokens` | RefreshToken | 1 → Many |
 
 ---
 
@@ -330,6 +332,28 @@ Calendar/scheduling entries used to remind the team about tasks, jobs, meetings,
 
 ---
 
+## 10. RefreshToken — `RefreshTokens`
+
+Stores login/refresh session tokens for **JWT authentication**. The refresh token itself is never stored raw — only its **SHA-256 hash**, so a leaked database cannot be used to mint new sessions. Each login/refresh issues a new single-use token and revokes the previous one.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| Id | Guid | Primary key. |
+| TokenHash | string (128) | SHA-256 hex hash of the refresh token (unique). |
+| ExpiresAt | DateTime | When the refresh token expires (default 7 days). |
+| RevokedAt | DateTime? | When the token was revoked/replaced (single-use rotation). |
+| UserId | Guid | FK → User.Id — the owner of the session. |
+| CreatedDate | DateTime | When the token was issued. |
+| ModifiedDate | DateTime? | Last update timestamp. |
+| IsDeleted | bool | Soft delete flag. |
+
+**Relationships**
+| Navigation | Type | Cardinality |
+|-----------|------|-------------|
+| `User` | User | Many → 1 |
+
+---
+
 ## Relationships & Cardinality Summary
 
 ```
@@ -365,6 +389,7 @@ User 1 ──── * Event (CreatedByUserId)
 | MajorTask | Event | Has Many | N → 0..1 | An event may be scoped to a major task. |
 | User | Event | Has Many | 1 → N | A user creates many events. |
 | Project | User | Has One | N → 1 | `CreatedByUserId` creator relationship. |
+| User | RefreshToken | Has Many | 1 → N | A user owns many (rotated) refresh tokens. |
 
 ## Progress Cascade
 
