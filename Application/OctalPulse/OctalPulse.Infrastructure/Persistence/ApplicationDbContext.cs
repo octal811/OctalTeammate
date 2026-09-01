@@ -22,6 +22,7 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     public DbSet<MinorTask> MinorTasks => Set<MinorTask>();
     public DbSet<Event> Events => Set<Event>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<ApiAvailability> ApiAvailability => Set<ApiAvailability>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

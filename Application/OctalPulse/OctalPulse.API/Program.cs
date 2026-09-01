@@ -1,5 +1,6 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using OctalPulse.Application;
@@ -47,6 +48,12 @@ builder.Services
         };
     });
 
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy =>
+        policy.RequireClaim("rank", "Admin"));
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -56,6 +63,7 @@ app.UseMiddleware<OctalPulse.API.Middleware.ExceptionHandlingMiddleware>();
 app.UseHttpsRedirection();
 
 app.UseAuthentication();
+app.UseMiddleware<OctalPulse.API.Middleware.ApiAvailabilityMiddleware>();
 app.UseMiddleware<OctalPulse.API.Middleware.UserOperationLockMiddleware>();
 app.UseAuthorization();
 

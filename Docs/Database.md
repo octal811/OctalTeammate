@@ -73,6 +73,7 @@ The connection string is read from `appsettings.json` -> `ConnectionStrings:Defa
 | MinorTask | `MinorTasks` | Small actionable task belonging to a major task |
 | Event | `Events` | Calendar/scheduling items (meetings, deadlines, etc.) |
 | RefreshToken | `RefreshTokens` | Login/refresh session tokens (hashed, revocable) for JWT auth |
+| ApiAvailability | `ApiAvailability` | Admin-controlled enable/disable toggle for API endpoints (by key) |
 
 > Identity also creates supporting tables: `AspNetRoles`, `AspNetUserRoles`, `AspNetUserClaims`, `AspNetUserLogins`, `AspNetUserTokens`, `AspNetRoleClaims`.
 
@@ -351,6 +352,25 @@ Stores login/refresh session tokens for **JWT authentication**. The refresh toke
 | Navigation | Type | Cardinality |
 |-----------|------|-------------|
 | `User` | User | Many → 1 |
+
+---
+
+## 11. ApiAvailability — `ApiAvailability`
+
+Lets an administrator enable or disable a **named API capability at runtime** (e.g. `UserRegistration`, `UserLogin`) without redeploying. Endpoints declare an `[ApiAvailability("Key")]` attribute; an API middleware layer consults this table on each request and rejects disabled capabilities with `503 Service Unavailable`.
+
+| Field | Type | Description |
+|-------|------|-------------|
+| Id | Guid | Primary key. |
+| Key | string (128, unique) | The availability key referenced by `[ApiAvailability("Key")]`. |
+| IsEnabled | bool | Whether the capability is currently enabled. |
+| UpdatedAt | DateTime | Last time the state was changed. |
+| UpdatedBy | Guid? | FK → User.Id (nullable) — the admin who changed it. |
+| CreatedDate | DateTime | When the row was first created. |
+| ModifiedDate | DateTime? | Last update timestamp. |
+| IsDeleted | bool | Soft delete flag. |
+
+Rows are created lazily when an administrator first enables/disables a key. A key with **no row is treated as enabled** (default allow).
 
 ---
 

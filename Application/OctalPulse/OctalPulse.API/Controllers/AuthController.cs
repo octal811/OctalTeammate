@@ -2,8 +2,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OctalPulse.API.Attributes;
-using OctalPulse.Domain.Enums;
-using OctalPulse.Application.Features.Command.Auth;
+using OctalPulse.Domain.Enums;using OctalPulse.Application.Features.Command.Auth;
 using OctalPulse.Application.Features.Command.Auth.Login;
 using OctalPulse.Application.Features.Command.Auth.RefreshToken;
 using OctalPulse.Application.Features.Command.Auth.Register;
@@ -26,6 +25,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
+    [ApiAvailability("UserRegistration")]
     public async Task<ActionResult<AuthResponse>> Register(RegisterRequest request, CancellationToken cancellationToken)
     {
         var command = new RegisterCommand(
@@ -39,6 +39,7 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("login")]
+    [ApiAvailability("UserLogin")]
     public async Task<ActionResult<AuthResponse>> Login(LoginRequest request, CancellationToken cancellationToken)
     {
         var command = new LoginCommand(request.Email, request.Password);

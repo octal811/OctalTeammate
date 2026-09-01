@@ -30,6 +30,7 @@ public static class DependencyInjection
         services.AddSingleton<ICacheService, CacheService>();
         services.AddScoped<IOtpService, OtpService>();
         services.AddSingleton<IUserOperationLock, UserOperationLock>();
+        services.AddScoped<IApiAvailabilityService, ApiAvailabilityService>();
 
         services.AddScoped(typeof(IGenericRepository<>), typeof(BaseRepository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -44,6 +45,7 @@ public static class DependencyInjection
         services.AddScoped<IMinorTaskRepository, MinorTaskRepository>();
         services.AddScoped<IEventRepository, EventRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
+        services.AddScoped<IApiAvailabilityRepository, ApiAvailabilityRepository>();
 
         return services;
     }
