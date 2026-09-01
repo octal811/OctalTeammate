@@ -8,5 +8,6 @@ public class EmailSettings
     public string Password { get; set; } = string.Empty;
     public string FromEmail { get; set; } = string.Empty;
     public string FromName { get; set; } = string.Empty;
+    public string SupportEmail { get; set; } = string.Empty;
     public bool UseSsl { get; set; } = true;
 }

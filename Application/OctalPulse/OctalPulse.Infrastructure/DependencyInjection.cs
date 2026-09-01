@@ -19,6 +19,7 @@ public static class DependencyInjection
                 sql => sql.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
 
         services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
+        services.AddSingleton<EmailTemplateRenderer>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<INotificationService, NotificationService>();
 

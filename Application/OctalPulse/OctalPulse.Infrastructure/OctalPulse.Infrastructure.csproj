@@ -21,4 +21,8 @@
     <ProjectReference Include="..\OctalPulse.Application\OctalPulse.Application.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <EmbeddedResource Include="Services\Templates\**\*.html" />
+  </ItemGroup>
+
 </Project>
