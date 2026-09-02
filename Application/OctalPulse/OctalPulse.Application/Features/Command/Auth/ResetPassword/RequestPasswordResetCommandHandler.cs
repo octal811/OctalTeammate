@@ -6,7 +6,7 @@ using OctalPulse.Domain.Entities;
 
 namespace OctalPulse.Application.Features.Command.Auth.ResetPassword;
 
-public class RequestPasswordResetCommandHandler : IRequestHandler<RequestPasswordResetCommand, Unit>
+public class RequestPasswordResetCommandHandler : IRequestHandler<RequestPasswordResetCommand, RequestPasswordResetResponse>
 {
     private readonly UserManager<User> _userManager;
     private readonly IOtpService _otpService;
@@ -22,14 +22,14 @@ public class RequestPasswordResetCommandHandler : IRequestHandler<RequestPasswor
         _notificationService = notificationService;
     }
 
-    public async Task<Unit> Handle(RequestPasswordResetCommand request, CancellationToken cancellationToken)
+    public async Task<RequestPasswordResetResponse> Handle(RequestPasswordResetCommand request, CancellationToken cancellationToken)
     {
         var user = await _userManager.FindByEmailAsync(request.Email);
 
         // Do not reveal whether an account exists. Always behave the same,
         // but only actually send the email when an account is found.
         if (user is null)
-            return Unit.Value;
+            return new RequestPasswordResetResponse("If an account exists, a reset code has been sent to your email.");
 
         if (await _otpService.HasActiveOtpAsync(request.Email, OtpPurpose.PasswordReset, cancellationToken))
         {
@@ -40,6 +40,6 @@ public class RequestPasswordResetCommandHandler : IRequestHandler<RequestPasswor
         var code = await _otpService.IssueOtpAsync(request.Email, OtpPurpose.PasswordReset, cancellationToken: cancellationToken);
         await _notificationService.SendPasswordResetAsync(request.Email, code, cancellationToken);
 
-        return Unit.Value;
+        return new RequestPasswordResetResponse("If an account exists, a reset code has been sent to your email.");
     }
 }

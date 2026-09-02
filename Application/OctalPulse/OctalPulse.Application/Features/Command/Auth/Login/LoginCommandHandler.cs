@@ -8,7 +8,7 @@ using OctalPulse.Domain.Entities;
 
 namespace OctalPulse.Application.Features.Command.Auth.Login;
 
-public class LoginCommandHandler : AuthCommandHandlerBase, IRequestHandler<LoginCommand, AuthResponse>
+public class LoginCommandHandler : AuthCommandHandlerBase, IRequestHandler<LoginCommand, LoginResponse>
 {
     private readonly UserManager<User> _userManager;
 
@@ -22,7 +22,7 @@ public class LoginCommandHandler : AuthCommandHandlerBase, IRequestHandler<Login
         _userManager = userManager;
     }
 
-    public async Task<AuthResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
+    public async Task<LoginResponse> Handle(LoginCommand request, CancellationToken cancellationToken)
     {
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user is null || user.IsDeleted)
@@ -32,6 +32,14 @@ public class LoginCommandHandler : AuthCommandHandlerBase, IRequestHandler<Login
         if (!validPassword)
             throw new UnauthorizedException("Invalid email or password.");
 
-        return await IssueTokensAsync(user, cancellationToken);
+        var result = await IssueTokensAsync(user, cancellationToken);
+        return new LoginResponse(
+            result.AccessToken,
+            result.RefreshToken,
+            result.AccessTokenExpiresAt,
+            result.RefreshTokenExpiresAt,
+            result.UserId,
+            result.Email,
+            result.Name);
     }
 }

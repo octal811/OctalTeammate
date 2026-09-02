@@ -6,7 +6,7 @@ using OctalPulse.Domain.Entities;
 
 namespace OctalPulse.Application.Features.Command.Auth.VerifyEmail;
 
-public class VerifyEmailCommandHandler : IRequestHandler<VerifyEmailCommand, Unit>
+public class VerifyEmailCommandHandler : IRequestHandler<VerifyEmailCommand, VerifyEmailResponse>
 {
     private readonly UserManager<User> _userManager;
     private readonly IOtpService _otpService;
@@ -17,7 +17,7 @@ public class VerifyEmailCommandHandler : IRequestHandler<VerifyEmailCommand, Uni
         _otpService = otpService;
     }
 
-    public async Task<Unit> Handle(VerifyEmailCommand request, CancellationToken cancellationToken)
+    public async Task<VerifyEmailResponse> Handle(VerifyEmailCommand request, CancellationToken cancellationToken)
     {
         var validation = await _otpService.ValidateOtpAsync(
             request.Email,
@@ -40,7 +40,7 @@ public class VerifyEmailCommandHandler : IRequestHandler<VerifyEmailCommand, Uni
         if (!result.Succeeded)
             throw new ValidationException(string.Join("; ", result.Errors.Select(e => e.Description)));
 
-        return Unit.Value;
+        return new VerifyEmailResponse("Email verified successfully.");
     }
 
     private static ValidationException MapValidationFailure(OtpValidationResult result)

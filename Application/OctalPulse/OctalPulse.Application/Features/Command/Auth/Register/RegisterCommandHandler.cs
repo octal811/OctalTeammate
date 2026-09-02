@@ -9,7 +9,7 @@ using OctalPulse.Domain.Enums;
 
 namespace OctalPulse.Application.Features.Command.Auth.Register;
 
-public class RegisterCommandHandler : AuthCommandHandlerBase, IRequestHandler<RegisterCommand, AuthResponse>
+public class RegisterCommandHandler : AuthCommandHandlerBase, IRequestHandler<RegisterCommand, RegisterResponse>
 {
     private readonly UserManager<User> _userManager;
 
@@ -23,7 +23,7 @@ public class RegisterCommandHandler : AuthCommandHandlerBase, IRequestHandler<Re
         _userManager = userManager;
     }
 
-    public async Task<AuthResponse> Handle(RegisterCommand request, CancellationToken cancellationToken)
+    public async Task<RegisterResponse> Handle(RegisterCommand request, CancellationToken cancellationToken)
     {
         var existing = await _userManager.FindByEmailAsync(request.Email);
         if (existing is not null)
@@ -45,6 +45,14 @@ public class RegisterCommandHandler : AuthCommandHandlerBase, IRequestHandler<Re
         if (!result.Succeeded)
             throw new ValidationException(string.Join("; ", result.Errors.Select(e => e.Description)));
 
-        return await IssueTokensAsync(user, cancellationToken);
+        var tokens = await IssueTokensAsync(user, cancellationToken);
+        return new RegisterResponse(
+            tokens.AccessToken,
+            tokens.RefreshToken,
+            tokens.AccessTokenExpiresAt,
+            tokens.RefreshTokenExpiresAt,
+            tokens.UserId,
+            tokens.Email,
+            tokens.Name);
     }
 }

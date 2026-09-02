@@ -21,7 +21,7 @@ public abstract class AuthCommandHandlerBase
         UnitOfWork = unitOfWork;
     }
 
-    protected async Task<AuthResponse> IssueTokensAsync(User user, CancellationToken cancellationToken)
+    protected async Task<TokenIssueResult> IssueTokensAsync(User user, CancellationToken cancellationToken)
     {
         var access = JwtService.GenerateAccessToken(user);
         var refresh = JwtService.GenerateRefreshToken();
@@ -39,7 +39,7 @@ public abstract class AuthCommandHandlerBase
 
         await UnitOfWork.SaveChangesAsync(cancellationToken);
 
-        return new AuthResponse(
+        return new TokenIssueResult(
             access.Token,
             refresh.Token,
             access.ExpiresAtUtc,

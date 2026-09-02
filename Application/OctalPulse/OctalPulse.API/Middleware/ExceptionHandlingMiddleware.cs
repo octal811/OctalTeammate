@@ -31,6 +31,11 @@ public class ExceptionHandlingMiddleware
             _logger.LogWarning(ex, "Validation failed.");
             await WriteErrorAsync(context, HttpStatusCode.BadRequest, "Validation Error", ex.Message);
         }
+        catch (NotFoundException ex)
+        {
+            _logger.LogWarning(ex, "Resource not found.");
+            await WriteErrorAsync(context, HttpStatusCode.NotFound, "Not Found", ex.Message);
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unhandled exception.");

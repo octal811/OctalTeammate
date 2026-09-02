@@ -6,4 +6,4 @@ public record RegisterCommand(
     string Email,
     string Name,
     Domain.Enums.UserRole MainRole,
-    string Password) : IRequest<AuthResponse>;
+    string Password) : IRequest<RegisterResponse>;

@@ -1,6 +1,6 @@
-namespace OctalPulse.Application.Features.Command.Auth;
+namespace OctalPulse.Application.Features.Command.Auth.Common;
 
-public record AuthResponse(
+public record TokenIssueResult(
     string AccessToken,
     string RefreshToken,
     DateTime AccessTokenExpiresAt,

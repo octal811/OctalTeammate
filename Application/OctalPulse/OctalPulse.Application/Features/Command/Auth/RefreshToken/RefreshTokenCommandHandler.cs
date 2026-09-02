@@ -8,7 +8,7 @@ using OctalPulse.Domain.Entities;
 
 namespace OctalPulse.Application.Features.Command.Auth.RefreshToken;
 
-public class RefreshTokenCommandHandler : AuthCommandHandlerBase, IRequestHandler<RefreshTokenCommand, AuthResponse>
+public class RefreshTokenCommandHandler : AuthCommandHandlerBase, IRequestHandler<RefreshTokenCommand, RefreshTokenResponse>
 {
     private readonly UserManager<User> _userManager;
 
@@ -22,7 +22,7 @@ public class RefreshTokenCommandHandler : AuthCommandHandlerBase, IRequestHandle
         _userManager = userManager;
     }
 
-    public async Task<AuthResponse> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
+    public async Task<RefreshTokenResponse> Handle(RefreshTokenCommand request, CancellationToken cancellationToken)
     {
         var hash = JwtService.HashRefreshToken(request.RefreshToken);
 
@@ -44,6 +44,14 @@ public class RefreshTokenCommandHandler : AuthCommandHandlerBase, IRequestHandle
         stored.ModifiedDate = DateTime.UtcNow;
         RefreshTokenRepository.Update(stored);
 
-        return await IssueTokensAsync(user, cancellationToken);
+        var result = await IssueTokensAsync(user, cancellationToken);
+        return new RefreshTokenResponse(
+            result.AccessToken,
+            result.RefreshToken,
+            result.AccessTokenExpiresAt,
+            result.RefreshTokenExpiresAt,
+            result.UserId,
+            result.Email,
+            result.Name);
     }
 }

@@ -36,7 +36,11 @@ builder.Host.UseSerilog((_, configuration) =>
             "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}"));
 
 // ── Services ─────────────────────────────────────────────────────────────────
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 
 builder.Services.AddInfrastructure(builder.Configuration);
 builder.Services.AddApplication();
@@ -57,6 +61,7 @@ var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>() ?? 
 if (builder.Environment.IsDevelopment() && string.IsNullOrWhiteSpace(jwtSettings.Key))
 {
     jwtSettings.Key = "octal-developer-only-signing-key-0123456789abcdef";
+    builder.Configuration["Jwt:Key"] = jwtSettings.Key;
 }
 
 builder.Services

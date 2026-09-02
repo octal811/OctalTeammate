@@ -6,7 +6,7 @@ using OctalPulse.Domain.Entities;
 
 namespace OctalPulse.Application.Features.Command.Auth.VerifyEmail;
 
-public class RequestEmailVerificationCommandHandler : IRequestHandler<RequestEmailVerificationCommand, Unit>
+public class RequestEmailVerificationCommandHandler : IRequestHandler<RequestEmailVerificationCommand, RequestEmailVerificationResponse>
 {
     private readonly UserManager<User> _userManager;
     private readonly IOtpService _otpService;
@@ -22,7 +22,7 @@ public class RequestEmailVerificationCommandHandler : IRequestHandler<RequestEma
         _notificationService = notificationService;
     }
 
-    public async Task<Unit> Handle(RequestEmailVerificationCommand request, CancellationToken cancellationToken)
+    public async Task<RequestEmailVerificationResponse> Handle(RequestEmailVerificationCommand request, CancellationToken cancellationToken)
     {
         var user = await _userManager.FindByEmailAsync(request.Email);
         if (user is null)
@@ -40,6 +40,6 @@ public class RequestEmailVerificationCommandHandler : IRequestHandler<RequestEma
         var code = await _otpService.IssueOtpAsync(request.Email, OtpPurpose.EmailVerification, cancellationToken: cancellationToken);
         await _notificationService.SendEmailVerificationAsync(request.Email, code, cancellationToken);
 
-        return Unit.Value;
+        return new RequestEmailVerificationResponse("Verification code sent to your email.");
     }
 }

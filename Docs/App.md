@@ -82,6 +82,12 @@ Rules that hold the design together:
 - `ApiAvailabilityMiddleware` — whole capabilities off (503).
 - `UserOperationLockMiddleware` — a user can't overlap the same operation (409); e.g., double-clicking "refresh".
 
+### 5. Projects
+- Any authenticated user can **create** a project (`POST /api/projects`); the creator is auto-joined as a `ProjectManager` member.
+- **Paginated list** (`GET /api/projects?pageNumber=&pageSize=`) — returns only `id`, `title`, `description`, `progress`, `status` (pageSize capped at 100).
+- **Update** (`PUT /api/projects/{id}`) and **full details** (`GET /api/projects/{id}` — basic info, creator, member list/count).
+- Missing projects return `404` (new `NotFoundException` in middleware); requests follow `Features/Command/Project/<Feature>` / `Features/Query/Project/<Feature>` with their handlers, responses, and validators co-located.
+
 ## Main User Flows
 
 ### Onboarding & verification
@@ -94,7 +100,7 @@ Rules that hold the design together:
 
 ### Login & sessions
 ```
-POST /api/auth/login                     → AuthResponse (access + refresh)
+POST /api/auth/login                     → LoginResponse (access + refresh)
 → call protected APIs with Authorization: Bearer <access>
 → when access expires: POST /api/auth/refresh {refreshToken}  → new pair
 → sign out:            POST /api/auth/revoke {refreshToken}

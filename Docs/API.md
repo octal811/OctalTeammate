@@ -7,7 +7,7 @@ This document describes the public HTTP API of **OctalPulse**. Endpoints are gro
 - **Base URL**: `https://<host>/api`
 - **Content-Type**: `application/json` (both request and response)
 - **Authentication**: JWT Bearer token. Send `Authorization: Bearer <accessToken>` for protected endpoints. Anonymous endpoints (register, login, e-mail OTP flows) do not require it.
-- **Request / Response models**: the API accepts the same JSON shape it returns — there are no DTO wrappers (email/password are sent in the body).
+- **Request / Response models**: the API accepts the same JSON shape it returns — there are no DTO wrappers (email/password are sent in the body). Controllers bind the **command records** directly from the body. Each command's handler, response, and FluentValidation validator live together in `Application/Features/Command/Auth/<Feature>/`.
 - **Errors**: all failures are normalized by `ExceptionHandlingMiddleware` into:
 
 ```json
@@ -20,7 +20,7 @@ This document describes the public HTTP API of **OctalPulse**. Endpoints are gro
 
 ## Auth Tokens
 
-Register and login return an `AuthResponse` — a JWT access token plus a rotating refresh token:
+Register, login, and refresh each return their own response record — `RegisterResponse`, `LoginResponse`, `RefreshTokenResponse` — with the same shape, a JWT access token plus a rotating refresh token:
 
 ```json
 {
@@ -59,7 +59,7 @@ Creates a new user with `Rank = Member` and returns a full token pair immediatel
 ```
 
 - `mainRole`: `FrontEnd | BackEnd | Mobile | DevOps | Designer | QA | ProjectManager`
-- `201`-style success → `200` with `AuthResponse` (see above)
+- `201`-style success → `200` with `RegisterResponse` (see above)
 - `400` — email already registered, or password fails Identity rules (min 8 chars, digit, upper & lower)
 
 ---
@@ -78,7 +78,7 @@ Authenticates with email + password and returns a token pair.
 }
 ```
 
-- `200` — `AuthResponse`
+- `200` — `LoginResponse`
 - `401` — invalid email or password (identical message for both, no account enumeration)
 
 ---
@@ -96,7 +96,7 @@ Redeems a refresh token for a **new** token pair (single-use rotation).
 }
 ```
 
-- `200` — new `AuthResponse`
+- `200` — new `RefreshTokenResponse`
 - `401` — invalid/expired/revoked refresh token, or the owning user no longer exists
 
 ---
@@ -188,6 +188,119 @@ Validates the OTP and sets a new password. The user must log in again afterward 
 
 - `200` — `{ "message": "Password has been reset. You can now log in with your new password." }`
 - `400` — wrong/expired OTP, too many invalid attempts, or the new password fails Identity rules
+
+---
+
+## Projects
+
+All routes in this group require an authenticated user (`[Authorize]`); any member can create, list, view, or update projects. The creator is automatically joined as a `ProjectManager` member.
+
+### POST `/api/projects`
+
+Creates a project. The authenticated user becomes its first member (role `ProjectManager`).
+
+```json
+// Request
+{
+  "title": "OctalPulse Web App",
+  "description": "Build the member dashboard.",
+  "progress": 10,
+  "status": "Active"
+}
+```
+
+- `progress`: 0–100 (default `0`); `status`: `Active | Completed | OnHold | Archived` (default `Active`)
+- `200` — `CreateProjectResponse`:
+
+```json
+{
+  "id": "00000000-0000-0000-0000-000000000000",
+  "title": "OctalPulse Web App",
+  "description": "Build the member dashboard.",
+  "progress": 10,
+  "status": "Active",
+  "createdDate": "2026-09-02T09:51:37Z"
+}
+```
+
+- `400` — invalid title/description/progress/status
+
+---
+
+### GET `/api/projects?pageNumber=1&pageSize=10`
+
+Paginated list. Returns **only** `id`, `title`, `description`, `progress`, `status` (newest first). `pageSize` is capped at 100.
+
+```json
+// 200 — GetAllProjectsResponse
+{
+  "items": [
+    {
+      "id": "00000000-0000-0000-0000-000000000000",
+      "title": "OctalPulse Web App",
+      "description": "Build the member dashboard.",
+      "progress": 10,
+      "status": "Active"
+    }
+  ],
+  "totalCount": 1,
+  "pageNumber": 1,
+  "pageSize": 10
+}
+```
+
+---
+
+### GET `/api/projects/{id}`
+
+Full project details: basic info, who created it, and its members.
+
+```json
+// 200 — GetProjectByIdResponse
+{
+  "id": "00000000-0000-0000-0000-000000000000",
+  "title": "OctalPulse Web App",
+  "description": "Build the member dashboard.",
+  "progress": 10,
+  "status": "Active",
+  "createdDate": "2026-09-02T09:51:37Z",
+  "modifiedDate": null,
+  "creator": {
+    "userId": "00000000-0000-0000-0000-000000000000",
+    "name": "Ahmed",
+    "email": "user@example.com"
+  },
+  "membersCount": 1,
+  "members": [
+    {
+      "userId": "00000000-0000-0000-0000-000000000000",
+      "name": "Ahmed",
+      "email": "user@example.com"
+    }
+  ]
+}
+```
+
+- `404` — project does not exist
+
+---
+
+### PUT `/api/projects/{id}`
+
+Updates title, description, progress, and status of the project.
+
+```json
+// Request
+{
+  "title": "OctalPulse Web App v2",
+  "description": "Now with team reports.",
+  "progress": 45,
+  "status": "Active"
+}
+```
+
+- `200` — `UpdateProjectResponse` (`id`, `title`, `description`, `progress`, `status`, `modifiedDate`)
+- `404` — project not found; `400` — invalid fields
 
 ---
 

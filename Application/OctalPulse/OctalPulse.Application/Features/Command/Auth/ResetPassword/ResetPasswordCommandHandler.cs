@@ -6,7 +6,7 @@ using OctalPulse.Domain.Entities;
 
 namespace OctalPulse.Application.Features.Command.Auth.ResetPassword;
 
-public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand, Unit>
+public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand, ResetPasswordResponse>
 {
     private readonly UserManager<User> _userManager;
     private readonly IOtpService _otpService;
@@ -17,7 +17,7 @@ public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand,
         _otpService = otpService;
     }
 
-    public async Task<Unit> Handle(ResetPasswordCommand request, CancellationToken cancellationToken)
+    public async Task<ResetPasswordResponse> Handle(ResetPasswordCommand request, CancellationToken cancellationToken)
     {
         var validation = await _otpService.ValidateOtpAsync(
             request.Email,
@@ -37,7 +37,7 @@ public class ResetPasswordCommandHandler : IRequestHandler<ResetPasswordCommand,
         if (!result.Succeeded)
             throw new ValidationException(string.Join("; ", result.Errors.Select(e => e.Description)));
 
-        return Unit.Value;
+        return new ResetPasswordResponse("Password has been reset. You can now log in with your new password.");
     }
 
     private static ValidationException MapValidationFailure(OtpValidationResult result)
