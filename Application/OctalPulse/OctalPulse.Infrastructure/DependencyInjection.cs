@@ -31,6 +31,7 @@ public static class DependencyInjection
         services.AddScoped<IOtpService, OtpService>();
         services.AddSingleton<IUserOperationLock, UserOperationLock>();
         services.AddScoped<IApiAvailabilityService, ApiAvailabilityService>();
+        services.AddScoped<IProgressCalculator, ProgressCalculator>();
 
         services.AddScoped(typeof(IGenericRepository<>), typeof(BaseRepository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();

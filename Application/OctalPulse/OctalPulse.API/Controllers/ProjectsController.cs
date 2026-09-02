@@ -8,6 +8,7 @@ using OctalPulse.Application.Features.Command.Project.DeleteProject;
 using OctalPulse.Application.Features.Command.Project.UpdateProject;
 using OctalPulse.Application.Features.Query.Project.GetAllProjects;
 using OctalPulse.Application.Features.Query.Project.GetProjectById;
+using OctalPulse.Application.Features.Query.Track.GetTracksByProject;
 
 namespace OctalPulse.API.Controllers;
 
@@ -26,7 +27,7 @@ public class ProjectsController : ControllerBase
     [HttpPost]
     [UserOperationLock("projects:create")]
     public async Task<ActionResult<CreateProjectResponse>> Create(
-        CreateProjectCommand command,
+        [FromBody] CreateProjectCommand command,
         CancellationToken cancellationToken)
     {
         var result = await _sender.Send(
@@ -35,13 +36,12 @@ public class ProjectsController : ControllerBase
         return Ok(result);
     }
 
-    [HttpGet]
+    [HttpPost("list")]
     public async Task<ActionResult<GetAllProjectsResponse>> GetAll(
-        CancellationToken cancellationToken,
-        [FromQuery] int pageNumber = 1,
-        [FromQuery] int pageSize = 10)
+        [FromBody] GetAllProjectsQuery query,
+        CancellationToken cancellationToken)
     {
-        var result = await _sender.Send(new GetAllProjectsQuery(pageNumber, pageSize), cancellationToken);
+        var result = await _sender.Send(query, cancellationToken);
         return Ok(result);
     }
 
@@ -52,10 +52,17 @@ public class ProjectsController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("{id:guid}/tracks")]
+    public async Task<ActionResult<GetTracksByProjectResponse>> GetTracks(Guid id, CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(new GetTracksByProjectQuery(id), cancellationToken);
+        return Ok(result);
+    }
+
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<UpdateProjectResponse>> Update(
         Guid id,
-        UpdateProjectCommand command,
+        [FromBody] UpdateProjectCommand command,
         CancellationToken cancellationToken)
     {
         var result = await _sender.Send(command with { Id = id }, cancellationToken);

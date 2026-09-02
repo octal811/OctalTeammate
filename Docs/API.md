@@ -204,12 +204,12 @@ Creates a project. The authenticated user becomes its first member (role `Projec
 {
   "title": "OctalPulse Web App",
   "description": "Build the member dashboard.",
-  "progress": 10,
   "status": "Active"
 }
 ```
 
-- `progress`: 0–100 (default `0`); `status`: `Active | Completed | OnHold | Archived` (default `Active`)
+- `status`: `Active | Completed | OnHold | Archived` (default `Active`)
+- `progress` is **not accepted** — always starts at `0` (auto-calculated from tracks)
 - `200` — `CreateProjectResponse`:
 
 ```json
@@ -217,21 +217,27 @@ Creates a project. The authenticated user becomes its first member (role `Projec
   "id": "00000000-0000-0000-0000-000000000000",
   "title": "OctalPulse Web App",
   "description": "Build the member dashboard.",
-  "progress": 10,
+  "progress": 0,
   "status": "Active",
   "createdDate": "2026-09-02T09:51:37Z"
 }
 ```
 
-- `400` — invalid title/description/progress/status
+- `400` — invalid title/description/status
 
 ---
 
-### GET `/api/projects?pageNumber=1&pageSize=10`
+### POST `/api/projects/list`
 
-Paginated list. Returns **only** `id`, `title`, `description`, `progress`, `status` (newest first). `pageSize` is capped at 100.
+Paginated list. Sends `pageNumber` and `pageSize` in the JSON body. Returns **only** `id`, `title`, `description`, `progress`, `status` (newest first). `pageSize` is capped at 100.
 
 ```json
+// Request
+{
+  "pageNumber": 1,
+  "pageSize": 10
+}
+
 // 200 — GetAllProjectsResponse
 {
   "items": [
@@ -294,11 +300,11 @@ Updates title, description, progress, and status of the project.
 {
   "title": "OctalPulse Web App v2",
   "description": "Now with team reports.",
-  "progress": 45,
   "status": "Active"
 }
 ```
 
+- `progress` is **not accepted** — auto-calculated from existing tracks
 - `200` — `UpdateProjectResponse` (`id`, `title`, `description`, `progress`, `status`, `modifiedDate`)
 - `404` — project not found; `400` — invalid fields
 
@@ -310,6 +316,81 @@ Soft-deletes the project **and everything under it** — members (and their proj
 
 - `204 No Content` — deleted (idempotent; re-deleting an already deleted project also returns `204`)
 - `404` — project does not exist
+
+---
+
+## Tracks
+
+All routes in this group require an authenticated user. Track CRUD is on `TracksController`; list-by-project lives on `ProjectsController`. All parameters are sent as JSON `[FromBody]`.
+
+### GET `/api/projects/{id}/tracks`
+
+Returns all tracks in the given project (newest created first).
+
+```json
+// 200 — GetTracksByProjectResponse
+{
+  "tracks": [
+    {
+      "id": "00000000-0000-0000-0000-000000000000",
+      "name": "Backend Track",
+      "description": "API and database work",
+      "progress": 15
+    }
+  ]
+}
+```
+
+- `404` — project does not exist (via FluentValidation)
+
+---
+
+### POST `/api/tracks`
+
+Creates a track inside a project.
+
+```json
+// Request
+{
+  "projectId": "00000000-0000-0000-0000-000000000000",
+  "name": "Backend Track",
+  "description": "API and database work",
+  "progress": 10
+}
+```
+
+- `progress`: 0–100 (default `0`)
+- `200` — `CreateTrackResponse` (id, projectId, name, description, progress)
+- `404` — project does not exist; `400` — invalid fields
+
+---
+
+### PUT `/api/tracks/{id}`
+
+Updates a track's name, description, and progress.
+
+```json
+// Request
+{
+  "projectId": "00000000-0000-0000-0000-000000000000",
+  "name": "Backend Track v2",
+  "description": "Updated scope",
+  "progress": 60
+}
+```
+
+- `projectId` is required in the body
+- `200` — `UpdateTrackResponse` (id, projectId, name, description, progress, modifiedDate)
+- `404` — track not found; `400` — invalid fields
+
+---
+
+### DELETE `/api/tracks/{id}`
+
+Soft-deletes the track **and everything under it** — track members, major tasks, and their minor tasks. All rows are flagged `IsDeleted`, never hard-deleted.
+
+- `204 No Content` — deleted (idempotent; re-deleting an already deleted track returns `204`)
+- `404` — track does not exist
 
 ---
 

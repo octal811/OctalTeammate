@@ -7,5 +7,4 @@ public record UpdateProjectCommand(
     Guid Id,
     string Title,
     string? Description,
-    int Progress,
     ProjectStatus Status) : IRequest<UpdateProjectResponse>;

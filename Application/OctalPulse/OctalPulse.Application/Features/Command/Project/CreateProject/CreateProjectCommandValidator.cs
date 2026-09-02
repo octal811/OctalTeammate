@@ -13,9 +13,6 @@ public class CreateProjectCommandValidator : AbstractValidator<CreateProjectComm
         RuleFor(x => x.Description)
             .MaximumLength(1000);
 
-        RuleFor(x => x.Progress)
-            .InclusiveBetween(0, 100);
-
         RuleFor(x => x.Status)
             .IsInEnum();
     }

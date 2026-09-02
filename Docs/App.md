@@ -84,10 +84,18 @@ Rules that hold the design together:
 
 ### 5. Projects
 - Any authenticated user can **create** a project (`POST /api/projects`); the creator is auto-joined as a `ProjectManager` member.
-- **Paginated list** (`GET /api/projects?pageNumber=&pageSize=`) — returns only `id`, `title`, `description`, `progress`, `status` (pageSize capped at 100).
+- **Paginated list** (`POST /api/projects/list` with `{ "pageNumber": 1, "pageSize": 10 }` in body) — returns only `id`, `title`, `description`, `progress`, `status` (pageSize capped at 100).
 - **Update** (`PUT /api/projects/{id}`) and **full details** (`GET /api/projects/{id}` — basic info, creator, member list/count).
 - **Soft delete** (`DELETE /api/projects/{id}`) — cascades `IsDeleted` through members (+ roles), tracks, track members, major/minor tasks, and project events; idempotent (`204`). Deleted projects vanish from list/detail.
 - Missing projects return `404` (new `NotFoundException` in middleware); requests follow `Features/Command/Project/<Feature>` / `Features/Query/Project/<Feature>` with their handlers, responses, and validators co-located.
+
+### 6. Tracks
+- **List tracks by project** (`GET /api/projects/{id}/tracks`) — returns all tracks under the given project (name, description, progress) sorted newest first.
+- **Create** (`POST /api/tracks` with `{ projectId, name, description?, progress }` in body) — requires the target project to exist.
+- **Update** (`PUT /api/tracks/{id}`) — updates name, description, and progress.
+- **Soft delete** (`DELETE /api/tracks/{id}`) — cascades `IsDeleted` through track members, major tasks, and their minor tasks; idempotent (`204`). Track does not exist → `404`.
+- All parameters sent as JSON body (`[FromBody]`); features live in `Features/Command/Track/<Feature>` / `Features/Query/Track/<Feature>`.
+- Repository exposes `GetByIdWithTreeIncludingDeletedAsync` (IgnoreQueryFilters + full Include graph) so the delete handler can walk the entire subtree.
 
 ## Main User Flows
 
@@ -117,7 +125,7 @@ POST /api/auth/login                     → LoginResponse (access + refresh)
 ### Project work (the core loop)
 ```
 Admin / lead creates a Project
-   → Tracks are created inside it (lead assigned via TrackLeadUserId)
+   → Tracks are created inside it (name, description, progress)
       → members join tracks (TrackMember) and receive notifications
          → MajorTasks belong to a track
             → MinorTasks belong to a MajorTask, assigned to a user
@@ -142,7 +150,7 @@ Admin (rank=Admin) → POST /api/admin/ApiAvailability/UserRegistration/disable
 
 ## What's Next / Roadmap Direction
 
-- Domain feature work: project/track/task **CRUD commands**, membership & role management, event/calendar CRUD.
+- Major/Minor Task CRUD, membership & role management, event/calendar CRUD.
 - Notifications beyond email (e.g. in-app).
 - Distributed deployment support for the in-memory pieces listed above.
 - Tests project: middleware unit tests, service unit tests, and integration tests through `WebApplicationFactory` (see `Middleware.md` for the strategy).
