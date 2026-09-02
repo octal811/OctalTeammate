@@ -354,12 +354,11 @@ Creates a track inside a project.
 {
   "projectId": "00000000-0000-0000-0000-000000000000",
   "name": "Backend Track",
-  "description": "API and database work",
-  "progress": 10
+  "description": "API and database work"
 }
 ```
 
-- `progress`: 0–100 (default `0`)
+- `progress` is **not accepted** — always starts at `0` (auto-calculated from major tasks)
 - `200` — `CreateTrackResponse` (id, projectId, name, description, progress)
 - `404` — project does not exist; `400` — invalid fields
 
@@ -374,12 +373,12 @@ Updates a track's name, description, and progress.
 {
   "projectId": "00000000-0000-0000-0000-000000000000",
   "name": "Backend Track v2",
-  "description": "Updated scope",
-  "progress": 60
+  "description": "Updated scope"
 }
 ```
 
 - `projectId` is required in the body
+- `progress` is **not accepted** — auto-calculated from existing major tasks
 - `200` — `UpdateTrackResponse` (id, projectId, name, description, progress, modifiedDate)
 - `404` — track not found; `400` — invalid fields
 
@@ -389,7 +388,7 @@ Updates a track's name, description, and progress.
 
 Soft-deletes the track **and everything under it** — track members, major tasks, and their minor tasks. All rows are flagged `IsDeleted`, never hard-deleted.
 
-- `204 No Content` — deleted (idempotent; re-deleting an already deleted track returns `204`)
+- `204 No Content` — deleted (idempotent; re-deleting an already deleted track returns `204`). Parent project's progress is auto-recalculated.
 - `404` — track does not exist
 
 ---
