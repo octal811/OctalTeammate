@@ -15,6 +15,11 @@ public class ProjectMemberConfiguration : IEntityTypeConfiguration<ProjectMember
         builder.HasIndex(pm => new { pm.ProjectId, pm.UserId })
             .IsUnique();
 
+        builder.Property(pm => pm.Status)
+            .HasConversion<string>()
+            .HasMaxLength(20)
+            .IsRequired();
+
         builder.HasQueryFilter(pm => !pm.IsDeleted);
 
         builder.HasOne(pm => pm.Project)

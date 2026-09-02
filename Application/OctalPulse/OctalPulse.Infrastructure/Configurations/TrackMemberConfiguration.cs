@@ -15,6 +15,11 @@ public class TrackMemberConfiguration : IEntityTypeConfiguration<TrackMember>
         builder.HasIndex(tm => new { tm.TrackId, tm.UserId })
             .IsUnique();
 
+        builder.Property(tm => tm.Status)
+            .HasConversion<string>()
+            .HasMaxLength(20)
+            .IsRequired();
+
         builder.HasQueryFilter(tm => !tm.IsDeleted);
 
         builder.HasOne(tm => tm.Track)

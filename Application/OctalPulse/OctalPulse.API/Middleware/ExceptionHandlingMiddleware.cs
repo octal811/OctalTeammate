@@ -26,6 +26,11 @@ public class ExceptionHandlingMiddleware
             _logger.LogWarning(ex, "Unauthorized request.");
             await WriteErrorAsync(context, HttpStatusCode.Unauthorized, "Unauthorized", ex.Message);
         }
+        catch (ForbiddenException ex)
+        {
+            _logger.LogWarning(ex, "Forbidden request.");
+            await WriteErrorAsync(context, HttpStatusCode.Forbidden, "Forbidden", ex.Message);
+        }
         catch (ValidationException ex)
         {
             _logger.LogWarning(ex, "Validation failed.");

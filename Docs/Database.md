@@ -65,7 +65,7 @@ The connection string is read from `appsettings.json` -> `ConnectionStrings:Defa
 | **Soft Delete** | Every table has an `IsDeleted` boolean column. Deleting a record sets it to `true` instead of removing the row. |
 | **Created / Modified** | Auditable tables include `CreatedDate` and optional `ModifiedDate` (`DateTime`). |
 | **Identity** | The `User` entity extends `IdentityUser<Guid>`, so all identity fields (UserName, PasswordHash, Email, etc.) come from Microsoft Identity. |
-| **Progress Calculation** | `Progress` values on `MajorTask`, `Track`, and `Project` are **auto-calculated** from their child completion ratios and are never stored as meaningful manual input. |
+| **Progress Calculation** | Only `MajorTask.Progress` is stored as a column. `Track` and `Project` progress are **not stored** — they are computed at read time by `IProgressCalculator` (track = avg of its non-deleted major tasks; project = avg of its non-deleted tracks). See the *Progress Cascade* section. |
 
 ## Table Reference
 
@@ -133,7 +133,6 @@ A top-level container for a managed team project.
 | Id | Guid | Primary key. |
 | Title | string | Project name. |
 | Description | string? | Short description of the project. |
-| Progress | int | Auto-calculated 0–100 from the progress of its tracks. |
 | Status | ProjectStatus (enum) | e.g., `Active`, `Completed`, `OnHold`, `Archived`. |
 | CreatedDate | DateTime | When the project was created. |
 | ModifiedDate | DateTime? | Last update timestamp. |
@@ -203,7 +202,6 @@ A workstream *inside* a project (e.g., "AI", "Backend", "Mobile"). A project is 
 | Id | Guid | Primary key. |
 | Name | string | Track name (e.g., `AI`, `Backend`, `Mobile`). |
 | Description | string? | What this track covers. |
-| Progress | int | Auto-calculated 0–100 from the completion of its major tasks. |
 | ProjectId | Guid | FK → Project.Id. |
 | TrackLeadUserId | Guid? | FK → User.Id (optional). The lead is responsible for guarding the track from accidental deletion and for letting users join. |
 | CreatedDate | DateTime | When the track was created. |
@@ -421,13 +419,14 @@ User 1 ──── * Event (CreatedByUserId)
 
 ## Progress Cascade
 
-Progress is automatically propagated bottom-up whenever a minor task is finished:
+Progress is **computed at read time** by `IProgressCalculator` — it is never stored on `Track` or `Project`, and never accepted as input. Only `MajorTask.Progress` is a stored column (source of truth). The derived values are:
 
 ```
-MinorTask completed (state = Done)
-   → MajorTask.Progress = (Done minor tasks / total minor tasks) × 100
-      → Track.Progress = average of its MajorTasks' progress
-         → Project.Progress = average of its Tracks' progress
+MajorTask.Progress = (Done minor tasks / total minor tasks) × 100   [stored on the row]
+   Track progress = average of its non-deleted MajorTasks' Progress values   [computed on read]
+      Project progress = average of its non-deleted Tracks' progress   [computed on read]
 ```
+
+Progress is `0` when there are no children. Computing at read time avoids write races — progress is always consistent with the current children without any handler trying to re-persist it on every mutation.
 
 Completing a minor task also records an **achievement** for its assigned user.

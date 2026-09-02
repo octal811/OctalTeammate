@@ -293,7 +293,7 @@ Full project details: basic info, who created it, and its members.
 
 ### PUT `/api/projects/{id}`
 
-Updates title, description, progress, and status of the project.
+Updates the title, description, and status of the project.
 
 ```json
 // Request
@@ -366,7 +366,7 @@ Creates a track inside a project.
 
 ### PUT `/api/tracks/{id}`
 
-Updates a track's name and description. Progress is auto-recalculated from existing major tasks.
+Updates a track's name and description. Progress is auto-calculated at read time from existing major tasks.
 
 ```json
 // Request
@@ -388,7 +388,7 @@ Updates a track's name and description. Progress is auto-recalculated from exist
 
 Soft-deletes the track **and everything under it** — track members, major tasks, and their minor tasks. All rows are flagged `IsDeleted`, never hard-deleted.
 
-- `204 No Content` — deleted (idempotent; re-deleting an already deleted track returns `204`). Parent project's progress is auto-recalculated.
+- `204 No Content` — deleted (idempotent; re-deleting an already deleted track returns `204`). Parent project's progress updates automatically (computed at read time).
 - `404` — track does not exist
 
 ---
@@ -442,12 +442,25 @@ When a capability is **disabled**, the *middleware* rejects calls to it before i
 
 ### Progress auto-calculation
 
-Progress is never accepted as input on any endpoint. It is always auto-calculated by `IProgressCalculator`:
+Progress is never accepted as input on any endpoint. It is **computed at read time** by `IProgressCalculator` — it is not stored on `Track` or `Project` (only `MajorTask.Progress` is a stored column):
 
 - **Track progress** = average of its non-deleted major tasks' `Progress` values (0 if no tasks exist).
 - **Project progress** = average of its non-deleted tracks' `Progress` values (0 if no tracks exist).
 
-Progress is recalculated when tracks or projects are created, updated, or deleted. The stored value is always consistent with the children.
+Progress is derived fresh on every response, so it is always consistent with the current children without any write-time recalculation or progress race condition.
+
+### Real-time notifications (SignalR)
+
+The API exposes a real-time collaboration hub at **`/hubs/collaboration`** (see `Realtime.md`). After mutations are committed, command handlers notify connected clients:
+
+| Event (SignalR method) | Audience | Triggered by |
+|---|---|---|
+| `projectChanged` | `project-{id}` group | project created / updated / deleted |
+| `trackChanged` | `project-{id}` group | track created / updated / deleted (a track-list change visible to all project members) |
+| `majorTaskChanged` | `track-{id}` group | major task created / updated / deleted (track-scoped) |
+| `minorTaskChanged` | `track-{id}` group | minor task created / updated / deleted (track-scoped) |
+
+Project events go to the project group; task events are **scoped to the track group** so members of one track only see their own track's major/minor task activity.
 
 ### Concurrent-operation lock (409)
 

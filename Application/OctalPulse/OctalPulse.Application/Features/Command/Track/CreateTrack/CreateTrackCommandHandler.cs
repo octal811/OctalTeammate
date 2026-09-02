@@ -2,6 +2,8 @@ using MediatR;
 using OctalPulse.Application.Exceptions;
 using OctalPulse.Application.Interface.Repositories;
 using OctalPulse.Application.Interface.Services;
+using OctalPulse.Domain.Entities;
+using OctalPulse.Domain.Enums;
 
 namespace OctalPulse.Application.Features.Command.Track.CreateTrack;
 
@@ -30,11 +32,25 @@ public class CreateTrackCommandHandler : IRequestHandler<CreateTrackCommand, Cre
             Name = request.Name,
             Description = request.Description,
             ProjectId = request.ProjectId,
+            TrackLeadUserId = request.CreatedByUserId,
             IsDeleted = false,
             CreatedDate = now
         };
 
         await _unitOfWork.Tracks.AddAsync(track, cancellationToken);
+
+        var leadMember = new TrackMember
+        {
+            Id = Guid.NewGuid(),
+            TrackId = track.Id,
+            UserId = request.CreatedByUserId,
+            Status = MembershipStatus.Approved,
+            IsDeleted = false,
+            CreatedDate = now
+        };
+
+        await _unitOfWork.TrackMembers.AddAsync(leadMember, cancellationToken);
+
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         await _realtimeNotifier.TrackChangedAsync(track.Id, track.ProjectId, cancellationToken);

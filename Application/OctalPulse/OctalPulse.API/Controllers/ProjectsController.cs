@@ -5,6 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using OctalPulse.API.Attributes;
 using OctalPulse.Application.Features.Command.Project.CreateProject;
 using OctalPulse.Application.Features.Command.Project.DeleteProject;
+using OctalPulse.Application.Features.Command.Project.RequestProjectJoin;
+using OctalPulse.Application.Features.Command.Project.ReviewProjectJoin;
 using OctalPulse.Application.Features.Command.Project.UpdateProject;
 using OctalPulse.Application.Features.Query.Project.GetAllProjects;
 using OctalPulse.Application.Features.Query.Project.GetProjectById;
@@ -73,8 +75,44 @@ public class ProjectsController : ControllerBase
     [UserOperationLock("projects:delete")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        await _sender.Send(new DeleteProjectCommand(id), cancellationToken);
+        await _sender.Send(new DeleteProjectCommand(id, GetUserId()), cancellationToken);
         return NoContent();
+    }
+
+    [HttpPost("{id:guid}/join-request")]
+    public async Task<ActionResult<RequestProjectJoinResponse>> RequestJoin(
+        Guid id,
+        [FromBody] RequestProjectJoinCommand command,
+        CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(
+            command with { ProjectId = id, UserId = GetUserId() },
+            cancellationToken);
+        return Ok(result);
+    }
+
+    [HttpPost("{id:guid}/join-requests/{userId:guid}/approve")]
+    public async Task<ActionResult<ReviewProjectJoinResponse>> ApproveJoin(
+        Guid id,
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(
+            new ReviewProjectJoinCommand(id, GetUserId(), userId, true),
+            cancellationToken);
+        return Ok(result);
+    }
+
+    [HttpPost("{id:guid}/join-requests/{userId:guid}/reject")]
+    public async Task<ActionResult<ReviewProjectJoinResponse>> RejectJoin(
+        Guid id,
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(
+            new ReviewProjectJoinCommand(id, GetUserId(), userId, false),
+            cancellationToken);
+        return Ok(result);
     }
 
     private Guid GetUserId()

@@ -39,6 +39,7 @@ public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand,
             Id = Guid.NewGuid(),
             ProjectId = project.Id,
             UserId = request.CreatedByUserId,
+            Status = MembershipStatus.Approved,
             IsDeleted = false,
             CreatedDate = now
         };

@@ -1,4 +1,5 @@
 using OctalPulse.Domain.Common;
+using OctalPulse.Domain.Enums;
 
 namespace OctalPulse.Domain.Entities;
 
@@ -10,6 +11,7 @@ public class ProjectMember : AuditableEntity
     public DateTime? ModifiedDate { get; set; }
     public Guid ProjectId { get; set; }
     public Guid UserId { get; set; }
+    public MembershipStatus Status { get; set; } = MembershipStatus.Approved;
 
     public Project Project { get; set; } = null!;
     public User User { get; set; } = null!;

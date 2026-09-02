@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 using OctalPulse.Application.Interface.Repositories;
+using OctalPulse.Domain.Enums;
 
 namespace OctalPulse.API.Hubs;
 
@@ -43,7 +44,7 @@ public class CollaborationHub : Hub
             return false;
 
         return await _unitOfWork.ProjectMembers.AnyAsync(
-            m => m.ProjectId == projectId && m.UserId == userId.Value && !m.IsDeleted,
+            m => m.ProjectId == projectId && m.UserId == userId.Value && m.Status == MembershipStatus.Approved,
             cancellationToken);
     }
 
@@ -54,7 +55,7 @@ public class CollaborationHub : Hub
             return false;
 
         return await _unitOfWork.TrackMembers.AnyAsync(
-            m => m.TrackId == trackId && m.UserId == userId.Value && !m.IsDeleted,
+            m => m.TrackId == trackId && m.UserId == userId.Value && m.Status == MembershipStatus.Approved,
             cancellationToken);
     }
 

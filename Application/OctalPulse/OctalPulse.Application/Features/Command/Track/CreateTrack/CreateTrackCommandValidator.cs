@@ -9,6 +9,9 @@ public class CreateTrackCommandValidator : AbstractValidator<CreateTrackCommand>
         RuleFor(x => x.ProjectId)
             .NotEmpty();
 
+        RuleFor(x => x.CreatedByUserId)
+            .NotEmpty();
+
         RuleFor(x => x.Name)
             .NotEmpty()
             .MaximumLength(100);

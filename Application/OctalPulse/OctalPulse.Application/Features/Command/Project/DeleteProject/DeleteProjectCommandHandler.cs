@@ -22,6 +22,9 @@ public class DeleteProjectCommandHandler : IRequestHandler<DeleteProjectCommand,
         if (project is null)
             throw new NotFoundException("Project not found.");
 
+        if (project.CreatedByUserId != request.UserId)
+            throw new ForbiddenException("Only the project creator can delete this project.");
+
         if (!project.IsDeleted)
         {
             var now = DateTime.UtcNow;

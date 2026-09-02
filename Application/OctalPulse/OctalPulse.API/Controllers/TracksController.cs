@@ -1,9 +1,12 @@
+using System.Security.Claims;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OctalPulse.API.Attributes;
 using OctalPulse.Application.Features.Command.Track.CreateTrack;
 using OctalPulse.Application.Features.Command.Track.DeleteTrack;
+using OctalPulse.Application.Features.Command.Track.RequestTrackJoin;
+using OctalPulse.Application.Features.Command.Track.ReviewTrackJoin;
 using OctalPulse.Application.Features.Command.Track.UpdateTrack;
 
 namespace OctalPulse.API.Controllers;
@@ -26,7 +29,9 @@ public class TracksController : ControllerBase
         [FromBody] CreateTrackCommand command,
         CancellationToken cancellationToken)
     {
-        var result = await _sender.Send(command, cancellationToken);
+        var result = await _sender.Send(
+            command with { CreatedByUserId = GetUserId() },
+            cancellationToken);
         return Ok(result);
     }
 
@@ -44,7 +49,49 @@ public class TracksController : ControllerBase
     [UserOperationLock("tracks:delete")]
     public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
     {
-        await _sender.Send(new DeleteTrackCommand(id), cancellationToken);
+        await _sender.Send(new DeleteTrackCommand(id, GetUserId()), cancellationToken);
         return NoContent();
+    }
+
+    [HttpPost("{id:guid}/join-request")]
+    public async Task<ActionResult<RequestTrackJoinResponse>> RequestJoin(
+        Guid id,
+        [FromBody] RequestTrackJoinCommand command,
+        CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(
+            command with { TrackId = id, UserId = GetUserId() },
+            cancellationToken);
+        return Ok(result);
+    }
+
+    [HttpPost("{id:guid}/join-requests/{userId:guid}/approve")]
+    public async Task<ActionResult<ReviewTrackJoinResponse>> ApproveJoin(
+        Guid id,
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(
+            new ReviewTrackJoinCommand(id, GetUserId(), userId, true),
+            cancellationToken);
+        return Ok(result);
+    }
+
+    [HttpPost("{id:guid}/join-requests/{userId:guid}/reject")]
+    public async Task<ActionResult<ReviewTrackJoinResponse>> RejectJoin(
+        Guid id,
+        Guid userId,
+        CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(
+            new ReviewTrackJoinCommand(id, GetUserId(), userId, false),
+            cancellationToken);
+        return Ok(result);
+    }
+
+    private Guid GetUserId()
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        return Guid.TryParse(userIdClaim, out var userId) ? userId : Guid.Empty;
     }
 }

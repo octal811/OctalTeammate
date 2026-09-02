@@ -1,6 +1,6 @@
 # OctalTeammate — Application Overview
 
-This document explains **what OctalTeammate is**, **who it targets**, and **how the app flows** end to end. It is the high-level companion to `Database.md` (schema), `API.md` (endpoints), and `Middleware.md` (request pipeline).
+This document explains **what OctalTeammate is**, **who it targets**, and **how the app flows** end to end. It is the high-level companion to `Database.md` (schema), `API.md` (endpoints), `Middleware.md` (request pipeline), and `Realtime.md` (SignalR collaboration).
 
 ## Idea
 
@@ -57,7 +57,7 @@ Rules that hold the design together:
 - **Soft delete everywhere.** Rows are flagged `IsDeleted`, never hard-deleted.
 - **Guid identity.** Every key is a `Guid`.
 - **Auditing.** Auditable tables carry `CreatedDate` / `ModifiedDate`.
-- **Progress is auto-calculated.** Never accepted as input — `IProgressCalculator` computes it from children (major tasks → track, tracks → project) and stores it for reads.
+- **Progress is auto-calculated.** Never accepted as input — `IProgressCalculator` computes it **at read time** from children (major tasks → track, tracks → project). Only `MajorTask.Progress` is stored; `Track`/`Project` progress are derived fresh on every response.
 
 ## Feature Highlights (implemented so far)
 
@@ -85,17 +85,26 @@ Rules that hold the design together:
 ### 5. Projects
 - Any authenticated user can **create** a project (`POST /api/projects`); the creator is auto-joined as a `ProjectManager` member. Progress starts at `0` (auto-calculated from tracks).
 - **Paginated list** (`POST /api/projects/list` with `{ "pageNumber": 1, "pageSize": 10 }` in body) — returns only `id`, `title`, `description`, `progress`, `status` (pageSize capped at 100).
-- **Update** (`PUT /api/projects/{id}`) and **full details** (`GET /api/projects/{id}` — basic info, creator, member list/count). Progress is auto-recalculated from tracks.
+- **Update** (`PUT /api/projects/{id}`) and **full details** (`GET /api/projects/{id}` — basic info, creator, member list/count). Progress is auto-calculated from tracks at read time.
 - **Soft delete** (`DELETE /api/projects/{id}`) — cascades `IsDeleted` through members (+ roles), tracks, track members, major/minor tasks, and project events; idempotent (`204`). Deleted projects vanish from list/detail.
 - Missing projects return `404` (new `NotFoundException` in middleware); requests follow `Features/Command/Project/<Feature>` / `Features/Query/Project/<Feature>` with their handlers, responses, and validators co-located.
 
 ### 6. Tracks
 - **List tracks by project** (`GET /api/projects/{id}/tracks`) — returns all tracks under the given project (name, description, progress) sorted newest first.
 - **Create** (`POST /api/tracks` with `{ projectId, name, description? }` in body) — requires the target project to exist. Progress starts at `0` (auto-calculated from major tasks).
-- **Update** (`PUT /api/tracks/{id}`) — updates name and description. Progress is auto-recalculated from existing major tasks.
-- **Soft delete** (`DELETE /api/tracks/{id}`) — cascades `IsDeleted` through track members, major tasks, and their minor tasks; idempotent (`204`). Parent project's progress is auto-recalculated.
+- **Update** (`PUT /api/tracks/{id}`) — updates name and description. Progress is auto-calculated at read time from existing major tasks.
+- **Soft delete** (`DELETE /api/tracks/{id}`) — cascades `IsDeleted` through track members, major tasks, and their minor tasks; idempotent (`204`). Parent project's progress updates automatically (computed at read time).
 - All parameters sent as JSON body (`[FromBody]`); features live in `Features/Command/Track/<Feature>` / `Features/Query/Track/<Feature>`.
 - Repository exposes `GetByIdWithTreeIncludingDeletedAsync` (IgnoreQueryFilters + full Include graph) so the delete handler can walk the entire subtree.
+
+### 7. Real-time collaboration (SignalR)
+- Hub at **`/hubs/collaboration`** (`CollaborationHub`), `[Authorize]` — JWT passed as `?access_token=` in the query string (read by `JwtBearerEvents.OnMessageReceived` for `/hubs/*` paths).
+- **Project group** `project-{id}` — clients `JoinProject`/`LeaveProject` (verifies project membership).
+- **Track group** `track-{id}` — clients `JoinTrack`/`LeaveTrack` (verifies track membership via `TrackMember`).
+- After a mutation commits, handlers push via `IRealtimeNotifier`/`SignalRNotifier` → `IHubContext` → group:
+  - `projectChanged`, `trackChanged` → project group
+  - `majorTaskChanged`, `minorTaskChanged` → **track group** (track-scoped, so members of one track only see their own track's task activity)
+- Full details: see **`Docs/Realtime.md`**.
 
 ## Main User Flows
 
@@ -130,8 +139,8 @@ Admin / lead creates a Project  (progress = 0)
          → MajorTasks belong to a track
             → MinorTasks belong to a MajorTask, assigned to a user
                → user marks MinorTask Done
-                  → Progress cascades: MajorTask → Track → Project
-                  (auto-calculated by IProgressCalculator; never manually set)
+                   → Progress derived: MajorTask → Track → Project
+                   (computed at read time by IProgressCalculator; never manually set)
 ```
 
 ### Runtime admin control

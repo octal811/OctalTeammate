@@ -22,6 +22,14 @@ public class DeleteTrackCommandHandler : IRequestHandler<DeleteTrackCommand, Uni
         if (track is null)
             throw new NotFoundException("Track not found.");
 
+        var project = await _unitOfWork.Projects.GetByIdAsync(track.ProjectId, cancellationToken);
+
+        var isTrackCreator = track.TrackLeadUserId == request.UserId;
+        var isProjectCreator = project is not null && project.CreatedByUserId == request.UserId;
+
+        if (!isTrackCreator && !isProjectCreator)
+            throw new ForbiddenException("Only the track creator or the project creator can delete this track.");
+
         if (!track.IsDeleted)
         {
             var projectId = track.ProjectId;

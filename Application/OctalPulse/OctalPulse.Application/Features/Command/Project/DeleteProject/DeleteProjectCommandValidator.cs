@@ -8,5 +8,8 @@ public class DeleteProjectCommandValidator : AbstractValidator<DeleteProjectComm
     {
         RuleFor(x => x.Id)
             .NotEmpty();
+
+        RuleFor(x => x.UserId)
+            .NotEmpty();
     }
 }
