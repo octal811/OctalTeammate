@@ -6,6 +6,11 @@ public interface ITrackRepository : IGenericRepository<Track>
 {
     Task<Track?> GetWithDetailsAsync(Guid id, CancellationToken cancellationToken = default);
     Task<Track?> GetByIdWithTreeIncludingDeletedAsync(Guid id, CancellationToken cancellationToken = default);
-    Task<IReadOnlyList<Track>> GetByProjectIdAsync(Guid projectId, CancellationToken cancellationToken = default);
     Task<Track?> GetWithMajorTasksAsync(Guid id, CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Track>> GetByIdsWithMajorTasksAsync(
+        IEnumerable<Guid> ids,
+        CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Track>> GetByProjectIdsWithMajorTasksAsync(
+        IEnumerable<Guid> projectIds,
+        CancellationToken cancellationToken = default);
 }

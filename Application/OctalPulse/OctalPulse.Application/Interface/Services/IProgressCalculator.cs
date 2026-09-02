@@ -1,9 +1,13 @@
-using OctalPulse.Application.Interface.Repositories;
-
 namespace OctalPulse.Application.Interface.Services;
 
 public interface IProgressCalculator
 {
-    Task<int> RecalculateTrackProgressAsync(Guid trackId, IUnitOfWork unitOfWork, CancellationToken cancellationToken = default);
-    Task<int> RecalculateProjectProgressAsync(Guid projectId, IUnitOfWork unitOfWork, CancellationToken cancellationToken = default);
+    Task<int> GetTrackProgressAsync(Guid trackId, CancellationToken cancellationToken = default);
+    Task<int> GetProjectProgressAsync(Guid projectId, CancellationToken cancellationToken = default);
+    Task<IReadOnlyDictionary<Guid, int>> GetProjectsProgressAsync(
+        IEnumerable<Guid> projectIds,
+        CancellationToken cancellationToken = default);
+    Task<IReadOnlyDictionary<Guid, int>> GetTracksProgressAsync(
+        IEnumerable<Guid> trackIds,
+        CancellationToken cancellationToken = default);
 }

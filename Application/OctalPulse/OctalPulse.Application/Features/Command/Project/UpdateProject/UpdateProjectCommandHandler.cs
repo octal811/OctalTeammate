@@ -9,11 +9,16 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IProgressCalculator _progressCalculator;
+    private readonly IRealtimeNotifier _realtimeNotifier;
 
-    public UpdateProjectCommandHandler(IUnitOfWork unitOfWork, IProgressCalculator progressCalculator)
+    public UpdateProjectCommandHandler(
+        IUnitOfWork unitOfWork,
+        IProgressCalculator progressCalculator,
+        IRealtimeNotifier realtimeNotifier)
     {
         _unitOfWork = unitOfWork;
         _progressCalculator = progressCalculator;
+        _realtimeNotifier = realtimeNotifier;
     }
 
     public async Task<UpdateProjectResponse> Handle(UpdateProjectCommand request, CancellationToken cancellationToken)
@@ -30,8 +35,9 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
         _unitOfWork.Projects.Update(project);
         await _unitOfWork.CompleteAsync(cancellationToken);
 
-        var progress = await _progressCalculator.RecalculateProjectProgressAsync(project.Id, _unitOfWork, cancellationToken);
-        await _unitOfWork.CompleteAsync(cancellationToken);
+        var progress = await _progressCalculator.GetProjectProgressAsync(project.Id, cancellationToken);
+
+        await _realtimeNotifier.ProjectChangedAsync(project.Id, cancellationToken);
 
         return new UpdateProjectResponse(
             project.Id,

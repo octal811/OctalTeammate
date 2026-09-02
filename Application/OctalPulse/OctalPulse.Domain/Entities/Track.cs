@@ -10,7 +10,6 @@ public class Track : AuditableEntity
     public DateTime? ModifiedDate { get; set; }
     public string Name { get; set; } = string.Empty;
     public string? Description { get; set; }
-    public int Progress { get; set; }
     public Guid ProjectId { get; set; }
     public Guid? TrackLeadUserId { get; set; }
 

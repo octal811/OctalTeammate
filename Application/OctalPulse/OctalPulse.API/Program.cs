@@ -79,7 +79,26 @@ builder.Services
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Key)),
             ClockSkew = TimeSpan.FromSeconds(30)
         };
+
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) &&
+                    path.StartsWithSegments("/hubs/collaboration"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
+
+builder.Services.AddSignalR();
+
+builder.Services.AddScoped<OctalPulse.Application.Interface.Services.IRealtimeNotifier, OctalPulse.API.Notifications.SignalRNotifier>();
 
 builder.Services.AddScoped<IAuthorizationHandler, AdminOnlyAuthorizationHandler>();
 
@@ -155,6 +174,7 @@ app.UseMiddleware<OctalPulse.API.Middleware.UserOperationLockMiddleware>();
 app.UseAuthorization();
 
 app.MapControllers();
+app.MapHub<OctalPulse.API.Hubs.CollaborationHub>("/hubs/collaboration");
 
 app.Run();
 

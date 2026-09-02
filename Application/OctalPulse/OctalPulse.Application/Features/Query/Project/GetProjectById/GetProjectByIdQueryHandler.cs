@@ -1,16 +1,19 @@
 using MediatR;
 using OctalPulse.Application.Exceptions;
 using OctalPulse.Application.Interface.Repositories;
+using OctalPulse.Application.Interface.Services;
 
 namespace OctalPulse.Application.Features.Query.Project.GetProjectById;
 
 public class GetProjectByIdQueryHandler : IRequestHandler<GetProjectByIdQuery, GetProjectByIdResponse>
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IProgressCalculator _progressCalculator;
 
-    public GetProjectByIdQueryHandler(IUnitOfWork unitOfWork)
+    public GetProjectByIdQueryHandler(IUnitOfWork unitOfWork, IProgressCalculator progressCalculator)
     {
         _unitOfWork = unitOfWork;
+        _progressCalculator = progressCalculator;
     }
 
     public async Task<GetProjectByIdResponse> Handle(GetProjectByIdQuery request, CancellationToken cancellationToken)
@@ -18,6 +21,8 @@ public class GetProjectByIdQueryHandler : IRequestHandler<GetProjectByIdQuery, G
         var project = await _unitOfWork.Projects.GetWithDetailsAsync(request.ProjectId, cancellationToken);
         if (project is null)
             throw new NotFoundException("Project not found.");
+
+        var progress = await _progressCalculator.GetProjectProgressAsync(project.Id, cancellationToken);
 
         var members = project.Members
             .Where(m => m.User is not null)
@@ -31,7 +36,7 @@ public class GetProjectByIdQueryHandler : IRequestHandler<GetProjectByIdQuery, G
             project.Id,
             project.Title,
             project.Description,
-            project.Progress,
+            progress,
             project.Status,
             project.CreatedDate,
             project.ModifiedDate,

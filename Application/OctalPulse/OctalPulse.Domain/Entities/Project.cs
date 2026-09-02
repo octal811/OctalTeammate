@@ -11,7 +11,6 @@ public class Project : AuditableEntity
     public DateTime? ModifiedDate { get; set; }
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
-    public int Progress { get; set; }
     public ProjectStatus Status { get; set; }
     public Guid CreatedByUserId { get; set; }
 

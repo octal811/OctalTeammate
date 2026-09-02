@@ -19,9 +19,6 @@ public class TrackConfiguration : IEntityTypeConfiguration<Track>
         builder.Property(t => t.Description)
             .HasMaxLength(1000);
 
-        builder.Property(t => t.Progress)
-            .HasDefaultValue(0);
-
         builder.HasQueryFilter(t => !t.IsDeleted);
 
         builder.HasOne(t => t.Project)

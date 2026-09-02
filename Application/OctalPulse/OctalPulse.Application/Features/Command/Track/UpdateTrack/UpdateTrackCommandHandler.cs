@@ -9,11 +9,16 @@ public class UpdateTrackCommandHandler : IRequestHandler<UpdateTrackCommand, Upd
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IProgressCalculator _progressCalculator;
+    private readonly IRealtimeNotifier _realtimeNotifier;
 
-    public UpdateTrackCommandHandler(IUnitOfWork unitOfWork, IProgressCalculator progressCalculator)
+    public UpdateTrackCommandHandler(
+        IUnitOfWork unitOfWork,
+        IProgressCalculator progressCalculator,
+        IRealtimeNotifier realtimeNotifier)
     {
         _unitOfWork = unitOfWork;
         _progressCalculator = progressCalculator;
+        _realtimeNotifier = realtimeNotifier;
     }
 
     public async Task<UpdateTrackResponse> Handle(UpdateTrackCommand request, CancellationToken cancellationToken)
@@ -29,8 +34,9 @@ public class UpdateTrackCommandHandler : IRequestHandler<UpdateTrackCommand, Upd
         _unitOfWork.Tracks.Update(track);
         await _unitOfWork.CompleteAsync(cancellationToken);
 
-        var progress = await _progressCalculator.RecalculateTrackProgressAsync(track.Id, _unitOfWork, cancellationToken);
-        await _unitOfWork.CompleteAsync(cancellationToken);
+        var progress = await _progressCalculator.GetTrackProgressAsync(track.Id, cancellationToken);
+
+        await _realtimeNotifier.TrackChangedAsync(track.Id, track.ProjectId, cancellationToken);
 
         return new UpdateTrackResponse(
             track.Id,

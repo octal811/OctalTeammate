@@ -8,12 +8,12 @@ namespace OctalPulse.Application.Features.Command.Track.CreateTrack;
 public class CreateTrackCommandHandler : IRequestHandler<CreateTrackCommand, CreateTrackResponse>
 {
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IProgressCalculator _progressCalculator;
+    private readonly IRealtimeNotifier _realtimeNotifier;
 
-    public CreateTrackCommandHandler(IUnitOfWork unitOfWork, IProgressCalculator progressCalculator)
+    public CreateTrackCommandHandler(IUnitOfWork unitOfWork, IRealtimeNotifier realtimeNotifier)
     {
         _unitOfWork = unitOfWork;
-        _progressCalculator = progressCalculator;
+        _realtimeNotifier = realtimeNotifier;
     }
 
     public async Task<CreateTrackResponse> Handle(CreateTrackCommand request, CancellationToken cancellationToken)
@@ -29,7 +29,6 @@ public class CreateTrackCommandHandler : IRequestHandler<CreateTrackCommand, Cre
             Id = Guid.NewGuid(),
             Name = request.Name,
             Description = request.Description,
-            Progress = 0,
             ProjectId = request.ProjectId,
             IsDeleted = false,
             CreatedDate = now
@@ -38,11 +37,13 @@ public class CreateTrackCommandHandler : IRequestHandler<CreateTrackCommand, Cre
         await _unitOfWork.Tracks.AddAsync(track, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
 
+        await _realtimeNotifier.TrackChangedAsync(track.Id, track.ProjectId, cancellationToken);
+
         return new CreateTrackResponse(
             track.Id,
             track.ProjectId,
             track.Name,
             track.Description,
-            track.Progress);
+            0);
     }
 }

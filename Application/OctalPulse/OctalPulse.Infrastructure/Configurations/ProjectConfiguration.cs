@@ -19,9 +19,6 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
         builder.Property(p => p.Description)
             .HasMaxLength(1000);
 
-        builder.Property(p => p.Progress)
-            .HasDefaultValue(0);
-
         builder.HasQueryFilter(p => !p.IsDeleted);
 
         builder.HasOne(p => p.CreatedByUser)

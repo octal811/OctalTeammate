@@ -1,48 +1,72 @@
 using OctalPulse.Application.Interface.Repositories;
 using OctalPulse.Application.Interface.Services;
+using OctalPulse.Domain.Entities;
 
 namespace OctalPulse.Infrastructure.Services;
 
 public class ProgressCalculator : IProgressCalculator
 {
-    public async Task<int> RecalculateTrackProgressAsync(Guid trackId, IUnitOfWork unitOfWork, CancellationToken cancellationToken = default)
+    private readonly IUnitOfWork _unitOfWork;
+
+    public ProgressCalculator(IUnitOfWork unitOfWork)
     {
-        var track = await unitOfWork.Tracks.GetWithMajorTasksAsync(trackId, cancellationToken);
+        _unitOfWork = unitOfWork;
+    }
+
+    public async Task<int> GetTrackProgressAsync(Guid trackId, CancellationToken cancellationToken = default)
+    {
+        var track = await _unitOfWork.Tracks.GetWithMajorTasksAsync(trackId, cancellationToken);
         if (track is null)
             return 0;
 
-        if (track.MajorTasks.Count == 0)
-        {
-            track.Progress = 0;
-        }
-        else
-        {
-            track.Progress = (int)track.MajorTasks.Average(mt => mt.Progress);
-        }
-        track.ModifiedDate = DateTime.UtcNow;
-
-        unitOfWork.Tracks.Update(track);
-        return track.Progress;
+        return AverageProgress(track.MajorTasks);
     }
 
-    public async Task<int> RecalculateProjectProgressAsync(Guid projectId, IUnitOfWork unitOfWork, CancellationToken cancellationToken = default)
+    public async Task<int> GetProjectProgressAsync(Guid projectId, CancellationToken cancellationToken = default)
     {
-        var project = await unitOfWork.Projects.GetByIdAsync(projectId, cancellationToken);
-        if (project is null)
-            return 0;
+        var tracks = await _unitOfWork.Tracks.GetByProjectIdsWithMajorTasksAsync(
+            new[] { projectId },
+            cancellationToken);
 
-        var tracks = await unitOfWork.Tracks.GetByProjectIdAsync(projectId, cancellationToken);
-        if (tracks.Count == 0)
-        {
-            project.Progress = 0;
-        }
-        else
-        {
-            project.Progress = (int)tracks.Average(t => t.Progress);
-        }
-        project.ModifiedDate = DateTime.UtcNow;
-
-        unitOfWork.Projects.Update(project);
-        return project.Progress;
+        return AverageProgress(tracks);
     }
+
+    public async Task<IReadOnlyDictionary<Guid, int>> GetProjectsProgressAsync(
+        IEnumerable<Guid> projectIds,
+        CancellationToken cancellationToken = default)
+    {
+        var tracks = await _unitOfWork.Tracks.GetByProjectIdsWithMajorTasksAsync(projectIds, cancellationToken);
+
+        var result = new Dictionary<Guid, int>();
+        foreach (var group in tracks.GroupBy(t => t.ProjectId))
+            result[group.Key] = AverageProgress(group);
+
+        return result;
+    }
+
+    public async Task<IReadOnlyDictionary<Guid, int>> GetTracksProgressAsync(
+        IEnumerable<Guid> trackIds,
+        CancellationToken cancellationToken = default)
+    {
+        var tracks = await _unitOfWork.Tracks.GetByIdsWithMajorTasksAsync(trackIds, cancellationToken);
+
+        return tracks.ToDictionary(t => t.Id, GetTrackProgress);
+    }
+
+    private static int AverageProgress(IEnumerable<MajorTask> majorTasks)
+    {
+        var list = majorTasks.ToList();
+        return list.Count == 0 ? 0 : (int)Math.Round(list.Average(m => m.Progress));
+    }
+
+    private static int AverageProgress(IEnumerable<Track> tracks)
+    {
+        var list = tracks.ToList();
+        return list.Count == 0 ? 0 : (int)Math.Round(list.Average(t => GetTrackProgress(t)));
+    }
+
+    private static int GetTrackProgress(Track track)
+        => track.MajorTasks.Count == 0
+            ? 0
+            : (int)Math.Round(track.MajorTasks.Average(mt => mt.Progress));
 }

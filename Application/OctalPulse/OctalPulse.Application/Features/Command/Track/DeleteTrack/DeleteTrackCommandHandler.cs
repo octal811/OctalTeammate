@@ -8,12 +8,12 @@ namespace OctalPulse.Application.Features.Command.Track.DeleteTrack;
 public class DeleteTrackCommandHandler : IRequestHandler<DeleteTrackCommand, Unit>
 {
     private readonly IUnitOfWork _unitOfWork;
-    private readonly IProgressCalculator _progressCalculator;
+    private readonly IRealtimeNotifier _realtimeNotifier;
 
-    public DeleteTrackCommandHandler(IUnitOfWork unitOfWork, IProgressCalculator progressCalculator)
+    public DeleteTrackCommandHandler(IUnitOfWork unitOfWork, IRealtimeNotifier realtimeNotifier)
     {
         _unitOfWork = unitOfWork;
-        _progressCalculator = progressCalculator;
+        _realtimeNotifier = realtimeNotifier;
     }
 
     public async Task<Unit> Handle(DeleteTrackCommand request, CancellationToken cancellationToken)
@@ -49,8 +49,7 @@ public class DeleteTrackCommandHandler : IRequestHandler<DeleteTrackCommand, Uni
 
             await _unitOfWork.CompleteAsync(cancellationToken);
 
-            await _progressCalculator.RecalculateProjectProgressAsync(projectId, _unitOfWork, cancellationToken);
-            await _unitOfWork.CompleteAsync(cancellationToken);
+            await _realtimeNotifier.TrackChangedAsync(track.Id, projectId, cancellationToken);
         }
 
         return Unit.Value;

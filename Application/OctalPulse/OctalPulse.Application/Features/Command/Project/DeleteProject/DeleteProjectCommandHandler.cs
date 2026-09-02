@@ -1,16 +1,19 @@
 using MediatR;
 using OctalPulse.Application.Exceptions;
 using OctalPulse.Application.Interface.Repositories;
+using OctalPulse.Application.Interface.Services;
 
 namespace OctalPulse.Application.Features.Command.Project.DeleteProject;
 
 public class DeleteProjectCommandHandler : IRequestHandler<DeleteProjectCommand, Unit>
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IRealtimeNotifier _realtimeNotifier;
 
-    public DeleteProjectCommandHandler(IUnitOfWork unitOfWork)
+    public DeleteProjectCommandHandler(IUnitOfWork unitOfWork, IRealtimeNotifier realtimeNotifier)
     {
         _unitOfWork = unitOfWork;
+        _realtimeNotifier = realtimeNotifier;
     }
 
     public async Task<Unit> Handle(DeleteProjectCommand request, CancellationToken cancellationToken)
@@ -64,6 +67,8 @@ public class DeleteProjectCommandHandler : IRequestHandler<DeleteProjectCommand,
             }
 
             await _unitOfWork.CompleteAsync(cancellationToken);
+
+            await _realtimeNotifier.ProjectChangedAsync(project.Id, cancellationToken);
         }
 
         return Unit.Value;
