@@ -1,6 +1,7 @@
 using MediatR;
 using OctalPulse.Application.Interface.Repositories;
 using OctalPulse.Application.Interface.Services;
+using OctalPulse.Domain.Enums;
 
 namespace OctalPulse.Application.Features.Query.Project.GetAllProjects;
 
@@ -20,6 +21,10 @@ public class GetAllProjectsQueryHandler : IRequestHandler<GetAllProjectsQuery, G
         var (items, totalCount) = await _unitOfWork.Projects.GetPagedAsync(
             request.PageNumber,
             request.PageSize,
+            predicate: p => p.Members.Any(m =>
+                m.UserId == request.UserId &&
+                m.Status == MembershipStatus.Approved &&
+                !m.IsDeleted),
             orderBy: q => q.OrderByDescending(p => p.CreatedDate),
             cancellationToken: cancellationToken);
 

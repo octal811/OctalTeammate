@@ -29,6 +29,7 @@ public class DeleteMajorTaskCommandHandler : IRequestHandler<DeleteMajorTaskComm
         {
             var now = DateTime.UtcNow;
             task.IsDeleted = true;
+            task.DeletedByUserId = request.UserId;
             task.ModifiedDate = now;
             _unitOfWork.MajorTasks.Update(task);
 
@@ -39,6 +40,7 @@ public class DeleteMajorTaskCommandHandler : IRequestHandler<DeleteMajorTaskComm
             foreach (var minorTask in minorTasks)
             {
                 minorTask.IsDeleted = true;
+                minorTask.DeletedByUserId = request.UserId;
                 minorTask.ModifiedDate = now;
             }
 

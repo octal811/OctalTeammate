@@ -41,5 +41,15 @@ public class MinorTaskConfiguration : IEntityTypeConfiguration<MinorTask>
             .WithMany(u => u.AssignedMinorTasks)
             .HasForeignKey(mn => mn.AssignedUserId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(mn => mn.CreatedByUser)
+            .WithMany()
+            .HasForeignKey(mn => mn.CreatedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(mn => mn.DeletedByUser)
+            .WithMany()
+            .HasForeignKey(mn => mn.DeletedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

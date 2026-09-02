@@ -35,6 +35,7 @@ public class DeleteTrackCommandHandler : IRequestHandler<DeleteTrackCommand, Uni
             var projectId = track.ProjectId;
             var now = DateTime.UtcNow;
             track.IsDeleted = true;
+            track.DeletedByUserId = request.UserId;
             track.ModifiedDate = now;
 
             foreach (var member in track.Members)

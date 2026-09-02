@@ -6,4 +6,5 @@ public record UpdateTrackCommand(
     Guid Id,
     Guid ProjectId,
     string Name,
-    string? Description) : IRequest<UpdateTrackResponse>;
+    string? Description,
+    Guid UserId) : IRequest<UpdateTrackResponse>;

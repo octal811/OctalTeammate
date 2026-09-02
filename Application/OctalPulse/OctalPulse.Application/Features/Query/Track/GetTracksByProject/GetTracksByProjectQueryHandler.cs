@@ -1,6 +1,8 @@
 using MediatR;
+using OctalPulse.Application.Exceptions;
 using OctalPulse.Application.Interface.Repositories;
 using OctalPulse.Application.Interface.Services;
+using OctalPulse.Domain.Enums;
 
 namespace OctalPulse.Application.Features.Query.Track.GetTracksByProject;
 
@@ -17,6 +19,20 @@ public class GetTracksByProjectQueryHandler : IRequestHandler<GetTracksByProject
 
     public async Task<GetTracksByProjectResponse> Handle(GetTracksByProjectQuery request, CancellationToken cancellationToken)
     {
+        var projectExists = await _unitOfWork.Projects.AnyAsync(
+            p => p.Id == request.ProjectId,
+            cancellationToken);
+
+        if (!projectExists)
+            throw new NotFoundException("Project not found.");
+
+        var isMember = await _unitOfWork.ProjectMembers.AnyAsync(
+            m => m.ProjectId == request.ProjectId && m.UserId == request.UserId && m.Status == MembershipStatus.Approved,
+            cancellationToken);
+
+        if (!isMember)
+            throw new ForbiddenException("Only approved project members can view tracks in this project.");
+
         var tracks = (await _unitOfWork.Tracks.FindAsync(
             t => t.ProjectId == request.ProjectId,
             cancellationToken)).ToList();

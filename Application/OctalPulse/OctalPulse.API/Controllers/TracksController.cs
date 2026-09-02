@@ -41,7 +41,7 @@ public class TracksController : ControllerBase
         [FromBody] UpdateTrackCommand command,
         CancellationToken cancellationToken)
     {
-        var result = await _sender.Send(command with { Id = id }, cancellationToken);
+        var result = await _sender.Send(command with { Id = id, UserId = GetUserId() }, cancellationToken);
         return Ok(result);
     }
 

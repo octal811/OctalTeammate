@@ -2,6 +2,7 @@ using MediatR;
 using OctalPulse.Application.Exceptions;
 using OctalPulse.Application.Interface.Repositories;
 using OctalPulse.Application.Interface.Services;
+using OctalPulse.Domain.Enums;
 
 namespace OctalPulse.Application.Features.Command.Project.UpdateProject;
 
@@ -26,6 +27,13 @@ public class UpdateProjectCommandHandler : IRequestHandler<UpdateProjectCommand,
         var project = await _unitOfWork.Projects.GetByIdAsync(request.Id, cancellationToken);
         if (project is null)
             throw new NotFoundException("Project not found.");
+
+        var isMember = await _unitOfWork.ProjectMembers.AnyAsync(
+            m => m.ProjectId == project.Id && m.UserId == request.UserId && m.Status == MembershipStatus.Approved,
+            cancellationToken);
+
+        if (!isMember)
+            throw new ForbiddenException("Only approved project members can update this project.");
 
         project.Title = request.Title;
         project.Description = request.Description;

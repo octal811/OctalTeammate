@@ -43,21 +43,23 @@ public class ProjectsController : ControllerBase
         [FromBody] GetAllProjectsQuery query,
         CancellationToken cancellationToken)
     {
-        var result = await _sender.Send(query, cancellationToken);
+        var result = await _sender.Send(
+            query with { UserId = GetUserId() },
+            cancellationToken);
         return Ok(result);
     }
 
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<GetProjectByIdResponse>> GetById(Guid id, CancellationToken cancellationToken)
     {
-        var result = await _sender.Send(new GetProjectByIdQuery(id), cancellationToken);
+        var result = await _sender.Send(new GetProjectByIdQuery(id, GetUserId()), cancellationToken);
         return Ok(result);
     }
 
     [HttpGet("{id:guid}/tracks")]
     public async Task<ActionResult<GetTracksByProjectResponse>> GetTracks(Guid id, CancellationToken cancellationToken)
     {
-        var result = await _sender.Send(new GetTracksByProjectQuery(id), cancellationToken);
+        var result = await _sender.Send(new GetTracksByProjectQuery(id, GetUserId()), cancellationToken);
         return Ok(result);
     }
 
@@ -67,7 +69,7 @@ public class ProjectsController : ControllerBase
         [FromBody] UpdateProjectCommand command,
         CancellationToken cancellationToken)
     {
-        var result = await _sender.Send(command with { Id = id }, cancellationToken);
+        var result = await _sender.Send(command with { Id = id, UserId = GetUserId() }, cancellationToken);
         return Ok(result);
     }
 

@@ -31,6 +31,11 @@ public class TrackConfiguration : IEntityTypeConfiguration<Track>
             .HasForeignKey(t => t.TrackLeadUserId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(t => t.DeletedByUser)
+            .WithMany()
+            .HasForeignKey(t => t.DeletedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasMany(t => t.MajorTasks)
             .WithOne(mt => mt.Track)
             .HasForeignKey(mt => mt.TrackId)

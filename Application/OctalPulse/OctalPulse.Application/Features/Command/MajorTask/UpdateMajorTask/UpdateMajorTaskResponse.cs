@@ -15,4 +15,6 @@ public record UpdateMajorTaskResponse(
     int Order,
     Guid? AssignedUserId,
     int Progress,
+    Guid? CreatedByUserId,
+    Guid? DeletedByUserId,
     DateTime? ModifiedDate);

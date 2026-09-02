@@ -19,7 +19,11 @@ public class MinorTask : AuditableEntity
     public DateTime? CompletedDate { get; set; }
     public Guid MajorTaskId { get; set; }
     public Guid? AssignedUserId { get; set; }
+    public Guid? CreatedByUserId { get; set; }
+    public Guid? DeletedByUserId { get; set; }
 
     public MajorTask MajorTask { get; set; } = null!;
     public User? AssignedUser { get; set; }
+    public User? CreatedByUser { get; set; }
+    public User? DeletedByUser { get; set; }
 }

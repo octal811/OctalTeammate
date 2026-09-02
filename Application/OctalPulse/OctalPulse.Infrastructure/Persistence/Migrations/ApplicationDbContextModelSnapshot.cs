@@ -275,8 +275,14 @@ namespace OctalPulse.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("CompletedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedByUserId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
@@ -329,6 +335,10 @@ namespace OctalPulse.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("AssignedUserId");
 
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
                     b.HasIndex("TrackId", "Order");
 
                     b.ToTable("MajorTasks", (string)null);
@@ -346,8 +356,14 @@ namespace OctalPulse.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("CompletedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid?>("CreatedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedByUserId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
@@ -391,6 +407,10 @@ namespace OctalPulse.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("AssignedUserId");
 
+                    b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
+
                     b.HasIndex("MajorTaskId", "Order");
 
                     b.ToTable("MinorTasks", (string)null);
@@ -407,6 +427,9 @@ namespace OctalPulse.Infrastructure.Persistence.Migrations
 
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedByUserId")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
@@ -429,6 +452,8 @@ namespace OctalPulse.Infrastructure.Persistence.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedByUserId");
+
+                    b.HasIndex("DeletedByUserId");
 
                     b.ToTable("Projects", (string)null);
                 });
@@ -516,6 +541,9 @@ namespace OctalPulse.Infrastructure.Persistence.Migrations
                     b.Property<DateTime>("CreatedDate")
                         .HasColumnType("datetime2");
 
+                    b.Property<Guid?>("DeletedByUserId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<string>("Description")
                         .HasMaxLength(1000)
                         .HasColumnType("nvarchar(1000)");
@@ -538,6 +566,8 @@ namespace OctalPulse.Infrastructure.Persistence.Migrations
                         .HasColumnType("uniqueidentifier");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DeletedByUserId");
 
                     b.HasIndex("ProjectId");
 
@@ -784,6 +814,16 @@ namespace OctalPulse.Infrastructure.Persistence.Migrations
                         .HasForeignKey("AssignedUserId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("OctalPulse.Domain.Entities.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("OctalPulse.Domain.Entities.User", "DeletedByUser")
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("OctalPulse.Domain.Entities.Track", "Track")
                         .WithMany("MajorTasks")
                         .HasForeignKey("TrackId")
@@ -791,6 +831,10 @@ namespace OctalPulse.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("AssignedUser");
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("DeletedByUser");
 
                     b.Navigation("Track");
                 });
@@ -802,6 +846,16 @@ namespace OctalPulse.Infrastructure.Persistence.Migrations
                         .HasForeignKey("AssignedUserId")
                         .OnDelete(DeleteBehavior.Restrict);
 
+                    b.HasOne("OctalPulse.Domain.Entities.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
+                    b.HasOne("OctalPulse.Domain.Entities.User", "DeletedByUser")
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("OctalPulse.Domain.Entities.MajorTask", "MajorTask")
                         .WithMany("MinorTasks")
                         .HasForeignKey("MajorTaskId")
@@ -809,6 +863,10 @@ namespace OctalPulse.Infrastructure.Persistence.Migrations
                         .IsRequired();
 
                     b.Navigation("AssignedUser");
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("DeletedByUser");
 
                     b.Navigation("MajorTask");
                 });
@@ -821,7 +879,14 @@ namespace OctalPulse.Infrastructure.Persistence.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.HasOne("OctalPulse.Domain.Entities.User", "DeletedByUser")
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.Navigation("CreatedByUser");
+
+                    b.Navigation("DeletedByUser");
                 });
 
             modelBuilder.Entity("OctalPulse.Domain.Entities.ProjectMember", b =>
@@ -856,6 +921,11 @@ namespace OctalPulse.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("OctalPulse.Domain.Entities.Track", b =>
                 {
+                    b.HasOne("OctalPulse.Domain.Entities.User", "DeletedByUser")
+                        .WithMany()
+                        .HasForeignKey("DeletedByUserId")
+                        .OnDelete(DeleteBehavior.Restrict);
+
                     b.HasOne("OctalPulse.Domain.Entities.Project", "Project")
                         .WithMany("Tracks")
                         .HasForeignKey("ProjectId")
@@ -866,6 +936,8 @@ namespace OctalPulse.Infrastructure.Persistence.Migrations
                         .WithMany()
                         .HasForeignKey("TrackLeadUserId")
                         .OnDelete(DeleteBehavior.Restrict);
+
+                    b.Navigation("DeletedByUser");
 
                     b.Navigation("Project");
 

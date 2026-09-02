@@ -21,8 +21,12 @@ public class MajorTask : AuditableEntity
     public DateTime? CompletedDate { get; set; }
     public Guid TrackId { get; set; }
     public Guid? AssignedUserId { get; set; }
+    public Guid? CreatedByUserId { get; set; }
+    public Guid? DeletedByUserId { get; set; }
 
     public Track Track { get; set; } = null!;
     public User? AssignedUser { get; set; }
+    public User? CreatedByUser { get; set; }
+    public User? DeletedByUser { get; set; }
     public ICollection<MinorTask> MinorTasks { get; set; } = new List<MinorTask>();
 }

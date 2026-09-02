@@ -26,6 +26,11 @@ public class ProjectConfiguration : IEntityTypeConfiguration<Project>
             .HasForeignKey(p => p.CreatedByUserId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(p => p.DeletedByUser)
+            .WithMany()
+            .HasForeignKey(p => p.DeletedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasMany(p => p.Tracks)
             .WithOne(t => t.Project)
             .HasForeignKey(t => t.ProjectId)

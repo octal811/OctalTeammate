@@ -47,6 +47,16 @@ public class MajorTaskConfiguration : IEntityTypeConfiguration<MajorTask>
             .HasForeignKey(mt => mt.AssignedUserId)
             .OnDelete(DeleteBehavior.Restrict);
 
+        builder.HasOne(mt => mt.CreatedByUser)
+            .WithMany()
+            .HasForeignKey(mt => mt.CreatedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(mt => mt.DeletedByUser)
+            .WithMany()
+            .HasForeignKey(mt => mt.DeletedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
+
         builder.HasMany(mt => mt.MinorTasks)
             .WithOne(mn => mn.MajorTask)
             .HasForeignKey(mn => mn.MajorTaskId)

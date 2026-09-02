@@ -15,4 +15,5 @@ public record CreateMajorTaskResponse(
     int Order,
     Guid? AssignedUserId,
     int Progress,
+    Guid? CreatedByUserId,
     DateTime CreatedDate);

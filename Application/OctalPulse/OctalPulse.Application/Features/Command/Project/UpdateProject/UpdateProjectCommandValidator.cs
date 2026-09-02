@@ -9,6 +9,9 @@ public class UpdateProjectCommandValidator : AbstractValidator<UpdateProjectComm
         RuleFor(x => x.Id)
             .NotEmpty();
 
+        RuleFor(x => x.UserId)
+            .NotEmpty();
+
         RuleFor(x => x.Title)
             .NotEmpty()
             .MaximumLength(200);

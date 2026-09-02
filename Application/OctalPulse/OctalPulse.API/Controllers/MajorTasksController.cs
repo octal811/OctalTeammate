@@ -6,6 +6,7 @@ using OctalPulse.API.Attributes;
 using OctalPulse.Application.Features.Command.MajorTask.CreateMajorTask;
 using OctalPulse.Application.Features.Command.MajorTask.DeleteMajorTask;
 using OctalPulse.Application.Features.Command.MajorTask.UpdateMajorTask;
+using OctalPulse.Application.Features.Query.MajorTask.GetMajorTasksByTrack;
 
 namespace OctalPulse.API.Controllers;
 
@@ -19,6 +20,17 @@ public class MajorTasksController : ControllerBase
     public MajorTasksController(ISender sender)
     {
         _sender = sender;
+    }
+
+    [HttpGet("track/{trackId:guid}")]
+    public async Task<ActionResult<GetMajorTasksByTrackResponse>> GetByTrack(
+        Guid trackId,
+        CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(
+            new GetMajorTasksByTrackQuery(trackId, GetUserId()),
+            cancellationToken);
+        return Ok(result);
     }
 
     [HttpPost]

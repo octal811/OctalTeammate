@@ -56,6 +56,8 @@ public class UpdateMajorTaskCommandHandler : IRequestHandler<UpdateMajorTaskComm
             task.Order,
             task.AssignedUserId,
             task.Progress,
+            task.CreatedByUserId,
+            task.DeletedByUserId,
             task.ModifiedDate);
     }
 

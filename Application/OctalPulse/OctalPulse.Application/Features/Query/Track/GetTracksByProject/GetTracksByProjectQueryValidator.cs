@@ -8,5 +8,8 @@ public class GetTracksByProjectQueryValidator : AbstractValidator<GetTracksByPro
     {
         RuleFor(x => x.ProjectId)
             .NotEmpty();
+
+        RuleFor(x => x.UserId)
+            .NotEmpty();
     }
 }

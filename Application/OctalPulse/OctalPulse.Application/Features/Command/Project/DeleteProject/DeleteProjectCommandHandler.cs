@@ -29,6 +29,7 @@ public class DeleteProjectCommandHandler : IRequestHandler<DeleteProjectCommand,
         {
             var now = DateTime.UtcNow;
             project.IsDeleted = true;
+            project.DeletedByUserId = request.UserId;
             project.ModifiedDate = now;
 
             foreach (var member in project.Members)

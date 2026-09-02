@@ -24,6 +24,15 @@ public class CreateTrackCommandHandler : IRequestHandler<CreateTrackCommand, Cre
         if (project is null)
             throw new NotFoundException("Project not found.");
 
+        var isProjectMember = await _unitOfWork.ProjectMembers.AnyAsync(
+            m => m.ProjectId == project.Id &&
+                 m.UserId == request.CreatedByUserId &&
+                 m.Status == MembershipStatus.Approved,
+            cancellationToken);
+
+        if (!isProjectMember)
+            throw new ForbiddenException("Only approved project members can create tracks in this project.");
+
         var now = DateTime.UtcNow;
 
         var track = new Domain.Entities.Track
