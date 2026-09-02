@@ -193,7 +193,7 @@ Validates the OTP and sets a new password. The user must log in again afterward 
 
 ## Projects
 
-All routes in this group require an authenticated user (`[Authorize]`); any member can create, list, view, or update projects. The creator is automatically joined as a `ProjectManager` member.
+All routes in this group require an authenticated user (`[Authorize]`). Any **approved project member** can create, list, view, or update projects (project update/delete are also creator-only on `ProjectsController`). The creator is automatically joined as a `ProjectManager` member — other users join on request and are admitted only after the **creator approves** them (membership is `Pending` until then). Only `Approved` members can read/write and receive real-time project events.
 
 ### POST `/api/projects`
 
@@ -319,9 +319,60 @@ Soft-deletes the project **and everything under it** — members (and their proj
 
 ---
 
+### Project Membership & Join flow
+
+A user joins a project on request; the **project creator** approves or rejects the request (single-request endpoint, creator-only review). The `ProjectMember.Status` is `Pending` while waiting, `Approved` once admitted, or `Rejected`. Only `Approved` members can read/write project data and receive real-time events.
+
+#### POST `/api/projects/{id}/join-request`
+
+Submits a join request for the authenticated user. The existing ``ProjectMember` row (if any) is left as-is if not rejected. No body is required — the project id comes from the route and the requester from the JWT.
+
+```json
+// 200 — RequestProjectJoinResponse
+{
+  "projectId": "00000000-0000-0000-0000-000000000000",
+  "status": "Pending",
+  "message": "Join request submitted."
+}
+```
+
+- `404` — project not found; `400` — already a member
+
+#### POST `/api/projects/{id}/join-requests/{userId}/approve`
+
+**Creator-only.** Approves a pending join request from `{userId}`, setting their membership to `Approved`.
+
+```json
+// 200 — ReviewProjectJoinResponse
+{
+  "projectId": "00000000-0000-0000-0000-000000000000",
+  "userId": "00000000-0000-0000-0000-000000000000",
+  "status": "Approved"
+}
+```
+
+- `403` — caller is not the project creator; `404` — project or join request not found; `400` — already approved
+
+#### POST `/api/projects/{id}/join-requests/{userId}/reject`
+
+**Creator-only.** Rejects a pending join request from `{userId}`, setting their membership to `Rejected`.
+
+```json
+// 200 — ReviewProjectJoinResponse
+{
+  "projectId": "00000000-0000-0000-0000-000000000000",
+  "userId": "00000000-0000-0000-0000-000000000000",
+  "status": "Rejected"
+}
+```
+
+- `403` — caller is not the project creator; `404` — project or join request not found; `400` — already rejected
+
+---
+
 ## Tracks
 
-All routes in this group require an authenticated user. Track CRUD is on `TracksController`; list-by-project lives on `ProjectsController`. All parameters are sent as JSON `[FromBody]`.
+All routes in this group require an authenticated user who is an **approved project member** of the track's project (the join/gate rules mirror Projects). Track CRUD is on `TracksController`; list-by-project lives on `ProjectsController`. All parameters are sent as JSON `[FromBody]`. A user joins a track on request; the **track lead** approves or rejects — only `Approved` track members receive that track's notifications.
 
 ### GET `/api/projects/{id}/tracks`
 
@@ -390,6 +441,57 @@ Soft-deletes the track **and everything under it** — track members, major task
 
 - `204 No Content` — deleted (idempotent; re-deleting an already deleted track returns `204`). Parent project's progress updates automatically (computed at read time).
 - `404` — track does not exist
+
+---
+
+### Track Membership & Join flow
+
+A user joins a track on request; the **track lead** (`TrackLeadUserId`) approves or rejects the request (single-request endpoint). The `TrackMember.Status` is `Pending` while waiting, `Approved` once admitted, or `Rejected`. Only `Approved` track members are added to the track's real-time group.
+
+#### POST `/api/tracks/{id}/join-request`
+
+Submits a join request for the authenticated user. No body is required — the track id comes from the route and the requester from the JWT.
+
+```json
+// 200 — RequestTrackJoinResponse
+{
+  "trackId": "00000000-0000-0000-0000-000000000000",
+  "status": "Pending",
+  "message": "Join request submitted."
+}
+```
+
+- `404` — track not found; `400` — already a member
+
+#### POST `/api/tracks/{id}/join-requests/{userId}/approve`
+
+**Track-lead only.** Approves a pending join request from `{userId}`, setting their membership to `Approved`.
+
+```json
+// 200 — ReviewTrackJoinResponse
+{
+  "trackId": "00000000-0000-0000-0000-000000000000",
+  "userId": "00000000-0000-0000-0000-000000000000",
+  "status": "Approved"
+}
+```
+
+- `403` — caller is not the track lead; `404` — track or join request not found; `400` — already approved
+
+#### POST `/api/tracks/{id}/join-requests/{userId}/reject`
+
+**Track-lead only.** Rejects a pending join request from `{userId}`, setting their membership to `Rejected`.
+
+```json
+// 200 — ReviewTrackJoinResponse
+{
+  "trackId": "00000000-0000-0000-0000-000000000000",
+  "userId": "00000000-0000-0000-0000-000000000000",
+  "status": "Rejected"
+}
+```
+
+- `403` — caller is not the track lead; `404` — track or join request not found; `400` — already rejected
 
 ---
 
@@ -509,6 +611,183 @@ Returns **all** events in the given project for the given **calendar year and mo
 
 - `totalCount` equals the number of `events` returned (all matching events in the month). An event is included if its `StartDate` year and month match the query — irrespective of count.
 - `403` — caller is not an approved member; `404` — project not found; `400` — invalid `year`/`month`
+
+---
+
+## Tasks
+
+Tasks are read/write-gated like the rest of the app: the caller must be an **approved project member** of the task's track/project. A **major task** belongs to a *track*; a **minor task** belongs to a *major task*. Completing minor tasks drives **auto-computed progress** up the chain (MinorTask → MajorTask → Track → Project).
+
+Many clients rely on the rule **"progress is never accepted as input"** — it is always derived from the child minor tasks, so no task endpoint accepts a `progress` field.
+
+All task mutations are **creator-only** for update/delete and are real-time (`majorTaskChanged` / `minorTaskChanged` to the track group).
+
+## Major Tasks
+
+`MajorTasksController` — `[Authorize]`, routed at `/api/majortasks`. Create and delete are concurrent-operation-locked (`majortasks:create` / `majortasks:delete`). Member gate on every read/write; update/delete are **creator-only**.
+
+### GET `/api/majortasks/track/{trackId}`
+
+Returns all non-deleted major tasks in the given track (creator-only restriction applies to edits, not reads — any approved member can list).
+
+```json
+// 200 — GetMajorTasksByTrackResponse
+{
+  "majorTasks": [
+    {
+      "id": "00000000-0000-0000-0000-000000000000",
+      "trackId": "00000000-0000-0000-0000-000000000000",
+      "title": "Build /api/login",
+      "description": "Implement JWT login",
+      "details": null,
+      "link": null,
+      "state": "InProgress",
+      "priority": "High",
+      "dueDate": "2026-09-20T00:00:00Z",
+      "order": 1,
+      "assignedUserId": "00000000-0000-0000-0000-000000000000",
+      "progress": 50,
+      "createdByUserId": "00000000-0000-0000-0000-000000000000",
+      "deletedByUserId": null,
+      "createdDate": "2026-09-02T09:51:37Z"
+    }
+  ]
+}
+```
+
+- `403` — caller is not an approved member; `404` — track not found
+
+### POST `/api/majortasks`
+
+Creates a major task. An **approved project member** may create. `progress` is **not accepted** — it is derived from minor tasks.
+
+```json
+// Request
+{
+  "trackId": "00000000-0000-0000-0000-000000000000",
+  "title": "Build /api/login",
+  "description": "Implement JWT login",
+  "details": null,
+  "link": null,
+  "state": "Todo",
+  "priority": "High",
+  "dueDate": "2026-09-20T00:00:00Z",
+  "order": 1,
+  "assignedUserId": null
+}
+```
+
+- `state`: `Todo | InProgress | OnHold | Done`; `priority`: `Low | Medium | High | Critical`
+- `progress` is **not accepted** — always derived from minor tasks (starts at `0` for a new major task)
+- `createdByUserId` is recorded from the JWT
+- `200` — `CreateMajorTaskResponse` (same shape as the list item; `createdByUserId`, `progress`)
+- `403` — not an approved member; `404` — track not found; `400` — invalid fields
+
+### PUT `/api/majortasks/{id}`
+
+Updates a major task. **Creator-only.** `progress` is **not accepted** — recomputed from minor tasks at read time.
+
+```json
+// Request
+{
+  "title": "Build /api/login (v2)",
+  "description": "Add refresh token rotation",
+  "state": "InProgress",
+  "priority": "Critical"
+}
+```
+
+- `200` — `UpdateMajorTaskResponse` (adds `modifiedDate`); `progress` recomputed
+- `403` — caller is not the creator (or not an approved member); `404` — task not found; `400` — invalid fields
+
+### DELETE `/api/majortasks/{id}`
+
+Soft-deletes a major task **and its minor tasks**. **Creator-only.** Records `DeletedByUserId`/`ModifiedDate` (never hard-deleted). Concurrent-operation-locked.
+
+- `204 No Content` — deleted (idempotent; re-deleting returns `204`)
+- `403` — caller is not the creator (or not an approved member); `404` — task not found
+
+---
+
+## Minor Tasks
+
+`MinorTasksController` — `[Authorize]`, routed at `/api/minortasks`. Create and delete are concurrent-operation-locked (`minortasks:create` / `minortasks:delete`). Member gate on every read/write; update/delete are **creator-only**. Completing a `Done` minor task raises the major task's progress and records an achievement for the assigned user.
+
+### GET `/api/minortasks/major/{majorTaskId}`
+
+Returns all non-deleted minor tasks in the given major task.
+
+```json
+// 200 — GetMinorTasksByMajorTaskResponse
+{
+  "minorTasks": [
+    {
+      "id": "00000000-0000-0000-0000-000000000000",
+      "majorTaskId": "00000000-0000-0000-0000-000000000000",
+      "title": "Add refresh flow",
+      "description": "Rotate the refresh token",
+      "target": "Single-use tokens",
+      "state": "InProgress",
+      "notes": null,
+      "link": null,
+      "order": 1,
+      "assignedUserId": "00000000-0000-0000-0000-000000000000",
+      "createdByUserId": "00000000-0000-0000-0000-000000000000",
+      "isDeleted": false,
+      "createdDate": "2026-09-02T09:51:37Z"
+    }
+  ]
+}
+```
+
+- `403` — caller is not an approved member; `404` — major task not found
+
+### POST `/api/minortasks`
+
+Creates a minor task. An **approved project member** may create.
+
+```json
+// Request
+{
+  "majorTaskId": "00000000-0000-0000-0000-000000000000",
+  "title": "Add refresh flow",
+  "description": "Rotate the refresh token",
+  "target": "Single-use tokens",
+  "state": "Todo",
+  "notes": null,
+  "link": null,
+  "order": 1,
+  "assignedUserId": "00000000-0000-0000-0000-000000000000"
+}
+```
+
+- `state`: `Todo | InProgress | Done | Canceled | Failed`
+- `createdByUserId` is recorded from the JWT
+- `200` — `CreateMinorTaskResponse` (same shape as the list item; `createdByUserId`, `isDeleted`)
+- `403` — not an approved member; `404` — major task not found; `400` — invalid fields
+
+### PUT `/api/minortasks/{id}`
+
+Updates a minor task. **Creator-only.** Setting `state` to `Done` triggers the progress cascade (the major task's `Progress` recomputes from done minor tasks).
+
+```json
+// Request
+{
+  "state": "Done",
+  "notes": "Shipped to prod",
+  "order": 1
+}
+```
+
+- `200` — `UpdateMinorTaskResponse` (adds `modifiedDate`)
+- `403` — caller is not the creator (or not an approved member); `404` — task not found; `400` — invalid fields
+
+### DELETE `/api/minortasks/{id}`
+
+Soft-deletes a minor task. **Creator-only.** Records `DeletedByUserId`/`ModifiedDate` (never hard-deleted). Concurrent-operation-locked.
+
+- `204 No Content` — deleted (idempotent; re-deleting returns `204`)
+- `403` — caller is not the creator (or not an approved member); `404` — task not found
 
 ---
 
