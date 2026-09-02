@@ -57,7 +57,7 @@ Rules that hold the design together:
 - **Soft delete everywhere.** Rows are flagged `IsDeleted`, never hard-deleted.
 - **Guid identity.** Every key is a `Guid`.
 - **Auditing.** Auditable tables carry `CreatedDate` / `ModifiedDate`.
-- **Progress is computed**, not stored as manual input.
+- **Progress is auto-calculated.** Never accepted as input — `IProgressCalculator` computes it from children (major tasks → track, tracks → project) and stores it for reads.
 
 ## Feature Highlights (implemented so far)
 
@@ -83,17 +83,17 @@ Rules that hold the design together:
 - `UserOperationLockMiddleware` — a user can't overlap the same operation (409); e.g., double-clicking "refresh".
 
 ### 5. Projects
-- Any authenticated user can **create** a project (`POST /api/projects`); the creator is auto-joined as a `ProjectManager` member.
+- Any authenticated user can **create** a project (`POST /api/projects`); the creator is auto-joined as a `ProjectManager` member. Progress starts at `0` (auto-calculated from tracks).
 - **Paginated list** (`POST /api/projects/list` with `{ "pageNumber": 1, "pageSize": 10 }` in body) — returns only `id`, `title`, `description`, `progress`, `status` (pageSize capped at 100).
-- **Update** (`PUT /api/projects/{id}`) and **full details** (`GET /api/projects/{id}` — basic info, creator, member list/count).
+- **Update** (`PUT /api/projects/{id}`) and **full details** (`GET /api/projects/{id}` — basic info, creator, member list/count). Progress is auto-recalculated from tracks.
 - **Soft delete** (`DELETE /api/projects/{id}`) — cascades `IsDeleted` through members (+ roles), tracks, track members, major/minor tasks, and project events; idempotent (`204`). Deleted projects vanish from list/detail.
 - Missing projects return `404` (new `NotFoundException` in middleware); requests follow `Features/Command/Project/<Feature>` / `Features/Query/Project/<Feature>` with their handlers, responses, and validators co-located.
 
 ### 6. Tracks
 - **List tracks by project** (`GET /api/projects/{id}/tracks`) — returns all tracks under the given project (name, description, progress) sorted newest first.
-- **Create** (`POST /api/tracks` with `{ projectId, name, description?, progress }` in body) — requires the target project to exist.
-- **Update** (`PUT /api/tracks/{id}`) — updates name, description, and progress.
-- **Soft delete** (`DELETE /api/tracks/{id}`) — cascades `IsDeleted` through track members, major tasks, and their minor tasks; idempotent (`204`). Track does not exist → `404`.
+- **Create** (`POST /api/tracks` with `{ projectId, name, description? }` in body) — requires the target project to exist. Progress starts at `0` (auto-calculated from major tasks).
+- **Update** (`PUT /api/tracks/{id}`) — updates name and description. Progress is auto-recalculated from existing major tasks.
+- **Soft delete** (`DELETE /api/tracks/{id}`) — cascades `IsDeleted` through track members, major tasks, and their minor tasks; idempotent (`204`). Parent project's progress is auto-recalculated.
 - All parameters sent as JSON body (`[FromBody]`); features live in `Features/Command/Track/<Feature>` / `Features/Query/Track/<Feature>`.
 - Repository exposes `GetByIdWithTreeIncludingDeletedAsync` (IgnoreQueryFilters + full Include graph) so the delete handler can walk the entire subtree.
 
@@ -124,14 +124,14 @@ POST /api/auth/login                     → LoginResponse (access + refresh)
 
 ### Project work (the core loop)
 ```
-Admin / lead creates a Project
-   → Tracks are created inside it (name, description, progress)
+Admin / lead creates a Project  (progress = 0)
+   → Tracks are created inside it  (progress = 0)
       → members join tracks (TrackMember) and receive notifications
          → MajorTasks belong to a track
             → MinorTasks belong to a MajorTask, assigned to a user
                → user marks MinorTask Done
                   → Progress cascades: MajorTask → Track → Project
-                  → achievement recorded for the user
+                  (auto-calculated by IProgressCalculator; never manually set)
 ```
 
 ### Runtime admin control

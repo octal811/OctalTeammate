@@ -366,7 +366,7 @@ Creates a track inside a project.
 
 ### PUT `/api/tracks/{id}`
 
-Updates a track's name, description, and progress.
+Updates a track's name and description. Progress is auto-recalculated from existing major tasks.
 
 ```json
 // Request
@@ -439,6 +439,15 @@ When a capability is **disabled**, the *middleware* rejects calls to it before i
 ---
 
 ## Cross-cutting Behavior
+
+### Progress auto-calculation
+
+Progress is never accepted as input on any endpoint. It is always auto-calculated by `IProgressCalculator`:
+
+- **Track progress** = average of its non-deleted major tasks' `Progress` values (0 if no tasks exist).
+- **Project progress** = average of its non-deleted tracks' `Progress` values (0 if no tracks exist).
+
+Progress is recalculated when tracks or projects are created, updated, or deleted. The stored value is always consistent with the children.
 
 ### Concurrent-operation lock (409)
 
