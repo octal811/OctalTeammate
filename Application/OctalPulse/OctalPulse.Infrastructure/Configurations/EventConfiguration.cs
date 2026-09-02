@@ -40,5 +40,10 @@ public class EventConfiguration : IEntityTypeConfiguration<Event>
             .WithMany(u => u.CreatedEvents)
             .HasForeignKey(e => e.CreatedByUserId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        builder.HasOne(e => e.DeletedByUser)
+            .WithMany()
+            .HasForeignKey(e => e.DeletedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

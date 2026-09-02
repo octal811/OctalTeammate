@@ -54,6 +54,9 @@ The connection string is read from `appsettings.json` -> `ConnectionStrings:Defa
 | `20260831185238_InitialCreate` | Baseline schema (all domain tables + Identity). |
 | `20260901140155_AddRefreshTokens` | Adds `RefreshTokens` for JWT session rotation. |
 | `20260901163212_AddApiAvailability` | Adds `ApiAvailability` for admin-controlled endpoint availability. |
+| `20260902153200_AddMembershipStatus` | Adds nullable `Status` (approved/pending) audit columns to `ProjectMembers` and `TrackMembers`. |
+| `20260902164413_AddTaskAuditColumns` | Adds `CreatedByUserId` / `DeletedByUserId` audit columns to `MajorTasks` and `MinorTasks`, and `DeletedByUserId` to `Projects` and `Tracks`. |
+| `20260902174847_AddEventAuditColumn` | Adds nullable `DeletedByUserId` + `DeletedByUser` FK to `Events` (creator-only delete audit). | |
 
 
 
@@ -137,6 +140,7 @@ A top-level container for a managed team project.
 | CreatedDate | DateTime | When the project was created. |
 | ModifiedDate | DateTime? | Last update timestamp. |
 | CreatedByUserId | Guid | FK → User.Id — the user who created the project. |
+| DeletedByUserId | Guid? | FK → User.Id (nullable) — who deleted the project (soft delete audit). |
 | IsDeleted | bool | Soft delete flag. |
 
 **Enums used:** `ProjectStatus`: `Active`, `Completed`, `OnHold`, `Archived`
@@ -160,6 +164,7 @@ A top-level container for a managed team project.
 | Id | Guid | Primary key. |
 | ProjectId | Guid | FK → Project.Id. |
 | UserId | Guid | FK → User.Id. |
+| Status | string | Membership status — `Approved` (active member) or `Pending` (awaiting approval). Read/write gates and real-time join checks only admit `Approved` members. |
 | CreatedDate | DateTime | When the user joined the project. |
 | ModifiedDate | DateTime? | Last update timestamp. |
 | IsDeleted | bool | Soft delete flag. |
@@ -206,6 +211,7 @@ A workstream *inside* a project (e.g., "AI", "Backend", "Mobile"). A project is 
 | TrackLeadUserId | Guid? | FK → User.Id (optional). The lead is responsible for guarding the track from accidental deletion and for letting users join. |
 | CreatedDate | DateTime | When the track was created. |
 | ModifiedDate | DateTime? | Last update timestamp. |
+| DeletedByUserId | Guid? | FK → User.Id (nullable) — who deleted the track (soft delete audit). |
 | IsDeleted | bool | Soft delete flag. |
 
 **Relationships**
@@ -227,6 +233,7 @@ A workstream *inside* a project (e.g., "AI", "Backend", "Mobile"). A project is 
 | Id | Guid | Primary key. |
 | TrackId | Guid | FK → Track.Id. |
 | UserId | Guid | FK → User.Id. |
+| Status | string | Membership status — `Approved` or `Pending`. Only `Approved` members are admitted to track notifications and work logging. |
 | CreatedDate | DateTime | When the user joined the track. |
 | ModifiedDate | DateTime? | Last update timestamp. |
 | IsDeleted | bool | Soft delete flag. |
@@ -258,6 +265,8 @@ A high-level task belonging to a track. Contains an ordered list of minor tasks.
 | CompletedDate | DateTime? | Set when the task reaches state `Done`. |
 | TrackId | Guid | FK → Track.Id. |
 | AssignedUserId | Guid? | FK → User.Id (nullable — can be a shared task). |
+| CreatedByUserId | Guid | FK → User.Id — who created the major task. |
+| DeletedByUserId | Guid? | FK → User.Id (nullable) — who deleted the major task (soft delete audit). |
 | CreatedDate | DateTime | When created. |
 | ModifiedDate | DateTime? | Last update timestamp. |
 | IsDeleted | bool | Soft delete flag. |
@@ -290,6 +299,8 @@ A small, actionable task under a major task. Completing minor tasks drives progr
 | CompletedDate | DateTime? | Set when the task reaches state `Done`. |
 | MajorTaskId | Guid | FK → MajorTask.Id. |
 | AssignedUserId | Guid? | FK → User.Id (nullable). |
+| CreatedByUserId | Guid | FK → User.Id — who created the minor task. |
+| DeletedByUserId | Guid? | FK → User.Id (nullable) — who deleted the minor task (soft delete audit). |
 | CreatedDate | DateTime | When created. |
 | ModifiedDate | DateTime? | Last update timestamp. |
 | IsDeleted | bool | Soft delete flag. |
@@ -323,6 +334,7 @@ Calendar/scheduling entries used to remind the team about tasks, jobs, meetings,
 | TrackId | Guid? | FK → Track.Id (optional scoping). |
 | MajorTaskId | Guid? | FK → MajorTask.Id (optional scoping). |
 | CreatedByUserId | Guid | FK → User.Id — who created the event. |
+| DeletedByUserId | Guid? | FK → User.Id (nullable) — who deleted the event (soft delete audit, creator-only delete). |
 | CreatedDate | DateTime | When the event was created. |
 | ModifiedDate | DateTime? | Last update timestamp. |
 | IsDeleted | bool | Soft delete flag. |
@@ -414,6 +426,7 @@ User 1 ──── * Event (CreatedByUserId)
 | Track | Event | Has Many | N → 0..1 | An event may be scoped to a track. |
 | MajorTask | Event | Has Many | N → 0..1 | An event may be scoped to a major task. |
 | User | Event | Has Many | 1 → N | A user creates many events. |
+| User | Event (DeletedBy) | Has Many | N → 0..1 | The user who deleted an event (soft-delete audit). |
 | Project | User | Has One | N → 1 | `CreatedByUserId` creator relationship. |
 | User | RefreshToken | Has Many | 1 → N | A user owns many (rotated) refresh tokens. |
 

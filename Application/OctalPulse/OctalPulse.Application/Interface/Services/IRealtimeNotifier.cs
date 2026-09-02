@@ -6,4 +6,5 @@ public interface IRealtimeNotifier
     Task TrackChangedAsync(Guid trackId, Guid projectId, CancellationToken cancellationToken = default);
     Task MajorTaskChangedAsync(Guid trackId, Guid majorTaskId, CancellationToken cancellationToken = default);
     Task MinorTaskChangedAsync(Guid trackId, Guid minorTaskId, CancellationToken cancellationToken = default);
+    Task EventChangedAsync(Guid projectId, Guid eventId, CancellationToken cancellationToken = default);
 }

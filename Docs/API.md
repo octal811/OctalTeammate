@@ -393,6 +393,125 @@ Soft-deletes the track **and everything under it** — track members, major task
 
 ---
 
+## Events
+
+Every project has its own events (`EventsController`). All routes require an authenticated user who is an **approved project member** of the event's project. **Any project member can create** an event, but **only the event creator** can update or delete it. All mutations are real-time (SignalR `eventChanged` to the project group).
+
+### POST `/api/events`
+
+Creates an event for a project. An **approved project member** of that project may create it.
+
+```json
+// Request
+{
+  "projectId": "00000000-0000-0000-0000-000000000000",
+  "title": "Sprint Review",
+  "description": "Weekly demo",
+  "type": "Meeting",
+  "startDate": "2026-09-15T10:00:00Z",
+  "endDate": "2026-09-15T11:00:00Z",
+  "startTime": null,
+  "endTime": null,
+  "isAllDay": false,
+  "trackId": null,
+  "majorTaskId": null
+}
+```
+
+- `type`: `Meeting | Deadline | Task | Reminder | Milestone`
+- The caller (`createdByUserId`) is recorded from the JWT — it cannot be spoofed from the body.
+- `200` — `CreateEventResponse`
+
+```json
+{
+  "id": "00000000-0000-0000-0000-000000000000",
+  "projectId": "00000000-0000-0000-0000-000000000000",
+  "title": "Sprint Review",
+  "description": "Weekly demo",
+  "type": "Meeting",
+  "startDate": "2026-09-15T10:00:00Z",
+  "endDate": "2026-09-15T11:00:00Z",
+  "startTime": null,
+  "endTime": null,
+  "isAllDay": false,
+  "trackId": null,
+  "majorTaskId": null,
+  "createdByUserId": "00000000-0000-0000-0000-000000000000",
+  "isDeleted": false,
+  "createdDate": "2026-09-02T18:04:54Z"
+}
+```
+
+- `403` — caller is not an approved member of the project; `404` — project/track/major task not found; `400` — invalid fields
+
+---
+
+### PUT `/api/events/{id}`
+
+Updates an event. **Only the event creator** (the user in `CreatedByUserId`) may update it.
+
+```json
+// Request
+{
+  "title": "Sprint Review (rescheduled)",
+  "description": "Weekly demo",
+  "type": "Meeting",
+  "startDate": "2026-09-16T10:00:00Z",
+  "endDate": "2026-09-16T11:00:00Z",
+  "isAllDay": false
+}
+```
+
+- `200` — `UpdateEventResponse` (same shape as the create response, with `modifiedDate`)
+- `403` — caller is not the creator (or not an approved member); `404` — event not found; `400` — invalid fields
+
+---
+
+### DELETE `/api/events/{id}`
+
+Soft-deletes an event. **Only the event creator** may delete it; the deletion records `DeletedByUserId` and `ModifiedDate` (rows are never hard-deleted). Concurrent-operation-locked: `[UserOperationLock("events:delete")]`.
+
+- `204 No Content` — deleted (idempotent for an already-deleted event)
+- `403` — caller is not the creator (or not an approved member); `404` — event not found
+
+---
+
+### GET `/api/events/project/{projectId}/month?year={year}&month={month}`
+
+Returns **all** events in the given project for the given **calendar year and month** (`1..12`). This endpoint intentionally bypasses pagination and returns **every** event in that month — it is **not** capped at the 10-item default limit. An approved project member of that project may read it.
+
+```json
+// 200 — GetEventsByMonthResponse
+{
+  "projectId": "00000000-0000-0000-0000-000000000000",
+  "year": 2026,
+  "month": 9,
+  "totalCount": 12,
+  "events": [
+    {
+      "id": "00000000-0000-0000-0000-000000000000",
+      "title": "Sprint Review",
+      "description": "Weekly demo",
+      "type": "Meeting",
+      "startDate": "2026-09-15T10:00:00Z",
+      "endDate": "2026-09-15T11:00:00Z",
+      "startTime": null,
+      "endTime": null,
+      "isAllDay": false,
+      "trackId": null,
+      "majorTaskId": null,
+      "createdByUserId": "00000000-0000-0000-0000-000000000000",
+      "createdDate": "2026-09-02T18:04:54Z"
+    }
+  ]
+}
+```
+
+- `totalCount` equals the number of `events` returned (all matching events in the month). An event is included if its `StartDate` year and month match the query — irrespective of count.
+- `403` — caller is not an approved member; `404` — project not found; `400` — invalid `year`/`month`
+
+---
+
 ## Admin — API Availability
 
 All routes in this group are protected by the `AdminOnly` policy, which requires the caller to be an authenticated user whose **database record** has `Rank = Admin` (`ApiAvailabilityController` is `[Authorize(Policy = "AdminOnly")]`). A normal member gets `403 Forbidden`.
@@ -459,6 +578,7 @@ The API exposes a real-time collaboration hub at **`/hubs/collaboration`** (see 
 | `trackChanged` | `project-{id}` group | track created / updated / deleted (a track-list change visible to all project members) |
 | `majorTaskChanged` | `track-{id}` group | major task created / updated / deleted (track-scoped) |
 | `minorTaskChanged` | `track-{id}` group | minor task created / updated / deleted (track-scoped) |
+| `eventChanged` | `project-{id}` group | event created / updated / deleted (project-scoped) |
 
 Project events go to the project group; task events are **scoped to the track group** so members of one track only see their own track's major/minor task activity.
 

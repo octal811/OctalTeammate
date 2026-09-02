@@ -16,7 +16,7 @@ Command handler (Application)
    └─ after commit → IRealtimeNotifier (Application interface)
                         └─ SignalRNotifier (API) wraps IHubContext<CollaborationHub>
                              └─ Clients.Group("project-<id>" | "track-<id>")
-                                  └─ SendAsync("projectChanged" | "trackChanged" | "majorTaskChanged" | "minorTaskChanged")
+                                  └─ SendAsync("projectChanged" | "trackChanged" | "majorTaskChanged" | "minorTaskChanged" | "eventChanged")
 ```
 
 - The **Application** layer only knows `IRealtimeNotifier` — it never references SignalR directly.
@@ -58,6 +58,7 @@ Membership is validated through `IUnitOfWork` (`ProjectMembers.AnyAsync(...)`, `
 | `TrackChangedAsync(trackId, projectId)` | `trackChanged` | `project-{id}` | track created / updated / deleted (a track-list change visible to all project members) |
 | `MajorTaskChangedAsync(trackId, majorTaskId)` | `majorTaskChanged` | `track-{id}` | major task created / updated / deleted (track-scoped) |
 | `MinorTaskChangedAsync(trackId, minorTaskId)` | `minorTaskChanged` | `track-{id}` | minor task created / updated / deleted (track-scoped) |
+| `EventChangedAsync(projectId, eventId)` | `eventChanged` | `project-{id}` | event created / updated / deleted (project-scoped) |
 
 The handlers in `Features/Command/{Project,Track}/` call the notifier **after** the unit of work commits, so clients only learn about successful mutations.
 

@@ -21,9 +21,11 @@ public class Event : AuditableEntity
     public Guid? TrackId { get; set; }
     public Guid? MajorTaskId { get; set; }
     public Guid CreatedByUserId { get; set; }
+    public Guid? DeletedByUserId { get; set; }
 
     public Project? Project { get; set; }
     public Track? Track { get; set; }
     public MajorTask? MajorTask { get; set; }
     public User CreatedByUser { get; set; } = null!;
+    public User? DeletedByUser { get; set; }
 }

@@ -40,4 +40,11 @@ public class SignalRNotifier : IRealtimeNotifier
             .Group(CollaborationHub.TrackGroupName(trackId))
             .SendAsync("minorTaskChanged", minorTaskId, trackId, cancellationToken);
     }
+
+    public async Task EventChangedAsync(Guid projectId, Guid eventId, CancellationToken cancellationToken = default)
+    {
+        await _hubContext.Clients
+            .Group(CollaborationHub.ProjectGroupName(projectId))
+            .SendAsync("eventChanged", eventId, projectId, cancellationToken);
+    }
 }
