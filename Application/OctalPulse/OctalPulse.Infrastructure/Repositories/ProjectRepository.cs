@@ -20,4 +20,19 @@ public class ProjectRepository : BaseRepository<Project>, IProjectRepository
                 .ThenInclude(m => m.User)
             .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
     }
+
+    public async Task<Project?> GetByIdWithTreeIncludingDeletedAsync(Guid id, CancellationToken cancellationToken = default)
+    {
+        return await _context.Projects
+            .IgnoreQueryFilters()
+            .Include(p => p.Members)
+                .ThenInclude(m => m.Roles)
+            .Include(p => p.Tracks)
+                .ThenInclude(t => t.Members)
+            .Include(p => p.Tracks)
+                .ThenInclude(t => t.MajorTasks)
+                .ThenInclude(mt => mt.MinorTasks)
+            .Include(p => p.Events)
+            .FirstOrDefaultAsync(p => p.Id == id, cancellationToken);
+    }
 }

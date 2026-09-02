@@ -86,6 +86,7 @@ Rules that hold the design together:
 - Any authenticated user can **create** a project (`POST /api/projects`); the creator is auto-joined as a `ProjectManager` member.
 - **Paginated list** (`GET /api/projects?pageNumber=&pageSize=`) — returns only `id`, `title`, `description`, `progress`, `status` (pageSize capped at 100).
 - **Update** (`PUT /api/projects/{id}`) and **full details** (`GET /api/projects/{id}` — basic info, creator, member list/count).
+- **Soft delete** (`DELETE /api/projects/{id}`) — cascades `IsDeleted` through members (+ roles), tracks, track members, major/minor tasks, and project events; idempotent (`204`). Deleted projects vanish from list/detail.
 - Missing projects return `404` (new `NotFoundException` in middleware); requests follow `Features/Command/Project/<Feature>` / `Features/Query/Project/<Feature>` with their handlers, responses, and validators co-located.
 
 ## Main User Flows

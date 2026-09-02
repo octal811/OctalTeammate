@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OctalPulse.API.Attributes;
 using OctalPulse.Application.Features.Command.Project.CreateProject;
+using OctalPulse.Application.Features.Command.Project.DeleteProject;
 using OctalPulse.Application.Features.Command.Project.UpdateProject;
 using OctalPulse.Application.Features.Query.Project.GetAllProjects;
 using OctalPulse.Application.Features.Query.Project.GetProjectById;
@@ -59,6 +60,14 @@ public class ProjectsController : ControllerBase
     {
         var result = await _sender.Send(command with { Id = id }, cancellationToken);
         return Ok(result);
+    }
+
+    [HttpDelete("{id:guid}")]
+    [UserOperationLock("projects:delete")]
+    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    {
+        await _sender.Send(new DeleteProjectCommand(id), cancellationToken);
+        return NoContent();
     }
 
     private Guid GetUserId()

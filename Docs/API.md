@@ -304,6 +304,15 @@ Updates title, description, progress, and status of the project.
 
 ---
 
+### DELETE `/api/projects/{id}`
+
+Soft-deletes the project **and everything under it** — members (and their project roles), tracks, track members, major tasks, minor tasks, and project events. All rows are flagged `IsDeleted`, never hard-deleted. The project disappears from the list and detail endpoints immediately.
+
+- `204 No Content` — deleted (idempotent; re-deleting an already deleted project also returns `204`)
+- `404` — project does not exist
+
+---
+
 ## Admin — API Availability
 
 All routes in this group are protected by the `AdminOnly` policy, which requires the caller to be an authenticated user whose **database record** has `Rank = Admin` (`ApiAvailabilityController` is `[Authorize(Policy = "AdminOnly")]`). A normal member gets `403 Forbidden`.
