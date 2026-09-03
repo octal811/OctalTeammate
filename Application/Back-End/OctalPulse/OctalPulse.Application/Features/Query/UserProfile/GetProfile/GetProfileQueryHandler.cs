@@ -23,7 +23,6 @@ public class GetProfileQueryHandler : IRequestHandler<GetProfileQuery, UserProfi
             user.Id,
             user.Name,
             user.Email ?? string.Empty,
-            user.PhoneNumber,
             user.MainRole,
             user.Rank,
             user.ProfilePictureUrl);

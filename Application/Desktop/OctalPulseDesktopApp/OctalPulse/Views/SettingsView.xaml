@@ -10,6 +10,7 @@
     <UserControl.Resources>
         <converters:BooleanToVisibilityConverter x:Key="BoolToVis" />
         <converters:NullToVisibilityConverter x:Key="NullToVis" />
+        <converters:StringToInitialConverter x:Key="StringToInitial" />
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="32">
@@ -32,7 +33,7 @@
 
                         <!-- Large Avatar Circle -->
                         <Border Grid.Column="0" Width="48" Height="48" CornerRadius="24" Background="{DynamicResource Brush.Primary}" Margin="0,0,16,0">
-                            <TextBlock Text="{Binding ProfileName[0], FallbackValue='U'}" FontSize="20" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding ProfileName, Converter={StaticResource StringToInitial}}" FontSize="20" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
                         </Border>
 
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
@@ -42,38 +43,22 @@
                     </Grid>
 
                     <!-- Form Grid -->
-                    <Grid Margin="0,0,0,16">
-                        <Grid.RowDefinitions>
-                            <RowDefinition Height="Auto" />
-                            <RowDefinition Height="Auto" />
-                        </Grid.RowDefinitions>
+                    <Grid Margin="0,0,0,8">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
 
                         <!-- Display Name -->
-                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,12,16">
+                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
                             <TextBlock Text="Full Name *" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
                             <TextBox Text="{Binding ProfileName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" />
                         </StackPanel>
 
                         <!-- Main Role -->
-                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="12,0,0,16">
+                        <StackPanel Grid.Column="1" Margin="12,0,0,0">
                             <TextBlock Text="Main Engineering Role *" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
                             <ComboBox ItemsSource="{Binding AvailableRoles}" SelectedItem="{Binding ProfileRole}" Style="{StaticResource ComboBox.Modern}" />
-                        </StackPanel>
-
-                        <!-- Email (Read-only) -->
-                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,12,0">
-                            <TextBlock Text="Email Address (Verified)" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
-                            <TextBox Text="{Binding ProfileEmail}" Style="{StaticResource TextBox.Modern}" IsReadOnly="True" Opacity="0.75" />
-                        </StackPanel>
-
-                        <!-- Phone Number -->
-                        <StackPanel Grid.Row="1" Grid.Column="1" Margin="12,0,0,0">
-                            <TextBlock Text="Phone Number (Optional)" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
-                            <TextBox Text="{Binding ProfilePhone, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Tag="+1 555 0192" />
                         </StackPanel>
                     </Grid>
 

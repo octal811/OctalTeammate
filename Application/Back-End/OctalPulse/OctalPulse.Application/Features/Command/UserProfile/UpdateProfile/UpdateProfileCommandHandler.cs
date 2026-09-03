@@ -21,7 +21,6 @@ public class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileCommand,
             throw new NotFoundException("User not found.");
 
         user.Name = request.Name.Trim();
-        user.PhoneNumber = string.IsNullOrWhiteSpace(request.PhoneNumber) ? null : request.PhoneNumber.Trim();
         user.MainRole = request.MainRole;
         if (request.ProfilePictureUrl != null)
         {
@@ -35,7 +34,6 @@ public class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileCommand,
             user.Id,
             user.Name,
             user.Email ?? string.Empty,
-            user.PhoneNumber,
             user.MainRole,
             user.Rank,
             user.ProfilePictureUrl);

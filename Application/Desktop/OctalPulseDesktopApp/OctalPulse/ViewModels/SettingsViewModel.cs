@@ -32,12 +32,6 @@ public partial class SettingsViewModel : ObservableObject, INavigationAware
     private string _profileName = string.Empty;
 
     [ObservableProperty]
-    private string _profileEmail = string.Empty;
-
-    [ObservableProperty]
-    private string _profilePhone = string.Empty;
-
-    [ObservableProperty]
     private UserRole _profileRole = UserRole.SoftwareEngineer;
 
     [ObservableProperty]
@@ -93,7 +87,6 @@ public partial class SettingsViewModel : ObservableObject, INavigationAware
         {
             // Populate profile from current session
             ProfileName = _userSession.Name ?? string.Empty;
-            ProfileEmail = _userSession.Email ?? string.Empty;
             ProfileRole = _userSession.MainRole ?? UserRole.SoftwareEngineer;
 
             // Attempt to load fresh profile details from backend
@@ -103,8 +96,6 @@ public partial class SettingsViewModel : ObservableObject, INavigationAware
                 if (me != null)
                 {
                     ProfileName = me.Name;
-                    ProfileEmail = me.Email;
-                    ProfilePhone = me.PhoneNumber ?? string.Empty;
                     ProfileRole = me.MainRole;
                     _userSession.SetSession(me.Id, me.Email, me.Name, me.MainRole, me.Rank);
                 }
@@ -157,7 +148,6 @@ public partial class SettingsViewModel : ObservableObject, INavigationAware
         {
             var updated = await _authService.UpdateProfileAsync(new UpdateUserProfileRequest(
                 ProfileName.Trim(),
-                string.IsNullOrWhiteSpace(ProfilePhone) ? null : ProfilePhone.Trim(),
                 ProfileRole,
                 null));
 

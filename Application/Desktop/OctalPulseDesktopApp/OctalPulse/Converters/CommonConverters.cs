@@ -12,7 +12,28 @@ public class BooleanToVisibilityConverter : IValueConverter
 
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
-        var boolVal = value is true;
+        bool boolVal;
+        if (value is bool b)
+        {
+            boolVal = b;
+        }
+        else if (value is int i)
+        {
+            boolVal = i > 0;
+        }
+        else if (value is long l)
+        {
+            boolVal = l > 0;
+        }
+        else if (value is string str)
+        {
+            boolVal = !string.IsNullOrWhiteSpace(str);
+        }
+        else
+        {
+            boolVal = value is not null;
+        }
+
         var shouldInvert = Invert || (parameter is string s && s.Equals("invert", StringComparison.OrdinalIgnoreCase));
         if (shouldInvert) boolVal = !boolVal;
         return boolVal ? Visibility.Visible : Visibility.Collapsed;
@@ -34,6 +55,20 @@ public class NullToVisibilityConverter : IValueConverter
         var isNull = value == null || (value is string s && string.IsNullOrWhiteSpace(s));
         if (Invert) isNull = !isNull;
         return isNull ? Visibility.Collapsed : Visibility.Visible;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => Binding.DoNothing;
+}
+
+public class StringToInitialConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        if (value is string s && !string.IsNullOrWhiteSpace(s))
+        {
+            return s.Trim()[0].ToString().ToUpperInvariant();
+        }
+        return "U";
     }
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => Binding.DoNothing;
