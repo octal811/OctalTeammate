@@ -1,6 +1,7 @@
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using OctalPulse.Application.Features.Command.Admin.Availability;
 using OctalPulse.Application.Interface.Services;
 
 namespace OctalPulse.API.Controllers;
@@ -17,26 +18,32 @@ public class ApiAvailabilityController : ControllerBase
         _service = service;
     }
 
-    [HttpPost("{key}/enable")]
-    public async Task<IActionResult> Enable(string key, CancellationToken cancellationToken)
+    [HttpPost("enable")]
+    public async Task<IActionResult> Enable(
+        [FromBody] AvailabilityCommand command,
+        CancellationToken cancellationToken)
     {
         var adminId = GetAdminId();
-        await _service.EnableAsync(key, adminId, cancellationToken);
-        return Ok(new AvailabilityResponse(key, true));
+        await _service.EnableAsync(command.Key, adminId, cancellationToken);
+        return Ok(new AvailabilityResponse(command.Key, true));
     }
 
-    [HttpPost("{key}/disable")]
-    public async Task<IActionResult> Disable(string key, CancellationToken cancellationToken)
+    [HttpPost("disable")]
+    public async Task<IActionResult> Disable(
+        [FromBody] AvailabilityCommand command,
+        CancellationToken cancellationToken)
     {
         var adminId = GetAdminId();
-        await _service.DisableAsync(key, adminId, cancellationToken);
-        return Ok(new AvailabilityResponse(key, false));
+        await _service.DisableAsync(command.Key, adminId, cancellationToken);
+        return Ok(new AvailabilityResponse(command.Key, false));
     }
 
-    [HttpGet("{key}")]
-    public async Task<ActionResult<ApiAvailabilityStatus>> GetStatus(string key, CancellationToken cancellationToken)
+    [HttpGet("status")]
+    public async Task<ActionResult<ApiAvailabilityStatus>> GetStatus(
+        [FromBody] AvailabilityCommand command,
+        CancellationToken cancellationToken)
     {
-        var status = await _service.GetStatusAsync(key, cancellationToken);
+        var status = await _service.GetStatusAsync(command.Key, cancellationToken);
         return Ok(status);
     }
 

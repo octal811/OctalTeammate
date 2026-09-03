@@ -22,13 +22,13 @@ public class MajorTasksController : ControllerBase
         _sender = sender;
     }
 
-    [HttpGet("track/{trackId:guid}")]
+    [HttpGet("track")]
     public async Task<ActionResult<GetMajorTasksByTrackResponse>> GetByTrack(
-        Guid trackId,
+        [FromBody] GetMajorTasksByTrackQuery query,
         CancellationToken cancellationToken)
     {
         var result = await _sender.Send(
-            new GetMajorTasksByTrackQuery(trackId, GetUserId()),
+            query with { UserId = GetUserId() },
             cancellationToken);
         return Ok(result);
     }
@@ -45,23 +45,26 @@ public class MajorTasksController : ControllerBase
         return Ok(result);
     }
 
-    [HttpPut("{id:guid}")]
+    [HttpPut]
     public async Task<ActionResult<UpdateMajorTaskResponse>> Update(
-        Guid id,
         [FromBody] UpdateMajorTaskCommand command,
         CancellationToken cancellationToken)
     {
         var result = await _sender.Send(
-            command with { Id = id, UserId = GetUserId() },
+            command with { UserId = GetUserId() },
             cancellationToken);
         return Ok(result);
     }
 
-    [HttpDelete("{id:guid}")]
+    [HttpDelete]
     [UserOperationLock("majortasks:delete")]
-    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Delete(
+        [FromBody] DeleteMajorTaskCommand command,
+        CancellationToken cancellationToken)
     {
-        await _sender.Send(new DeleteMajorTaskCommand(id, GetUserId()), cancellationToken);
+        await _sender.Send(
+            command with { UserId = GetUserId() },
+            cancellationToken);
         return NoContent();
     }
 

@@ -257,11 +257,16 @@ Paginated list. Sends `pageNumber` and `pageSize` in the JSON body. Returns **on
 
 ---
 
-### GET `/api/projects/{id}`
+### GET `/api/projects`
 
 Full project details: basic info, who created it, and its members.
 
 ```json
+// Request
+{
+  "projectId": "00000000-0000-0000-0000-000000000000"
+}
+
 // 200 — GetProjectByIdResponse
 {
   "id": "00000000-0000-0000-0000-000000000000",
@@ -291,13 +296,14 @@ Full project details: basic info, who created it, and its members.
 
 ---
 
-### PUT `/api/projects/{id}`
+### PUT `/api/projects`
 
 Updates the title, description, and status of the project.
 
 ```json
 // Request
 {
+  "id": "00000000-0000-0000-0000-000000000000",
   "title": "OctalPulse Web App v2",
   "description": "Now with team reports.",
   "status": "Active"
@@ -310,9 +316,16 @@ Updates the title, description, and status of the project.
 
 ---
 
-### DELETE `/api/projects/{id}`
+### DELETE `/api/projects`
 
 Soft-deletes the project **and everything under it** — members (and their project roles), tracks, track members, major tasks, minor tasks, and project events. All rows are flagged `IsDeleted`, never hard-deleted. The project disappears from the list and detail endpoints immediately.
+
+```json
+// Request
+{
+  "id": "00000000-0000-0000-0000-000000000000"
+}
+```
 
 - `204 No Content` — deleted (idempotent; re-deleting an already deleted project also returns `204`)
 - `404` — project does not exist
@@ -323,26 +336,39 @@ Soft-deletes the project **and everything under it** — members (and their proj
 
 A user joins a project on request; the **project creator** approves or rejects the request (single-request endpoint, creator-only review). The `ProjectMember.Status` is `Pending` while waiting, `Approved` once admitted, or `Rejected`. Only `Approved` members can read/write project data and receive real-time events.
 
-#### POST `/api/projects/{id}/join-request`
+#### POST `/api/projects/join`
 
-Submits a join request for the authenticated user. The existing ``ProjectMember` row (if any) is left as-is if not rejected. No body is required — the project id comes from the route and the requester from the JWT.
+Submits a join request for the authenticated user **with project roles**. The roles are stored as `UserProjectRole` rows linked to the membership. The existing `ProjectMember` row (if any) is left as-is if not rejected. The requester is identified from the JWT.
 
 ```json
+// Request
+{
+  "projectId": "00000000-0000-0000-0000-000000000000",
+  "roles": ["FrontEnd", "Mobile"]
+}
+
 // 200 — RequestProjectJoinResponse
 {
   "projectId": "00000000-0000-0000-0000-000000000000",
   "status": "Pending",
-  "message": "Join request submitted."
+  "message": "Your request to join has been sent. Please wait for the project creator to accept."
 }
 ```
 
-- `404` — project not found; `400` — already a member
+- `roles`: array of `ProjectRole` enum values (`FrontEnd`, `BackEnd`, `Mobile`, `DevOps`, `Designer`, `QA`, `ProjectManager`, `TechLead`). At least one role is required. Duplicate roles are ignored.
+- `404` — project not found; `400` — already a member, or invalid/empty roles
 
-#### POST `/api/projects/{id}/join-requests/{userId}/approve`
+#### POST `/api/projects/approve-join`
 
-**Creator-only.** Approves a pending join request from `{userId}`, setting their membership to `Approved`.
+**Creator-only.** Approves a pending join request, setting the membership to `Approved`.
 
 ```json
+// Request
+{
+  "projectId": "00000000-0000-0000-0000-000000000000",
+  "targetUserId": "00000000-0000-0000-0000-000000000000"
+}
+
 // 200 — ReviewProjectJoinResponse
 {
   "projectId": "00000000-0000-0000-0000-000000000000",
@@ -353,11 +379,17 @@ Submits a join request for the authenticated user. The existing ``ProjectMember`
 
 - `403` — caller is not the project creator; `404` — project or join request not found; `400` — already approved
 
-#### POST `/api/projects/{id}/join-requests/{userId}/reject`
+#### POST `/api/projects/reject-join`
 
-**Creator-only.** Rejects a pending join request from `{userId}`, setting their membership to `Rejected`.
+**Creator-only.** Rejects a pending join request, setting the membership to `Rejected`.
 
 ```json
+// Request
+{
+  "projectId": "00000000-0000-0000-0000-000000000000",
+  "targetUserId": "00000000-0000-0000-0000-000000000000"
+}
+
 // 200 — ReviewProjectJoinResponse
 {
   "projectId": "00000000-0000-0000-0000-000000000000",
@@ -368,17 +400,44 @@ Submits a join request for the authenticated user. The existing ``ProjectMember`
 
 - `403` — caller is not the project creator; `404` — project or join request not found; `400` — already rejected
 
+#### PUT `/api/projects/roles`
+
+Updates the authenticated user's project roles. The user must be an **approved member** of the project. All existing roles are replaced with the new list.
+
+```json
+// Request
+{
+  "projectId": "00000000-0000-0000-0000-000000000000",
+  "roles": ["BackEnd", "TechLead"]
+}
+
+// 200 — UpdateProjectRolesResponse
+{
+  "projectId": "00000000-0000-0000-0000-000000000000",
+  "userId": "00000000-0000-0000-0000-000000000000",
+  "roles": ["BackEnd", "TechLead"]
+}
+```
+
+- `roles`: array of `ProjectRole` enum values — at least one required. Duplicate roles are ignored.
+- `403` — not an approved member; `404` — project not found; `400` — invalid/empty roles
+
 ---
 
 ## Tracks
 
 All routes in this group require an authenticated user who is an **approved project member** of the track's project (the join/gate rules mirror Projects). Track CRUD is on `TracksController`; list-by-project lives on `ProjectsController`. All parameters are sent as JSON `[FromBody]`. A user joins a track on request; the **track lead** approves or rejects — only `Approved` track members receive that track's notifications.
 
-### GET `/api/projects/{id}/tracks`
+### GET `/api/projects/tracks`
 
 Returns all tracks in the given project (newest created first).
 
 ```json
+// Request
+{
+  "projectId": "00000000-0000-0000-0000-000000000000"
+}
+
 // 200 — GetTracksByProjectResponse
 {
   "tracks": [
@@ -415,13 +474,14 @@ Creates a track inside a project.
 
 ---
 
-### PUT `/api/tracks/{id}`
+### PUT `/api/tracks`
 
 Updates a track's name and description. Progress is auto-calculated at read time from existing major tasks.
 
 ```json
 // Request
 {
+  "id": "00000000-0000-0000-0000-000000000000",
   "projectId": "00000000-0000-0000-0000-000000000000",
   "name": "Backend Track v2",
   "description": "Updated scope"
@@ -435,9 +495,16 @@ Updates a track's name and description. Progress is auto-calculated at read time
 
 ---
 
-### DELETE `/api/tracks/{id}`
+### DELETE `/api/tracks`
 
 Soft-deletes the track **and everything under it** — track members, major tasks, and their minor tasks. All rows are flagged `IsDeleted`, never hard-deleted.
+
+```json
+// Request
+{
+  "id": "00000000-0000-0000-0000-000000000000"
+}
+```
 
 - `204 No Content` — deleted (idempotent; re-deleting an already deleted track returns `204`). Parent project's progress updates automatically (computed at read time).
 - `404` — track does not exist
@@ -448,11 +515,16 @@ Soft-deletes the track **and everything under it** — track members, major task
 
 A user joins a track on request; the **track lead** (`TrackLeadUserId`) approves or rejects the request (single-request endpoint). The `TrackMember.Status` is `Pending` while waiting, `Approved` once admitted, or `Rejected`. Only `Approved` track members are added to the track's real-time group.
 
-#### POST `/api/tracks/{id}/join-request`
+#### POST `/api/tracks/join`
 
-Submits a join request for the authenticated user. No body is required — the track id comes from the route and the requester from the JWT.
+Submits a join request for the authenticated user. The requester is identified from the JWT.
 
 ```json
+// Request
+{
+  "trackId": "00000000-0000-0000-0000-000000000000"
+}
+
 // 200 — RequestTrackJoinResponse
 {
   "trackId": "00000000-0000-0000-0000-000000000000",
@@ -463,11 +535,17 @@ Submits a join request for the authenticated user. No body is required — the t
 
 - `404` — track not found; `400` — already a member
 
-#### POST `/api/tracks/{id}/join-requests/{userId}/approve`
+#### POST `/api/tracks/approve-join`
 
-**Track-lead only.** Approves a pending join request from `{userId}`, setting their membership to `Approved`.
+**Track-lead only.** Approves a pending join request, setting the membership to `Approved`.
 
 ```json
+// Request
+{
+  "trackId": "00000000-0000-0000-0000-000000000000",
+  "targetUserId": "00000000-0000-0000-0000-000000000000"
+}
+
 // 200 — ReviewTrackJoinResponse
 {
   "trackId": "00000000-0000-0000-0000-000000000000",
@@ -478,11 +556,17 @@ Submits a join request for the authenticated user. No body is required — the t
 
 - `403` — caller is not the track lead; `404` — track or join request not found; `400` — already approved
 
-#### POST `/api/tracks/{id}/join-requests/{userId}/reject`
+#### POST `/api/tracks/reject-join`
 
-**Track-lead only.** Rejects a pending join request from `{userId}`, setting their membership to `Rejected`.
+**Track-lead only.** Rejects a pending join request, setting the membership to `Rejected`.
 
 ```json
+// Request
+{
+  "trackId": "00000000-0000-0000-0000-000000000000",
+  "targetUserId": "00000000-0000-0000-0000-000000000000"
+}
+
 // 200 — ReviewTrackJoinResponse
 {
   "trackId": "00000000-0000-0000-0000-000000000000",
@@ -548,13 +632,14 @@ Creates an event for a project. An **approved project member** of that project m
 
 ---
 
-### PUT `/api/events/{id}`
+### PUT `/api/events`
 
 Updates an event. **Only the event creator** (the user in `CreatedByUserId`) may update it.
 
 ```json
 // Request
 {
+  "id": "00000000-0000-0000-0000-000000000000",
   "title": "Sprint Review (rescheduled)",
   "description": "Weekly demo",
   "type": "Meeting",
@@ -569,20 +654,34 @@ Updates an event. **Only the event creator** (the user in `CreatedByUserId`) may
 
 ---
 
-### DELETE `/api/events/{id}`
+### DELETE `/api/events`
 
 Soft-deletes an event. **Only the event creator** may delete it; the deletion records `DeletedByUserId` and `ModifiedDate` (rows are never hard-deleted). Concurrent-operation-locked: `[UserOperationLock("events:delete")]`.
+
+```json
+// Request
+{
+  "id": "00000000-0000-0000-0000-000000000000"
+}
+```
 
 - `204 No Content` — deleted (idempotent for an already-deleted event)
 - `403` — caller is not the creator (or not an approved member); `404` — event not found
 
 ---
 
-### GET `/api/events/project/{projectId}/month?year={year}&month={month}`
+### GET `/api/events/month`
 
 Returns **all** events in the given project for the given **calendar year and month** (`1..12`). This endpoint intentionally bypasses pagination and returns **every** event in that month — it is **not** capped at the 10-item default limit. An approved project member of that project may read it.
 
 ```json
+// Request
+{
+  "projectId": "00000000-0000-0000-0000-000000000000",
+  "year": 2026,
+  "month": 9
+}
+
 // 200 — GetEventsByMonthResponse
 {
   "projectId": "00000000-0000-0000-0000-000000000000",
@@ -626,11 +725,16 @@ All task mutations are **creator-only** for update/delete and are real-time (`ma
 
 `MajorTasksController` — `[Authorize]`, routed at `/api/majortasks`. Create and delete are concurrent-operation-locked (`majortasks:create` / `majortasks:delete`). Member gate on every read/write; update/delete are **creator-only**.
 
-### GET `/api/majortasks/track/{trackId}`
+### GET `/api/majortasks/track`
 
 Returns all non-deleted major tasks in the given track (creator-only restriction applies to edits, not reads — any approved member can list).
 
 ```json
+// Request
+{
+  "trackId": "00000000-0000-0000-0000-000000000000"
+}
+
 // 200 — GetMajorTasksByTrackResponse
 {
   "majorTasks": [
@@ -683,13 +787,14 @@ Creates a major task. An **approved project member** may create. `progress` is *
 - `200` — `CreateMajorTaskResponse` (same shape as the list item; `createdByUserId`, `progress`)
 - `403` — not an approved member; `404` — track not found; `400` — invalid fields
 
-### PUT `/api/majortasks/{id}`
+### PUT `/api/majortasks`
 
 Updates a major task. **Creator-only.** `progress` is **not accepted** — recomputed from minor tasks at read time.
 
 ```json
 // Request
 {
+  "id": "00000000-0000-0000-0000-000000000000",
   "title": "Build /api/login (v2)",
   "description": "Add refresh token rotation",
   "state": "InProgress",
@@ -700,9 +805,16 @@ Updates a major task. **Creator-only.** `progress` is **not accepted** — recom
 - `200` — `UpdateMajorTaskResponse` (adds `modifiedDate`); `progress` recomputed
 - `403` — caller is not the creator (or not an approved member); `404` — task not found; `400` — invalid fields
 
-### DELETE `/api/majortasks/{id}`
+### DELETE `/api/majortasks`
 
 Soft-deletes a major task **and its minor tasks**. **Creator-only.** Records `DeletedByUserId`/`ModifiedDate` (never hard-deleted). Concurrent-operation-locked.
+
+```json
+// Request
+{
+  "id": "00000000-0000-0000-0000-000000000000"
+}
+```
 
 - `204 No Content` — deleted (idempotent; re-deleting returns `204`)
 - `403` — caller is not the creator (or not an approved member); `404` — task not found
@@ -713,11 +825,16 @@ Soft-deletes a major task **and its minor tasks**. **Creator-only.** Records `De
 
 `MinorTasksController` — `[Authorize]`, routed at `/api/minortasks`. Create and delete are concurrent-operation-locked (`minortasks:create` / `minortasks:delete`). Member gate on every read/write; update/delete are **creator-only**. Completing a `Done` minor task raises the major task's progress and records an achievement for the assigned user.
 
-### GET `/api/minortasks/major/{majorTaskId}`
+### GET `/api/minortasks/major`
 
 Returns all non-deleted minor tasks in the given major task.
 
 ```json
+// Request
+{
+  "majorTaskId": "00000000-0000-0000-0000-000000000000"
+}
+
 // 200 — GetMinorTasksByMajorTaskResponse
 {
   "minorTasks": [
@@ -766,13 +883,14 @@ Creates a minor task. An **approved project member** may create.
 - `200` — `CreateMinorTaskResponse` (same shape as the list item; `createdByUserId`, `isDeleted`)
 - `403` — not an approved member; `404` — major task not found; `400` — invalid fields
 
-### PUT `/api/minortasks/{id}`
+### PUT `/api/minortasks`
 
 Updates a minor task. **Creator-only.** Setting `state` to `Done` triggers the progress cascade (the major task's `Progress` recomputes from done minor tasks).
 
 ```json
 // Request
 {
+  "id": "00000000-0000-0000-0000-000000000000",
   "state": "Done",
   "notes": "Shipped to prod",
   "order": 1
@@ -782,9 +900,16 @@ Updates a minor task. **Creator-only.** Setting `state` to `Done` triggers the p
 - `200` — `UpdateMinorTaskResponse` (adds `modifiedDate`)
 - `403` — caller is not the creator (or not an approved member); `404` — task not found; `400` — invalid fields
 
-### DELETE `/api/minortasks/{id}`
+### DELETE `/api/minortasks`
 
 Soft-deletes a minor task. **Creator-only.** Records `DeletedByUserId`/`ModifiedDate` (never hard-deleted). Concurrent-operation-locked.
+
+```json
+// Request
+{
+  "id": "00000000-0000-0000-0000-000000000000"
+}
+```
 
 - `204 No Content` — deleted (idempotent; re-deleting returns `204`)
 - `403` — caller is not the creator (or not an approved member); `404` — task not found
@@ -795,26 +920,43 @@ Soft-deletes a minor task. **Creator-only.** Records `DeletedByUserId`/`Modified
 
 All routes in this group are protected by the `AdminOnly` policy, which requires the caller to be an authenticated user whose **database record** has `Rank = Admin` (`ApiAvailabilityController` is `[Authorize(Policy = "AdminOnly")]`). A normal member gets `403 Forbidden`.
 
-### POST `/api/admin/ApiAvailability/{key}/enable`
+### POST `/api/admin/ApiAvailability/enable`
 
 Enables a named capability. Creates the row on first use; unknown keys default to enabled anyway.
 
+```json
+// Request
+{
+  "key": "UserRegistration"
+}
+```
+
 - `200` — `{ "key": "UserRegistration", "isEnabled": true }`
 
-### POST `/api/admin/ApiAvailability/{key}/disable`
+### POST `/api/admin/ApiAvailability/disable`
 
 Disables a named capability. Takes effect on the next request (the in-memory cache is invalidated immediately).
 
 ```json
+// Request
+{
+  "key": "UserRegistration"
+}
+
 // 200
 { "key": "UserRegistration", "isEnabled": false }
 ```
 
-### GET `/api/admin/ApiAvailability/{key}`
+### GET `/api/admin/ApiAvailability/status`
 
 Returns the current status. A key never touched by an admin reports the default (`isEnabled: true`).
 
 ```json
+// Request
+{
+  "key": "UserRegistration"
+}
+
 // 200 — ApiAvailabilityStatus
 {
   "key": "UserRegistration",

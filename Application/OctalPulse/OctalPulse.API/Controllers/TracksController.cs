@@ -35,56 +35,58 @@ public class TracksController : ControllerBase
         return Ok(result);
     }
 
-    [HttpPut("{id:guid}")]
+    [HttpPut]
     public async Task<ActionResult<UpdateTrackResponse>> Update(
-        Guid id,
         [FromBody] UpdateTrackCommand command,
         CancellationToken cancellationToken)
     {
-        var result = await _sender.Send(command with { Id = id, UserId = GetUserId() }, cancellationToken);
+        var result = await _sender.Send(
+            command with { UserId = GetUserId() },
+            cancellationToken);
         return Ok(result);
     }
 
-    [HttpDelete("{id:guid}")]
+    [HttpDelete]
     [UserOperationLock("tracks:delete")]
-    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Delete(
+        [FromBody] DeleteTrackCommand command,
+        CancellationToken cancellationToken)
     {
-        await _sender.Send(new DeleteTrackCommand(id, GetUserId()), cancellationToken);
+        await _sender.Send(
+            command with { UserId = GetUserId() },
+            cancellationToken);
         return NoContent();
     }
 
-    [HttpPost("{id:guid}/join-request")]
+    [HttpPost("join")]
     public async Task<ActionResult<RequestTrackJoinResponse>> RequestJoin(
-        Guid id,
         [FromBody] RequestTrackJoinCommand command,
         CancellationToken cancellationToken)
     {
         var result = await _sender.Send(
-            command with { TrackId = id, UserId = GetUserId() },
+            command with { UserId = GetUserId() },
             cancellationToken);
         return Ok(result);
     }
 
-    [HttpPost("{id:guid}/join-requests/{userId:guid}/approve")]
+    [HttpPost("approve-join")]
     public async Task<ActionResult<ReviewTrackJoinResponse>> ApproveJoin(
-        Guid id,
-        Guid userId,
+        [FromBody] ReviewTrackJoinCommand command,
         CancellationToken cancellationToken)
     {
         var result = await _sender.Send(
-            new ReviewTrackJoinCommand(id, GetUserId(), userId, true),
+            command with { UserId = GetUserId(), Approve = true },
             cancellationToken);
         return Ok(result);
     }
 
-    [HttpPost("{id:guid}/join-requests/{userId:guid}/reject")]
+    [HttpPost("reject-join")]
     public async Task<ActionResult<ReviewTrackJoinResponse>> RejectJoin(
-        Guid id,
-        Guid userId,
+        [FromBody] ReviewTrackJoinCommand command,
         CancellationToken cancellationToken)
     {
         var result = await _sender.Send(
-            new ReviewTrackJoinCommand(id, GetUserId(), userId, false),
+            command with { UserId = GetUserId(), Approve = false },
             cancellationToken);
         return Ok(result);
     }

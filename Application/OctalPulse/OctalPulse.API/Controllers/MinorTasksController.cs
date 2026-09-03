@@ -22,13 +22,13 @@ public class MinorTasksController : ControllerBase
         _sender = sender;
     }
 
-    [HttpGet("major/{majorTaskId:guid}")]
+    [HttpGet("major")]
     public async Task<ActionResult<GetMinorTasksByMajorTaskResponse>> GetByMajorTask(
-        Guid majorTaskId,
+        [FromBody] GetMinorTasksByMajorTaskQuery query,
         CancellationToken cancellationToken)
     {
         var result = await _sender.Send(
-            new GetMinorTasksByMajorTaskQuery(majorTaskId, GetUserId()),
+            query with { UserId = GetUserId() },
             cancellationToken);
         return Ok(result);
     }
@@ -45,23 +45,26 @@ public class MinorTasksController : ControllerBase
         return Ok(result);
     }
 
-    [HttpPut("{id:guid}")]
+    [HttpPut]
     public async Task<ActionResult<UpdateMinorTaskResponse>> Update(
-        Guid id,
         [FromBody] UpdateMinorTaskCommand command,
         CancellationToken cancellationToken)
     {
         var result = await _sender.Send(
-            command with { Id = id, UserId = GetUserId() },
+            command with { UserId = GetUserId() },
             cancellationToken);
         return Ok(result);
     }
 
-    [HttpDelete("{id:guid}")]
+    [HttpDelete]
     [UserOperationLock("minortasks:delete")]
-    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Delete(
+        [FromBody] DeleteMinorTaskCommand command,
+        CancellationToken cancellationToken)
     {
-        await _sender.Send(new DeleteMinorTaskCommand(id, GetUserId()), cancellationToken);
+        await _sender.Send(
+            command with { UserId = GetUserId() },
+            cancellationToken);
         return NoContent();
     }
 

@@ -1,11 +1,10 @@
 using FluentValidation;
-using OctalPulse.Domain.Enums;
 
-namespace OctalPulse.Application.Features.Command.Project.RequestProjectJoin;
+namespace OctalPulse.Application.Features.Command.Project.UpdateProjectRoles;
 
-public class RequestProjectJoinCommandValidator : AbstractValidator<RequestProjectJoinCommand>
+public class UpdateProjectRolesCommandValidator : AbstractValidator<UpdateProjectRolesCommand>
 {
-    public RequestProjectJoinCommandValidator()
+    public UpdateProjectRolesCommandValidator()
     {
         RuleFor(x => x.ProjectId)
             .NotEmpty();
@@ -16,6 +15,10 @@ public class RequestProjectJoinCommandValidator : AbstractValidator<RequestProje
         RuleFor(x => x.Roles)
             .NotNull()
             .WithMessage("Roles are required.");
+
+        RuleFor(x => x.Roles)
+            .Must(r => r.Count > 0)
+            .WithMessage("At least one role is required.");
 
         RuleForEach(x => x.Roles)
             .IsInEnum()

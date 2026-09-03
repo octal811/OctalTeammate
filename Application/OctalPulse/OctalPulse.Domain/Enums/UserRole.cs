@@ -8,5 +8,7 @@ public enum UserRole
     DevOps,
     Designer,
     QA,
-    ProjectManager
+    ProjectManager,
+    Ai,
+    SoftwareEngineer
 }

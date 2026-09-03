@@ -8,6 +8,7 @@ using OctalPulse.Application.Features.Command.Project.DeleteProject;
 using OctalPulse.Application.Features.Command.Project.RequestProjectJoin;
 using OctalPulse.Application.Features.Command.Project.ReviewProjectJoin;
 using OctalPulse.Application.Features.Command.Project.UpdateProject;
+using OctalPulse.Application.Features.Command.Project.UpdateProjectRoles;
 using OctalPulse.Application.Features.Query.Project.GetAllProjects;
 using OctalPulse.Application.Features.Query.Project.GetProjectById;
 using OctalPulse.Application.Features.Query.Track.GetTracksByProject;
@@ -49,70 +50,91 @@ public class ProjectsController : ControllerBase
         return Ok(result);
     }
 
-    [HttpGet("{id:guid}")]
-    public async Task<ActionResult<GetProjectByIdResponse>> GetById(Guid id, CancellationToken cancellationToken)
+    [HttpGet]
+    public async Task<ActionResult<GetProjectByIdResponse>> GetById(
+        [FromBody] GetProjectByIdQuery query,
+        CancellationToken cancellationToken)
     {
-        var result = await _sender.Send(new GetProjectByIdQuery(id, GetUserId()), cancellationToken);
+        var result = await _sender.Send(
+            query with { UserId = GetUserId() },
+            cancellationToken);
         return Ok(result);
     }
 
-    [HttpGet("{id:guid}/tracks")]
-    public async Task<ActionResult<GetTracksByProjectResponse>> GetTracks(Guid id, CancellationToken cancellationToken)
+    [HttpGet("tracks")]
+    public async Task<ActionResult<GetTracksByProjectResponse>> GetTracks(
+        [FromBody] GetTracksByProjectQuery query,
+        CancellationToken cancellationToken)
     {
-        var result = await _sender.Send(new GetTracksByProjectQuery(id, GetUserId()), cancellationToken);
+        var result = await _sender.Send(
+            query with { UserId = GetUserId() },
+            cancellationToken);
         return Ok(result);
     }
 
-    [HttpPut("{id:guid}")]
+    [HttpPut]
     public async Task<ActionResult<UpdateProjectResponse>> Update(
-        Guid id,
         [FromBody] UpdateProjectCommand command,
         CancellationToken cancellationToken)
     {
-        var result = await _sender.Send(command with { Id = id, UserId = GetUserId() }, cancellationToken);
+        var result = await _sender.Send(
+            command with { UserId = GetUserId() },
+            cancellationToken);
         return Ok(result);
     }
 
-    [HttpDelete("{id:guid}")]
+    [HttpDelete]
     [UserOperationLock("projects:delete")]
-    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Delete(
+        [FromBody] DeleteProjectCommand command,
+        CancellationToken cancellationToken)
     {
-        await _sender.Send(new DeleteProjectCommand(id, GetUserId()), cancellationToken);
+        await _sender.Send(
+            command with { UserId = GetUserId() },
+            cancellationToken);
         return NoContent();
     }
 
-    [HttpPost("{id:guid}/join-request")]
+    [HttpPost("join")]
     public async Task<ActionResult<RequestProjectJoinResponse>> RequestJoin(
-        Guid id,
         [FromBody] RequestProjectJoinCommand command,
         CancellationToken cancellationToken)
     {
         var result = await _sender.Send(
-            command with { ProjectId = id, UserId = GetUserId() },
+            command with { UserId = GetUserId() },
             cancellationToken);
         return Ok(result);
     }
 
-    [HttpPost("{id:guid}/join-requests/{userId:guid}/approve")]
+    [HttpPost("approve-join")]
     public async Task<ActionResult<ReviewProjectJoinResponse>> ApproveJoin(
-        Guid id,
-        Guid userId,
+        [FromBody] ReviewProjectJoinCommand command,
         CancellationToken cancellationToken)
     {
         var result = await _sender.Send(
-            new ReviewProjectJoinCommand(id, GetUserId(), userId, true),
+            command with { UserId = GetUserId(), Approve = true },
             cancellationToken);
         return Ok(result);
     }
 
-    [HttpPost("{id:guid}/join-requests/{userId:guid}/reject")]
+    [HttpPost("reject-join")]
     public async Task<ActionResult<ReviewProjectJoinResponse>> RejectJoin(
-        Guid id,
-        Guid userId,
+        [FromBody] ReviewProjectJoinCommand command,
         CancellationToken cancellationToken)
     {
         var result = await _sender.Send(
-            new ReviewProjectJoinCommand(id, GetUserId(), userId, false),
+            command with { UserId = GetUserId(), Approve = false },
+            cancellationToken);
+        return Ok(result);
+    }
+
+    [HttpPut("roles")]
+    public async Task<ActionResult<UpdateProjectRolesResponse>> UpdateRoles(
+        [FromBody] UpdateProjectRolesCommand command,
+        CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(
+            command with { UserId = GetUserId() },
             cancellationToken);
         return Ok(result);
     }

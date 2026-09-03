@@ -22,15 +22,13 @@ public class EventsController : ControllerBase
         _sender = sender;
     }
 
-    [HttpGet("project/{projectId:guid}/month")]
+    [HttpGet("month")]
     public async Task<ActionResult<GetEventsByMonthResponse>> GetByMonth(
-        Guid projectId,
-        [FromQuery] int year,
-        [FromQuery] int month,
+        [FromBody] GetEventsByMonthQuery query,
         CancellationToken cancellationToken)
     {
         var result = await _sender.Send(
-            new GetEventsByMonthQuery(projectId, year, month, GetUserId()),
+            query with { UserId = GetUserId() },
             cancellationToken);
         return Ok(result);
     }
@@ -47,23 +45,26 @@ public class EventsController : ControllerBase
         return Ok(result);
     }
 
-    [HttpPut("{id:guid}")]
+    [HttpPut]
     public async Task<ActionResult<UpdateEventResponse>> Update(
-        Guid id,
         [FromBody] UpdateEventCommand command,
         CancellationToken cancellationToken)
     {
         var result = await _sender.Send(
-            command with { Id = id, UserId = GetUserId() },
+            command with { UserId = GetUserId() },
             cancellationToken);
         return Ok(result);
     }
 
-    [HttpDelete("{id:guid}")]
+    [HttpDelete]
     [UserOperationLock("events:delete")]
-    public async Task<IActionResult> Delete(Guid id, CancellationToken cancellationToken)
+    public async Task<IActionResult> Delete(
+        [FromBody] DeleteEventCommand command,
+        CancellationToken cancellationToken)
     {
-        await _sender.Send(new DeleteEventCommand(id, GetUserId()), cancellationToken);
+        await _sender.Send(
+            command with { UserId = GetUserId() },
+            cancellationToken);
         return NoContent();
     }
 
