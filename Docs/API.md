@@ -649,7 +649,7 @@ Updates an event. **Only the event creator** (the user in `CreatedByUserId`) may
 }
 ```
 
-- `200` — `UpdateEventResponse` (same shape as the create response, with `modifiedDate`)
+- `200` — `UpdateEventResponse` (same fields as the create response but with `modifiedDate` instead of `isDeleted`/`createdDate`)
 - `403` — caller is not the creator (or not an approved member); `404` — event not found; `400` — invalid fields
 
 ---
@@ -684,13 +684,10 @@ Returns **all** events in the given project for the given **calendar year and mo
 
 // 200 — GetEventsByMonthResponse
 {
-  "projectId": "00000000-0000-0000-0000-000000000000",
-  "year": 2026,
-  "month": 9,
-  "totalCount": 12,
   "events": [
     {
       "id": "00000000-0000-0000-0000-000000000000",
+      "projectId": "00000000-0000-0000-0000-000000000000",
       "title": "Sprint Review",
       "description": "Weekly demo",
       "type": "Meeting",
@@ -702,13 +699,20 @@ Returns **all** events in the given project for the given **calendar year and mo
       "trackId": null,
       "majorTaskId": null,
       "createdByUserId": "00000000-0000-0000-0000-000000000000",
-      "createdDate": "2026-09-02T18:04:54Z"
+      "deletedByUserId": null,
+      "isDeleted": false,
+      "createdDate": "2026-09-02T18:04:54Z",
+      "modifiedDate": null
     }
-  ]
+  ],
+  "year": 2026,
+  "month": 9,
+  "totalCount": 12
 }
 ```
 
 - `totalCount` equals the number of `events` returned (all matching events in the month). An event is included if its `StartDate` year and month match the query — irrespective of count.
+- Each `events` entry is an `EventItem` — like the create response but also including `projectId`, `deletedByUserId`, `isDeleted`, and `modifiedDate`.
 - `403` — caller is not an approved member; `404` — project not found; `400` — invalid `year`/`month`
 
 ---
