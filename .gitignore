@@ -411,3 +411,4 @@ appsettings.Staging.json
 appsettings.Production.json
 **/appsettings.*.json
 /Application/OctalPulse/OctalPulse.API/appsettings.json
+Application/OctalPulse/OctalPulse.API/appsettings.json
