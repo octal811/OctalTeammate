@@ -1,12 +1,38 @@
-﻿<Window x:Class="OctalPulse.MainWindow"
+<Window x:Class="OctalPulse.MainWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:OctalPulse"
+        xmlns:vm="clr-namespace:OctalPulse.ViewModels"
+        xmlns:views="clr-namespace:OctalPulse.Views"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
-    <Grid>
+        Title="OctalPulse • Enterprise Project Management" 
+        Height="820" Width="1280" 
+        MinHeight="680" MinWidth="1050"
+        WindowStartupLocation="CenterScreen"
+        Background="{DynamicResource Brush.Background}">
 
+    <Window.Resources>
+        <!-- Top-Level Route DataTemplates -->
+        <DataTemplate DataType="{x:Type vm:LoginViewModel}">
+            <views:LoginView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:RegisterViewModel}">
+            <views:RegisterView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:VerifyEmailViewModel}">
+            <views:VerifyEmailView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ForgotPasswordViewModel}">
+            <views:ForgotPasswordView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ShellViewModel}">
+            <views:ShellView />
+        </DataTemplate>
+    </Window.Resources>
+
+    <Grid>
+        <!-- Root Content Host -->
+        <ContentControl Content="{Binding Navigation.CurrentViewModel}" />
     </Grid>
 </Window>

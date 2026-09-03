@@ -9,7 +9,7 @@ public class NotificationService : INotificationService
     private const string PasswordResetTemplate = "PasswordReset.html";
     private const string TaskNotificationTemplate = "TaskNotification.html";
 
-    private static readonly TimeSpan OtpExpiry = TimeSpan.FromMinutes(10);
+    private static readonly TimeSpan OtpExpiry = TimeSpan.FromMinutes(3);
 
     private readonly IEmailService _emailService;
     private readonly EmailTemplateRenderer _templateRenderer;

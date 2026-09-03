@@ -31,12 +31,6 @@ public class RequestEmailVerificationCommandHandler : IRequestHandler<RequestEma
         if (user.EmailConfirmed)
             throw new ValidationException("This email is already verified.");
 
-        if (await _otpService.HasActiveOtpAsync(request.Email, OtpPurpose.EmailVerification, cancellationToken))
-        {
-            throw new ValidationException(
-                "A verification code was already sent recently. Please check your email, or wait for it to expire before requesting another.");
-        }
-
         var code = await _otpService.IssueOtpAsync(request.Email, OtpPurpose.EmailVerification, cancellationToken: cancellationToken);
         await _notificationService.SendEmailVerificationAsync(request.Email, code, cancellationToken);
 

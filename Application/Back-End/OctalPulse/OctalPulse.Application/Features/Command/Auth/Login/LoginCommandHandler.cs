@@ -40,6 +40,8 @@ public class LoginCommandHandler : AuthCommandHandlerBase, IRequestHandler<Login
             result.RefreshTokenExpiresAt,
             result.UserId,
             result.Email,
-            result.Name);
+            result.Name,
+            user.MainRole,
+            user.Rank);
     }
 }

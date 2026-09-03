@@ -1,5 +1,6 @@
 using MailKit.Net.Smtp;
 using MailKit.Security;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using OctalPulse.Application.Interface.Services;
@@ -9,10 +10,12 @@ namespace OctalPulse.Infrastructure.Services;
 public class EmailService : IEmailService
 {
     private readonly EmailSettings _settings;
+    private readonly ILogger<EmailService> _logger;
 
-    public EmailService(IOptions<EmailSettings> settings)
+    public EmailService(IOptions<EmailSettings> settings, ILogger<EmailService> logger)
     {
         _settings = settings.Value;
+        _logger = logger;
     }
 
     public async Task SendAsync(
@@ -32,19 +35,36 @@ public class EmailService : IEmailService
         bool isHtml = true,
         CancellationToken cancellationToken = default)
     {
-        var message = BuildMessage(to, subject, body, isHtml);
-
-        using var client = new SmtpClient();
-
-        await client.ConnectAsync(_settings.Host, _settings.Port, GetSecureSocketOptions(_settings), cancellationToken);
-
-        if (!string.IsNullOrWhiteSpace(_settings.UserName))
+        try
         {
-            await client.AuthenticateAsync(_settings.UserName, _settings.Password, cancellationToken);
-        }
+            var message = BuildMessage(to, subject, body, isHtml);
 
-        await client.SendAsync(message, cancellationToken);
-        await client.DisconnectAsync(true, cancellationToken);
+            using var client = new SmtpClient();
+
+            // Ignore dev certificate validation issues if any
+            client.ServerCertificateValidationCallback = (s, c, h, e) => true;
+
+            var socketOption = GetSecureSocketOptions(_settings);
+            _logger.LogInformation("Connecting to SMTP {Host}:{Port} with {SocketOption}...", _settings.Host, _settings.Port, socketOption);
+
+            await client.ConnectAsync(_settings.Host, _settings.Port, socketOption, cancellationToken);
+
+            if (!string.IsNullOrWhiteSpace(_settings.UserName))
+            {
+                var password = _settings.Password?.Replace(" ", "") ?? string.Empty;
+                await client.AuthenticateAsync(_settings.UserName, password, cancellationToken);
+            }
+
+            await client.SendAsync(message, cancellationToken);
+            await client.DisconnectAsync(true, cancellationToken);
+
+            _logger.LogInformation("Email sent successfully to {Recipients}", string.Join(", ", to));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to send email to {Recipients} via SMTP: {Message}", string.Join(", ", to), ex.Message);
+            throw;
+        }
     }
 
     private MimeMessage BuildMessage(IEnumerable<string> recipients, string subject, string body, bool isHtml)
@@ -76,11 +96,15 @@ public class EmailService : IEmailService
 
     private static SecureSocketOptions GetSecureSocketOptions(EmailSettings settings)
     {
+        if (settings.Port == 587)
+            return SecureSocketOptions.StartTls;
+
+        if (settings.Port == 465)
+            return SecureSocketOptions.SslOnConnect;
+
         if (settings.UseSsl)
             return SecureSocketOptions.Auto;
 
-        return settings.Port == 465
-            ? SecureSocketOptions.SslOnConnect
-            : SecureSocketOptions.StartTlsWhenAvailable;
+        return SecureSocketOptions.StartTlsWhenAvailable;
     }
 }

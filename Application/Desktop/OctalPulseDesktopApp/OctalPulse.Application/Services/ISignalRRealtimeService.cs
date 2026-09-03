@@ -1,0 +1,20 @@
+namespace OctalPulse.Application.Services;
+
+public interface ISignalRRealtimeService : IAsyncDisposable
+{
+    bool IsConnected { get; }
+
+    Task ConnectAsync(string accessToken, CancellationToken cancellationToken = default);
+    Task DisconnectAsync(CancellationToken cancellationToken = default);
+    Task JoinProjectAsync(Guid projectId, CancellationToken cancellationToken = default);
+    Task LeaveProjectAsync(Guid projectId, CancellationToken cancellationToken = default);
+    Task JoinTrackAsync(Guid trackId, CancellationToken cancellationToken = default);
+    Task LeaveTrackAsync(Guid trackId, CancellationToken cancellationToken = default);
+
+    event Action<Guid>? ProjectChanged;
+    event Action<Guid, Guid>? TrackChanged;
+    event Action<Guid, Guid>? MajorTaskChanged;
+    event Action<Guid, Guid>? MinorTaskChanged;
+    event Action<Guid, Guid>? EventChanged;
+    event Action<bool>? ConnectionStateChanged;
+}

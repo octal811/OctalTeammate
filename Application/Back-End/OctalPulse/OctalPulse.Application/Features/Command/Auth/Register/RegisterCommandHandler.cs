@@ -12,15 +12,21 @@ namespace OctalPulse.Application.Features.Command.Auth.Register;
 public class RegisterCommandHandler : AuthCommandHandlerBase, IRequestHandler<RegisterCommand, RegisterResponse>
 {
     private readonly UserManager<User> _userManager;
+    private readonly IOtpService _otpService;
+    private readonly INotificationService _notificationService;
 
     public RegisterCommandHandler(
         UserManager<User> userManager,
         IJwtService jwtService,
         IRefreshTokenRepository refreshTokenRepository,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        IOtpService otpService,
+        INotificationService notificationService)
         : base(jwtService, refreshTokenRepository, unitOfWork)
     {
         _userManager = userManager;
+        _otpService = otpService;
+        _notificationService = notificationService;
     }
 
     public async Task<RegisterResponse> Handle(RegisterCommand request, CancellationToken cancellationToken)
@@ -44,6 +50,10 @@ public class RegisterCommandHandler : AuthCommandHandlerBase, IRequestHandler<Re
         var result = await _userManager.CreateAsync(user, request.Password);
         if (!result.Succeeded)
             throw new ValidationException(string.Join("; ", result.Errors.Select(e => e.Description)));
+
+        // Automatically issue and dispatch email verification OTP via MailKit
+        var otp = await _otpService.IssueOtpAsync(request.Email, OtpPurpose.EmailVerification, cancellationToken: cancellationToken);
+        await _notificationService.SendEmailVerificationAsync(request.Email, otp, cancellationToken);
 
         var tokens = await IssueTokensAsync(user, cancellationToken);
         return new RegisterResponse(

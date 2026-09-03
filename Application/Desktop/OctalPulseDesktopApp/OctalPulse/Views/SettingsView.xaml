@@ -1,0 +1,198 @@
+<UserControl x:Class="OctalPulse.Views.SettingsView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:converters="clr-namespace:OctalPulse.Converters"
+             mc:Ignorable="d" 
+             d:DesignHeight="900" d:DesignWidth="1000">
+
+    <UserControl.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <converters:NullToVisibilityConverter x:Key="NullToVis" />
+    </UserControl.Resources>
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="32">
+        <StackPanel MaxWidth="800" HorizontalAlignment="Left">
+            <!-- Header -->
+            <TextBlock Text="Settings &amp; Integrations" Style="{StaticResource Text.Heading1}" Margin="0,0,0,4" />
+            <TextBlock Text="Manage desktop client preferences, security keys, and developer integrations." Style="{StaticResource Text.Subtitle}" Margin="0,0,0,28" />
+
+            <!-- Loading Indicator -->
+            <ProgressBar IsIndeterminate="True" Style="{StaticResource ProgressBar.Modern}" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}" Margin="0,0,0,20" />
+
+            <!-- ── SECTION 0: USER PROFILE ─────────────────────────────────── -->
+            <Border Style="{StaticResource Border.Card}" Padding="24" Margin="0,0,0,24">
+                <StackPanel>
+                    <Grid Margin="0,0,0,18">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Large Avatar Circle -->
+                        <Border Grid.Column="0" Width="48" Height="48" CornerRadius="24" Background="{DynamicResource Brush.Primary}" Margin="0,0,16,0">
+                            <TextBlock Text="{Binding ProfileName[0], FallbackValue='U'}" FontSize="20" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+
+                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                            <TextBlock Text="My Profile" Style="{StaticResource Text.Heading3}" Margin="0,0,0,2" />
+                            <TextBlock Text="Update your team member profile details and engineering role." Style="{StaticResource Text.Subtitle}" />
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Form Grid -->
+                    <Grid Margin="0,0,0,16">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto" />
+                            <RowDefinition Height="Auto" />
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <!-- Display Name -->
+                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,12,16">
+                            <TextBlock Text="Full Name *" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                            <TextBox Text="{Binding ProfileName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" />
+                        </StackPanel>
+
+                        <!-- Main Role -->
+                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="12,0,0,16">
+                            <TextBlock Text="Main Engineering Role *" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                            <ComboBox ItemsSource="{Binding AvailableRoles}" SelectedItem="{Binding ProfileRole}" Style="{StaticResource ComboBox.Modern}" />
+                        </StackPanel>
+
+                        <!-- Email (Read-only) -->
+                        <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,12,0">
+                            <TextBlock Text="Email Address (Verified)" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                            <TextBox Text="{Binding ProfileEmail}" Style="{StaticResource TextBox.Modern}" IsReadOnly="True" Opacity="0.75" />
+                        </StackPanel>
+
+                        <!-- Phone Number -->
+                        <StackPanel Grid.Row="1" Grid.Column="1" Margin="12,0,0,0">
+                            <TextBlock Text="Phone Number (Optional)" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                            <TextBox Text="{Binding ProfilePhone, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Tag="+1 555 0192" />
+                        </StackPanel>
+                    </Grid>
+
+                    <!-- Save Button -->
+                    <Button Style="{StaticResource Button.Primary}" Content="Save Profile Changes" 
+                            Command="{Binding SaveProfileCommand}" 
+                            HorizontalAlignment="Right" Height="40" Padding="22,0" Margin="0,12,0,0" />
+                </StackPanel>
+            </Border>
+
+            <!-- ── SECTION 1: APPEARANCE ─────────────────────────────────── -->
+            <Border Style="{StaticResource Border.Card}" Padding="24" Margin="0,0,0,24">
+                <StackPanel>
+                    <TextBlock Text="Appearance &amp; Theme" Style="{StaticResource Text.Heading3}" Margin="0,0,4,0" />
+                    <TextBlock Text="Select your preferred desktop interface theme. Changes take effect instantly without restarting." Style="{StaticResource Text.Subtitle}" Margin="0,0,0,18" />
+
+                    <StackPanel Orientation="Horizontal">
+                        <!-- Dark Theme Option -->
+                        <Button Style="{StaticResource Button.Secondary}" Command="{Binding SelectThemeCommand}" CommandParameter="Dark" 
+                                Width="140" Height="42" Margin="0,0,12,0">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="🌙  Dark Theme" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
+                            </StackPanel>
+                        </Button>
+
+                        <!-- Light Theme Option -->
+                        <Button Style="{StaticResource Button.Secondary}" Command="{Binding SelectThemeCommand}" CommandParameter="Light" 
+                                Width="140" Height="42">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="☀️  Light Theme" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
+                            </StackPanel>
+                        </Button>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+            <!-- ── SECTION 2: GITHUB INTEGRATION ──────────────────────────── -->
+            <Border Style="{StaticResource Border.Card}" Padding="24" Margin="0,0,0,24">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                        <Border Width="28" Height="28" CornerRadius="6" Background="{DynamicResource Brush.SurfaceElevated}" Margin="0,0,10,0">
+                            <Path Data="{StaticResource Icon.GitHub}" Fill="{DynamicResource Brush.TextPrimary}" Width="16" Height="16" Stretch="Uniform" />
+                        </Border>
+                        <TextBlock Text="GitHub Integration (DPAPI Protected)" Style="{StaticResource Text.Heading3}" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <TextBlock Text="Connect your GitHub account to associate repository commits, pull requests, and issues with project tasks. Your Personal Access Token is hardware-encrypted via Windows DPAPI and never stored in plaintext." 
+                               Style="{StaticResource Text.Subtitle}" TextWrapping="Wrap" LineHeight="20" Margin="0,0,0,20" />
+
+                    <!-- Not Connected State -->
+                    <StackPanel Visibility="{Binding IsGitHubConnected, Converter={StaticResource BoolToVis}, ConverterParameter=invert}">
+                        <TextBlock Text="GitHub Personal Access Token" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" Text="{Binding GitHubTokenInput, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Tag="ghp_xxxxxxxxxxxxxxxxxxxx" Margin="0,0,12,0" />
+                            <Button Grid.Column="1" Style="{StaticResource Button.Primary}" Content="Connect GitHub" Command="{Binding ConnectGitHubCommand}" Height="42" Padding="20,0" />
+                        </Grid>
+                        <TextBlock Text="Requires 'repo' and 'read:user' scopes." FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" />
+                    </StackPanel>
+
+                    <!-- Connected State -->
+                    <StackPanel Visibility="{Binding IsGitHubConnected, Converter={StaticResource BoolToVis}}">
+                        <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="10" Padding="16" Margin="0,0,0,18">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <!-- GitHub Avatar placeholder -->
+                                <Border Grid.Column="0" Width="42" Height="42" CornerRadius="21" Background="{DynamicResource Brush.Primary}" Margin="0,0,14,0">
+                                    <TextBlock Text="{Binding GitHubUser.Login[0]}" FontSize="16" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding GitHubUser.Login}" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,10,0" />
+                                        <Border Background="#2D10B981" CornerRadius="6" Padding="6,2">
+                                            <TextBlock Text="Connected" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource Brush.Success}" />
+                                        </Border>
+                                    </StackPanel>
+                                    <TextBlock Text="{Binding GitHubUser.Bio, FallbackValue='GitHub Developer'}" FontSize="12" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,2,0,0" />
+                                </StackPanel>
+
+                                <Button Grid.Column="2" Style="{StaticResource Button.Danger}" Content="Disconnect" Command="{Binding DisconnectGitHubCommand}" Height="34" Padding="14,0" />
+                            </Grid>
+                        </Border>
+
+                        <!-- Repositories List -->
+                        <TextBlock Text="Your Repositories" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,8" />
+                        <ItemsControl ItemsSource="{Binding Repositories}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Border BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1" Padding="0,8">
+                                        <Grid>
+                                            <TextBlock Text="{Binding FullName}" FontSize="13" Foreground="{DynamicResource Brush.Primary}" FontWeight="Medium" />
+                                            <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" HorizontalAlignment="Right" Width="300" TextTrimming="CharacterEllipsis" />
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+
+            <!-- ── SECTION 4: SYSTEM INFO ─────────────────────────────────── -->
+            <Border Style="{StaticResource Border.Card}" Padding="24">
+                <StackPanel>
+                    <TextBlock Text="About OctalPulse Desktop" Style="{StaticResource Text.Heading3}" Margin="0,0,0,4" />
+                    <TextBlock Text="OctalPulse Windows Desktop Client v1.0.0" FontSize="13" Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,0,0,6" />
+                    <TextBlock Text="Built with WPF, C# 13, and .NET 10 following Onion Architecture, Clean MVVM, SignalR Real-Time Collaboration, SQLite Local Cache, and Windows DPAPI." 
+                               FontSize="12" Foreground="{DynamicResource Brush.TextMuted}" LineHeight="18" TextWrapping="Wrap" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

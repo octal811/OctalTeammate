@@ -6,7 +6,7 @@ namespace OctalPulse.Infrastructure.Services;
 public class OtpService : IOtpService
 {
     private const int DefaultLength = 8;
-    private static readonly TimeSpan DefaultExpiry = TimeSpan.FromMinutes(10);
+    private static readonly TimeSpan DefaultExpiry = TimeSpan.FromMinutes(3);
     private const int MaxAttempts = 5;
 
     private readonly ICacheService _cache;

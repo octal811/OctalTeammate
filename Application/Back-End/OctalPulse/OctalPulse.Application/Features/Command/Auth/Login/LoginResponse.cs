@@ -1,3 +1,5 @@
+using OctalPulse.Domain.Enums;
+
 namespace OctalPulse.Application.Features.Command.Auth.Login;
 
 public record LoginResponse(
@@ -7,4 +9,6 @@ public record LoginResponse(
     DateTime RefreshTokenExpiresAt,
     Guid UserId,
     string Email,
-    string Name);
+    string Name,
+    UserRole MainRole,
+    UserRank Rank);
