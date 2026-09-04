@@ -1,6 +1,5 @@
 using MailKit.Net.Smtp;
 using MailKit.Security;
-using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using MimeKit;
 using OctalPulse.Application.Interface.Services;
@@ -10,12 +9,12 @@ namespace OctalPulse.Infrastructure.Services;
 public class EmailService : IEmailService
 {
     private readonly EmailSettings _settings;
-    private readonly ILogger<EmailService> _logger;
+    private readonly ILog _log;
 
-    public EmailService(IOptions<EmailSettings> settings, ILogger<EmailService> logger)
+    public EmailService(IOptions<EmailSettings> settings, ILog log)
     {
         _settings = settings.Value;
-        _logger = logger;
+        _log = log;
     }
 
     public async Task SendAsync(
@@ -45,7 +44,7 @@ public class EmailService : IEmailService
             client.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
             var socketOption = GetSecureSocketOptions(_settings);
-            _logger.LogInformation("Connecting to SMTP {Host}:{Port} with {SocketOption}...", _settings.Host, _settings.Port, socketOption);
+            _log.Information("Connecting to SMTP {Host}:{Port} with {SocketOption}...", _settings.Host, _settings.Port, socketOption);
 
             await client.ConnectAsync(_settings.Host, _settings.Port, socketOption, cancellationToken);
 
@@ -58,11 +57,11 @@ public class EmailService : IEmailService
             await client.SendAsync(message, cancellationToken);
             await client.DisconnectAsync(true, cancellationToken);
 
-            _logger.LogInformation("Email sent successfully to {Recipients}", string.Join(", ", to));
+            _log.Information("Email sent successfully to {Recipients}", string.Join(", ", to));
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to send email to {Recipients} via SMTP: {Message}", string.Join(", ", to), ex.Message);
+            _log.Error("Failed to send email to {Recipients} via SMTP: {Message}", ex, string.Join(", ", to), ex.Message);
             throw;
         }
     }

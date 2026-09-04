@@ -5,7 +5,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using OctalPulse.API.Authorization;
+using OctalPulse.API.Services;
 using OctalPulse.Application;
+using OctalPulse.Application.Interface.Services;
 using OctalPulse.Domain.Entities;
 using OctalPulse.Infrastructure;
 using OctalPulse.Infrastructure.Persistence;
@@ -29,11 +31,11 @@ builder.Host.UseSerilog((_, configuration) =>
         .Enrich.FromLogContext()
         .WriteTo.Console(
             outputTemplate:
-            "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}{Exception}")
+            "[{Timestamp:HH:mm:ss} {Level:u3}] {Message:lj}{NewLine}")
         .WriteTo.File(
             logFilePath,
             outputTemplate:
-            "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] [{SourceContext}] {Message:lj}{NewLine}{Exception}"));
+            "[{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz}] [{Level:u3}] [{SourceContext}] {Message:lj} | Details: {Details}{NewLine}{Exception}"));
 
 // ── Services ─────────────────────────────────────────────────────────────────
 builder.Services.AddControllers()
@@ -55,6 +57,7 @@ builder.Services
         options.Password.RequiredLength = 8;
     })
     .AddRoles<IdentityRole<Guid>>()
+    .AddDefaultTokenProviders()
     .AddEntityFrameworkStores<ApplicationDbContext>();
 
 var jwtSettings = builder.Configuration.GetSection("Jwt").Get<JwtSettings>() ?? new JwtSettings();
@@ -99,6 +102,8 @@ builder.Services
 builder.Services.AddSignalR();
 
 builder.Services.AddScoped<OctalPulse.Application.Interface.Services.IRealtimeNotifier, OctalPulse.API.Notifications.SignalRNotifier>();
+
+builder.Services.AddSingleton<ILog, SerilogLogger>();
 
 builder.Services.AddScoped<IAuthorizationHandler, AdminOnlyAuthorizationHandler>();
 
@@ -153,8 +158,9 @@ if (app.Environment.IsDevelopment())
     });
 }
 
-Log.Information("OctalPulse started | log file → {LogFilePath}", logFilePath);
+Log.Information("OctalPulse started | log file -> {LogFilePath}", logFilePath);
 
+app.UseMiddleware<OctalPulse.API.Middleware.OutcomeLoggingMiddleware>();
 app.UseMiddleware<OctalPulse.API.Middleware.ExceptionHandlingMiddleware>();
 
 if (app.Environment.IsDevelopment())

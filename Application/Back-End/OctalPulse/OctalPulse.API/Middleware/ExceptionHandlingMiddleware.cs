@@ -1,18 +1,19 @@
 using System.Net;
 using System.Text.Json;
 using OctalPulse.Application.Exceptions;
+using OctalPulse.Application.Interface.Services;
 
 namespace OctalPulse.API.Middleware;
 
 public class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
-    private readonly ILogger<ExceptionHandlingMiddleware> _logger;
+    private readonly ILog _log;
 
-    public ExceptionHandlingMiddleware(RequestDelegate next, ILogger<ExceptionHandlingMiddleware> logger)
+    public ExceptionHandlingMiddleware(RequestDelegate next, ILog log)
     {
         _next = next;
-        _logger = logger;
+        _log = log;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -23,27 +24,28 @@ public class ExceptionHandlingMiddleware
         }
         catch (UnauthorizedException ex)
         {
-            _logger.LogWarning(ex, "Unauthorized request.");
+            context.Items["OutcomeDetails"] = ex.Message;
             await WriteErrorAsync(context, HttpStatusCode.Unauthorized, "Unauthorized", ex.Message);
         }
         catch (ForbiddenException ex)
         {
-            _logger.LogWarning(ex, "Forbidden request.");
+            context.Items["OutcomeDetails"] = ex.Message;
             await WriteErrorAsync(context, HttpStatusCode.Forbidden, "Forbidden", ex.Message);
         }
         catch (ValidationException ex)
         {
-            _logger.LogWarning(ex, "Validation failed.");
+            context.Items["OutcomeDetails"] = ex.Message;
             await WriteErrorAsync(context, HttpStatusCode.BadRequest, "Validation Error", ex.Message);
         }
         catch (NotFoundException ex)
         {
-            _logger.LogWarning(ex, "Resource not found.");
+            context.Items["OutcomeDetails"] = ex.Message;
             await WriteErrorAsync(context, HttpStatusCode.NotFound, "Not Found", ex.Message);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Unhandled exception.");
+            _log.Error("Unhandled exception.", ex);
+            context.Items["OutcomeDetails"] = ex.Message;
             await WriteErrorAsync(context, HttpStatusCode.InternalServerError, "Internal Server Error", "An unexpected error occurred.");
         }
     }
