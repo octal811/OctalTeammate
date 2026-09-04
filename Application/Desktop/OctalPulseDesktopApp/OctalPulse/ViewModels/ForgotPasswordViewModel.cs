@@ -24,7 +24,12 @@ public partial class ForgotPasswordViewModel : ObservableObject
     private string _confirmPassword = string.Empty;
 
     [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(IsStep1))]
+    [NotifyPropertyChangedFor(nameof(IsStep2))]
     private int _step = 1; // 1 = Request code, 2 = Enter code & new password
+
+    public bool IsStep1 => Step == 1;
+    public bool IsStep2 => Step == 2;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -60,9 +65,9 @@ public partial class ForgotPasswordViewModel : ObservableObject
         try
         {
             var res = await _authService.RequestPasswordResetAsync(Email.Trim());
-            SuccessMessage = res.Message;
+            SuccessMessage = "Please check your email, we sent you an OTP code.";
             Step = 2;
-            _dialogService.ShowToast("Reset Code Sent", res.Message, ToastType.Info);
+            _dialogService.ShowToast("Reset Code Sent", SuccessMessage, ToastType.Info);
         }
         catch (Exception ex)
         {
@@ -77,9 +82,15 @@ public partial class ForgotPasswordViewModel : ObservableObject
     [RelayCommand]
     private async Task ConfirmResetPasswordAsync()
     {
-        if (string.IsNullOrWhiteSpace(Otp) || string.IsNullOrWhiteSpace(NewPassword))
+        if (string.IsNullOrWhiteSpace(Otp))
         {
-            ErrorMessage = "Please enter the OTP code and your new password.";
+            ErrorMessage = "Please enter the 8-digit OTP code sent to your email.";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(NewPassword) || string.IsNullOrWhiteSpace(ConfirmPassword))
+        {
+            ErrorMessage = "Please enter and confirm your new password.";
             return;
         }
 
@@ -101,6 +112,7 @@ public partial class ForgotPasswordViewModel : ObservableObject
         try
         {
             var res = await _authService.ResetPasswordAsync(Email.Trim(), Otp.Trim(), NewPassword);
+            SuccessMessage = "Password reset successfully! Redirecting to sign in...";
             _dialogService.ShowToast("Password Reset", "Your password was updated successfully. You can now sign in.", ToastType.Success);
 
             await Task.Delay(1200);
@@ -117,8 +129,25 @@ public partial class ForgotPasswordViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void BackToStep1()
+    {
+        Step = 1;
+        Otp = string.Empty;
+        NewPassword = string.Empty;
+        ConfirmPassword = string.Empty;
+        ErrorMessage = null;
+        SuccessMessage = null;
+    }
+
+    [RelayCommand]
     private void NavigateToLogin()
     {
+        Step = 1;
+        Otp = string.Empty;
+        NewPassword = string.Empty;
+        ConfirmPassword = string.Empty;
+        ErrorMessage = null;
+        SuccessMessage = null;
         _navigationService.NavigateTo<LoginViewModel>();
     }
 }
