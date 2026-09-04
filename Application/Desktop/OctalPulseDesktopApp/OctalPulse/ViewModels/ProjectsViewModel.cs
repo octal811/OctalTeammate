@@ -54,6 +54,7 @@ public partial class ProjectsViewModel : ObservableObject, INavigationAware
     private ProjectRole _joinSelectedRole = ProjectRole.FrontEnd;
 
     public ObservableCollection<ProjectSummaryItem> DisplayedProjects { get; } = new();
+    public IReadOnlyList<string> StatusFilterOptions { get; } = new[] { "All", "Active", "Completed", "OnHold", "Archived" };
     public IReadOnlyList<ProjectStatus> AvailableStatuses { get; } = Enum.GetValues<ProjectStatus>();
     public IReadOnlyList<ProjectRole> AvailableRoles { get; } = Enum.GetValues<ProjectRole>();
 
@@ -125,7 +126,7 @@ public partial class ProjectsViewModel : ObservableObject, INavigationAware
             filtered = filtered.Where(p => p.Title.ToLowerInvariant().Contains(q) || (p.Description?.ToLowerInvariant().Contains(q) ?? false));
         }
 
-        if (StatusFilter != "All" && Enum.TryParse<ProjectStatus>(StatusFilter, out var st))
+        if (!string.IsNullOrWhiteSpace(StatusFilter) && StatusFilter != "All" && Enum.TryParse<ProjectStatus>(StatusFilter, true, out var st))
         {
             filtered = filtered.Where(p => p.Status == st);
         }

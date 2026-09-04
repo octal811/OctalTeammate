@@ -189,8 +189,51 @@
                             CornerRadius="8">
                         <ScrollViewer x:Name="PART_ContentHost"
                                       Focusable="false"
-                                      HorizontalScrollBarVisibility="Hidden"
-                                      VerticalScrollBarVisibility="Hidden"
+                                      HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+                                      VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}"
+                                      Margin="{TemplateBinding Padding}" />
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource Brush.TextMuted}" />
+                        </Trigger>
+                        <Trigger Property="IsFocused" Value="True">
+                            <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource Brush.BorderFocused}" />
+                            <Setter TargetName="border" Property="BorderThickness" Value="1.5" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Modern Multiline TextBox (TextArea) -->
+    <Style x:Key="TextBox.Multiline" TargetType="TextBox">
+        <Setter Property="Background" Value="{DynamicResource Brush.Surface}" />
+        <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="FontSize" Value="13" />
+        <Setter Property="MinHeight" Value="110" />
+        <Setter Property="Padding" Value="12,10" />
+        <Setter Property="VerticalContentAlignment" Value="Top" />
+        <Setter Property="AcceptsReturn" Value="True" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+        <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
+        <Setter Property="CaretBrush" Value="{DynamicResource Brush.Primary}" />
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="TextBox">
+                    <Border x:Name="border"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="8">
+                        <ScrollViewer x:Name="PART_ContentHost"
+                                      Focusable="false"
+                                      HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+                                      VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}"
                                       Margin="{TemplateBinding Padding}" />
                     </Border>
                     <ControlTemplate.Triggers>

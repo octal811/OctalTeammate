@@ -121,35 +121,37 @@
 
         <!-- ── Modal: Create Major Task ────────────────────────────────── -->
         <Grid Background="#7F000000" Visibility="{Binding IsCreateMajorTaskModalOpen, Converter={StaticResource BoolToVis}}">
-            <Border Style="{StaticResource Border.Card}" Width="480" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="32">
-                <StackPanel>
-                    <Grid Margin="0,0,0,20">
-                        <TextBlock Text="Create Major Task" Style="{StaticResource Text.Heading2}" />
-                        <Button Style="{StaticResource Button.Icon}" Command="{Binding CloseCreateMajorTaskModalCommand}" HorizontalAlignment="Right">
-                            <Path Data="{StaticResource Icon.Close}" Fill="{DynamicResource Brush.TextMuted}" Width="12" Height="12" Stretch="Uniform" />
-                        </Button>
-                    </Grid>
+            <Border Style="{StaticResource Border.Card}" Width="520" MaxHeight="640" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="32" Margin="20">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,20">
+                            <TextBlock Text="Create Major Task" Style="{StaticResource Text.Heading2}" />
+                            <Button Style="{StaticResource Button.Icon}" Command="{Binding CloseCreateMajorTaskModalCommand}" HorizontalAlignment="Right">
+                                <Path Data="{StaticResource Icon.Close}" Fill="{DynamicResource Brush.TextMuted}" Width="12" Height="12" Stretch="Uniform" />
+                            </Button>
+                        </Grid>
 
-                    <TextBlock Text="Task Title" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
-                    <TextBox Text="{Binding NewTaskTitle, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Margin="0,0,0,16" />
+                        <TextBlock Text="Task Title" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <TextBox Text="{Binding NewTaskTitle, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Margin="0,0,0,16" />
 
-                    <TextBlock Text="Priority" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
-                    <ComboBox ItemsSource="{Binding AvailablePriorities}" SelectedItem="{Binding NewTaskPriority}" Style="{StaticResource ComboBox.Modern}" Margin="0,0,0,16" />
+                        <TextBlock Text="Priority" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <ComboBox ItemsSource="{Binding AvailablePriorities}" SelectedItem="{Binding NewTaskPriority}" Style="{StaticResource ComboBox.Modern}" Margin="0,0,0,16" />
 
-                    <TextBlock Text="Due Date" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
-                    <DatePicker SelectedDate="{Binding NewTaskDueDate}" Height="40" Margin="0,0,0,16" />
+                        <TextBlock Text="Due Date" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <DatePicker SelectedDate="{Binding NewTaskDueDate}" Height="40" Margin="0,0,0,16" />
 
-                    <TextBlock Text="External Work Link (GitHub / Jira / Docs)" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
-                    <TextBox Text="{Binding NewTaskLink, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Margin="0,0,0,16" />
+                        <TextBlock Text="External Work Link (GitHub / Jira / Docs)" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <TextBox Text="{Binding NewTaskLink, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Margin="0,0,0,16" />
 
-                    <TextBlock Text="Description (Optional)" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
-                    <TextBox Text="{Binding NewTaskDescription, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Height="60" TextWrapping="Wrap" Margin="0,0,0,24" />
+                        <TextBlock Text="Description (Optional)" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <TextBox Text="{Binding NewTaskDescription, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Multiline}" Height="130" Margin="0,0,0,24" />
 
-                    <Grid>
-                        <Button Style="{StaticResource Button.Ghost}" Content="Cancel" Command="{Binding CloseCreateMajorTaskModalCommand}" HorizontalAlignment="Left" />
-                        <Button Style="{StaticResource Button.Primary}" Content="Create Task" Command="{Binding SubmitCreateMajorTaskCommand}" HorizontalAlignment="Right" Padding="20,0" />
-                    </Grid>
-                </StackPanel>
+                        <Grid>
+                            <Button Style="{StaticResource Button.Ghost}" Content="Cancel" Command="{Binding CloseCreateMajorTaskModalCommand}" HorizontalAlignment="Left" />
+                            <Button Style="{StaticResource Button.Primary}" Content="Create Task" Command="{Binding SubmitCreateMajorTaskCommand}" HorizontalAlignment="Right" Padding="20,0" />
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
             </Border>
         </Grid>
     </Grid>

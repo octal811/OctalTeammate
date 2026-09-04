@@ -30,19 +30,30 @@
                         </Grid.RowDefinitions>
 
                         <!-- Row 0: Title & Actions -->
-                        <Grid Grid.Row="0" Margin="0,0,0,12">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="{Binding Project.Title}" Style="{StaticResource Text.Heading1}" Margin="0,0,14,0" />
-                                <Border VerticalAlignment="Center" CornerRadius="12" Padding="10,4" Background="{DynamicResource Brush.SurfaceElevated}">
-                                    <StackPanel Orientation="Horizontal">
-                                        <Ellipse Width="6" Height="6" Fill="{Binding Project.Status, Converter={StaticResource StatusToBrush}}" Margin="0,0,6,0" />
-                                        <TextBlock Text="{Binding Project.Status}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
-                                    </StackPanel>
-                                </Border>
+                        <Grid Grid.Row="0" Margin="0,0,0,14">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Project.Title}" Style="{StaticResource Text.Heading1}" Margin="0,0,16,0" VerticalAlignment="Center" />
+                                
+                                <!-- Interactive Status Selector Dropdown -->
+                                <ComboBox ItemsSource="{Binding AvailableStatuses}" 
+                                          SelectedItem="{Binding CurrentStatus, Mode=TwoWay}"
+                                          Style="{StaticResource ComboBox.Modern}" 
+                                          Height="36" Width="145" VerticalAlignment="Center"
+                                          ToolTip="Change project status">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                <Ellipse Width="8" Height="8" Fill="{Binding Converter={StaticResource StatusToBrush}}" Margin="0,0,8,0" />
+                                                <TextBlock Text="{Binding}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
                             </StackPanel>
 
-                            <!-- Creator Delete Action -->
-                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <!-- Project Actions -->
+                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                                <Button Style="{StaticResource Button.Secondary}" Content="Edit Project" Command="{Binding OpenEditProjectModalCommand}" Height="34" Padding="14,0" Margin="0,0,10,0" />
                                 <Button Style="{StaticResource Button.Danger}" Content="Delete Project" Command="{Binding DeleteProjectCommand}" 
                                         Visibility="{Binding IsCreator, Converter={StaticResource BoolToVis}}" Height="34" Padding="12,0" />
                             </StackPanel>
@@ -269,59 +280,102 @@
             </StackPanel>
         </ScrollViewer>
 
+        <!-- ── Modal: Edit Project ──────────────────────────────────────── -->
+        <Grid Background="#7F000000" Visibility="{Binding IsEditProjectModalOpen, Converter={StaticResource BoolToVis}}">
+            <Border Style="{StaticResource Border.Card}" Width="520" MaxHeight="620" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="32" Margin="20">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,20">
+                            <TextBlock Text="Edit Project Details" Style="{StaticResource Text.Heading2}" />
+                            <Button Style="{StaticResource Button.Icon}" Command="{Binding CloseEditProjectModalCommand}" HorizontalAlignment="Right">
+                                <Path Data="{StaticResource Icon.Close}" Fill="{DynamicResource Brush.TextMuted}" Width="12" Height="12" Stretch="Uniform" />
+                            </Button>
+                        </Grid>
+
+                        <TextBlock Text="Project Title" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <TextBox Text="{Binding EditProjectTitle, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Margin="0,0,0,16" />
+
+                        <TextBlock Text="Description" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <TextBox Text="{Binding EditProjectDescription, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Multiline}" Height="130" Margin="0,0,0,16" />
+
+                        <TextBlock Text="Project Status" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <ComboBox ItemsSource="{Binding AvailableStatuses}" SelectedItem="{Binding EditProjectStatus}" Style="{StaticResource ComboBox.Modern}" Margin="0,0,24,0">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                        <Ellipse Width="8" Height="8" Fill="{Binding Converter={StaticResource StatusToBrush}}" Margin="0,0,8,0" />
+                                        <TextBlock Text="{Binding}" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
+
+                        <Grid Margin="0,20,0,0">
+                            <Button Style="{StaticResource Button.Ghost}" Content="Cancel" Command="{Binding CloseEditProjectModalCommand}" HorizontalAlignment="Left" />
+                            <Button Style="{StaticResource Button.Primary}" Content="Save Changes" Command="{Binding SubmitEditProjectCommand}" HorizontalAlignment="Right" Padding="20,0" />
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+
         <!-- ── Modal: Create Track ──────────────────────────────────────── -->
         <Grid Background="#7F000000" Visibility="{Binding IsCreateTrackModalOpen, Converter={StaticResource BoolToVis}}">
-            <Border Style="{StaticResource Border.Card}" Width="460" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="32">
-                <StackPanel>
-                    <Grid Margin="0,0,0,20">
-                        <TextBlock Text="Create Workstream Track" Style="{StaticResource Text.Heading2}" />
-                        <Button Style="{StaticResource Button.Icon}" Command="{Binding CloseCreateTrackModalCommand}" HorizontalAlignment="Right">
-                            <Path Data="{StaticResource Icon.Close}" Fill="{DynamicResource Brush.TextMuted}" Width="12" Height="12" Stretch="Uniform" />
-                        </Button>
-                    </Grid>
+            <Border Style="{StaticResource Border.Card}" Width="500" MaxHeight="600" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="32" Margin="20">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,20">
+                            <TextBlock Text="Create Workstream Track" Style="{StaticResource Text.Heading2}" />
+                            <Button Style="{StaticResource Button.Icon}" Command="{Binding CloseCreateTrackModalCommand}" HorizontalAlignment="Right">
+                                <Path Data="{StaticResource Icon.Close}" Fill="{DynamicResource Brush.TextMuted}" Width="12" Height="12" Stretch="Uniform" />
+                            </Button>
+                        </Grid>
 
-                    <TextBlock Text="Track Name" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
-                    <TextBox Text="{Binding NewTrackName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Margin="0,0,0,16" />
+                        <TextBlock Text="Track Name" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <TextBox Text="{Binding NewTrackName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Margin="0,0,0,16" />
 
-                    <TextBlock Text="Description (Optional)" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
-                    <TextBox Text="{Binding NewTrackDescription, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Height="60" TextWrapping="Wrap" Margin="0,0,0,24" />
+                        <TextBlock Text="Description (Optional)" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <TextBox Text="{Binding NewTrackDescription, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Multiline}" Height="110" Margin="0,0,0,24" />
 
-                    <Grid>
-                        <Button Style="{StaticResource Button.Ghost}" Content="Cancel" Command="{Binding CloseCreateTrackModalCommand}" HorizontalAlignment="Left" />
-                        <Button Style="{StaticResource Button.Primary}" Content="Create Track" Command="{Binding SubmitCreateTrackCommand}" HorizontalAlignment="Right" Padding="20,0" />
-                    </Grid>
-                </StackPanel>
+                        <Grid>
+                            <Button Style="{StaticResource Button.Ghost}" Content="Cancel" Command="{Binding CloseCreateTrackModalCommand}" HorizontalAlignment="Left" />
+                            <Button Style="{StaticResource Button.Primary}" Content="Create Track" Command="{Binding SubmitCreateTrackCommand}" HorizontalAlignment="Right" Padding="20,0" />
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
             </Border>
         </Grid>
 
         <!-- ── Modal: Create Event ──────────────────────────────────────── -->
         <Grid Background="#7F000000" Visibility="{Binding IsCreateEventModalOpen, Converter={StaticResource BoolToVis}}">
-            <Border Style="{StaticResource Border.Card}" Width="460" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="32">
-                <StackPanel>
-                    <Grid Margin="0,0,0,20">
-                        <TextBlock Text="Add Project Event" Style="{StaticResource Text.Heading2}" />
-                        <Button Style="{StaticResource Button.Icon}" Command="{Binding CloseCreateEventModalCommand}" HorizontalAlignment="Right">
-                            <Path Data="{StaticResource Icon.Close}" Fill="{DynamicResource Brush.TextMuted}" Width="12" Height="12" Stretch="Uniform" />
-                        </Button>
-                    </Grid>
+            <Border Style="{StaticResource Border.Card}" Width="500" MaxHeight="620" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="32" Margin="20">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,20">
+                            <TextBlock Text="Add Project Event" Style="{StaticResource Text.Heading2}" />
+                            <Button Style="{StaticResource Button.Icon}" Command="{Binding CloseCreateEventModalCommand}" HorizontalAlignment="Right">
+                                <Path Data="{StaticResource Icon.Close}" Fill="{DynamicResource Brush.TextMuted}" Width="12" Height="12" Stretch="Uniform" />
+                            </Button>
+                        </Grid>
 
-                    <TextBlock Text="Event Title" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
-                    <TextBox Text="{Binding NewEventTitle, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Margin="0,0,0,16" />
+                        <TextBlock Text="Event Title" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <TextBox Text="{Binding NewEventTitle, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Margin="0,0,0,16" />
 
-                    <TextBlock Text="Event Type" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
-                    <ComboBox ItemsSource="{Binding AvailableEventTypes}" SelectedItem="{Binding NewEventType}" Style="{StaticResource ComboBox.Modern}" Margin="0,0,0,16" />
+                        <TextBlock Text="Event Type" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <ComboBox ItemsSource="{Binding AvailableEventTypes}" SelectedItem="{Binding NewEventType}" Style="{StaticResource ComboBox.Modern}" Margin="0,0,0,16" />
 
-                    <TextBlock Text="Event Date" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
-                    <DatePicker SelectedDate="{Binding NewEventDate}" Height="40" Margin="0,0,0,16" />
+                        <TextBlock Text="Event Date" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <DatePicker SelectedDate="{Binding NewEventDate}" Height="40" Margin="0,0,0,16" />
 
-                    <TextBlock Text="Description (Optional)" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
-                    <TextBox Text="{Binding NewEventDescription, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Height="60" TextWrapping="Wrap" Margin="0,0,0,24" />
+                        <TextBlock Text="Description (Optional)" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <TextBox Text="{Binding NewEventDescription, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Multiline}" Height="110" Margin="0,0,0,24" />
 
-                    <Grid>
-                        <Button Style="{StaticResource Button.Ghost}" Content="Cancel" Command="{Binding CloseCreateEventModalCommand}" HorizontalAlignment="Left" />
-                        <Button Style="{StaticResource Button.Primary}" Content="Save Event" Command="{Binding SubmitCreateEventCommand}" HorizontalAlignment="Right" Padding="20,0" />
-                    </Grid>
-                </StackPanel>
+                        <Grid>
+                            <Button Style="{StaticResource Button.Ghost}" Content="Cancel" Command="{Binding CloseCreateEventModalCommand}" HorizontalAlignment="Left" />
+                            <Button Style="{StaticResource Button.Primary}" Content="Save Event" Command="{Binding SubmitCreateEventCommand}" HorizontalAlignment="Right" Padding="20,0" />
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
             </Border>
         </Grid>
     </Grid>

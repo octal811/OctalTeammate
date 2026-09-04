@@ -39,6 +39,24 @@ public partial class ProjectDetailViewModel : ObservableObject, INavigationAware
     [ObservableProperty]
     private string? _errorMessage;
 
+    [ObservableProperty]
+    private ProjectStatus _currentStatus = ProjectStatus.Active;
+
+    public IReadOnlyList<ProjectStatus> AvailableStatuses { get; } = Enum.GetValues<ProjectStatus>();
+
+    // Edit Project Modal
+    [ObservableProperty]
+    private bool _isEditProjectModalOpen;
+
+    [ObservableProperty]
+    private string _editProjectTitle = string.Empty;
+
+    [ObservableProperty]
+    private string _editProjectDescription = string.Empty;
+
+    [ObservableProperty]
+    private ProjectStatus _editProjectStatus = ProjectStatus.Active;
+
     // Create Track Modal
     [ObservableProperty]
     private bool _isCreateTrackModalOpen;
@@ -148,6 +166,7 @@ public partial class ProjectDetailViewModel : ObservableObject, INavigationAware
         try
         {
             Project = await _projectService.GetProjectByIdAsync(ProjectId);
+            CurrentStatus = Project.Status;
             IsCreator = _userSession.UserId.HasValue && Project.Creator.UserId == _userSession.UserId.Value;
 
             Members.Clear();
@@ -359,6 +378,95 @@ public partial class ProjectDetailViewModel : ObservableObject, INavigationAware
         catch (Exception ex)
         {
             _dialogService.ShowToast("Create Event Error", ex.Message, ToastType.Error);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    partial void OnCurrentStatusChanged(ProjectStatus value)
+    {
+        if (Project == null || value == Project.Status) return;
+        _ = UpdateProjectStatusAsync(value);
+    }
+
+    [RelayCommand]
+    private async Task UpdateProjectStatusAsync(ProjectStatus newStatus)
+    {
+        if (Project == null) return;
+        IsBusy = true;
+        try
+        {
+            var res = await _projectService.UpdateProjectAsync(new UpdateProjectRequest(
+                Project.Id,
+                Project.Title,
+                Project.Description,
+                newStatus));
+
+            Project = Project with { Status = res.Status };
+            CurrentStatus = res.Status;
+            _dialogService.ShowToast("Status Updated", $"Project status changed to {res.Status}.", ToastType.Success);
+        }
+        catch (Exception ex)
+        {
+            CurrentStatus = Project.Status;
+            _dialogService.ShowToast("Update Error", ex.Message, ToastType.Error);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private void OpenEditProjectModal()
+    {
+        if (Project == null) return;
+        EditProjectTitle = Project.Title;
+        EditProjectDescription = Project.Description ?? string.Empty;
+        EditProjectStatus = Project.Status;
+        IsEditProjectModalOpen = true;
+    }
+
+    [RelayCommand]
+    private void CloseEditProjectModal()
+    {
+        IsEditProjectModalOpen = false;
+    }
+
+    [RelayCommand]
+    private async Task SubmitEditProjectAsync()
+    {
+        if (Project == null) return;
+        if (string.IsNullOrWhiteSpace(EditProjectTitle))
+        {
+            _dialogService.ShowToast("Validation Error", "Please provide a project title.", ToastType.Warning);
+            return;
+        }
+
+        IsBusy = true;
+        try
+        {
+            var res = await _projectService.UpdateProjectAsync(new UpdateProjectRequest(
+                Project.Id,
+                EditProjectTitle.Trim(),
+                string.IsNullOrWhiteSpace(EditProjectDescription) ? null : EditProjectDescription.Trim(),
+                EditProjectStatus));
+
+            Project = Project with
+            {
+                Title = res.Title,
+                Description = res.Description,
+                Status = res.Status
+            };
+            CurrentStatus = res.Status;
+            IsEditProjectModalOpen = false;
+            _dialogService.ShowToast("Project Updated", "Project details updated successfully.", ToastType.Success);
+        }
+        catch (Exception ex)
+        {
+            _dialogService.ShowToast("Update Error", ex.Message, ToastType.Error);
         }
         finally
         {

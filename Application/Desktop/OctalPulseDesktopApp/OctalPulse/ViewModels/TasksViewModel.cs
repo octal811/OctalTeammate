@@ -25,6 +25,7 @@ public partial class TasksViewModel : ObservableObject, INavigationAware
     private bool _isBusy;
 
     public ObservableCollection<MajorTaskItem> DisplayedTasks { get; } = new();
+    public IReadOnlyList<string> FilterStatusOptions { get; } = new[] { "All", "Todo", "InProgress", "Done" };
 
     public TasksViewModel(
         IProjectService projectService,
@@ -82,7 +83,7 @@ public partial class TasksViewModel : ObservableObject, INavigationAware
     {
         var filtered = _allLoadedTasks.AsEnumerable();
 
-        if (FilterStatus != "All" && Enum.TryParse<MajorTaskState>(FilterStatus, out var state))
+        if (!string.IsNullOrWhiteSpace(FilterStatus) && FilterStatus != "All" && Enum.TryParse<MajorTaskState>(FilterStatus, true, out var state))
         {
             filtered = filtered.Where(t => t.State == state);
         }

@@ -44,13 +44,7 @@
                                  Margin="0,0,16,0" />
 
                         <!-- Status Filter -->
-                        <ComboBox Grid.Column="1" SelectedValue="{Binding StatusFilter}" Style="{StaticResource ComboBox.Modern}" Height="42">
-                            <ComboBoxItem Content="All" IsSelected="True" />
-                            <ComboBoxItem Content="Active" />
-                            <ComboBoxItem Content="Completed" />
-                            <ComboBoxItem Content="OnHold" />
-                            <ComboBoxItem Content="Archived" />
-                        </ComboBox>
+                        <ComboBox Grid.Column="1" ItemsSource="{Binding StatusFilterOptions}" SelectedItem="{Binding StatusFilter, Mode=TwoWay}" Style="{StaticResource ComboBox.Modern}" Height="42" />
                     </Grid>
                 </Border>
 
@@ -124,57 +118,61 @@
 
         <!-- ── Modal: Create Project ────────────────────────────────────── -->
         <Grid Background="#7F000000" Visibility="{Binding IsCreateModalOpen, Converter={StaticResource BoolToVis}}">
-            <Border Style="{StaticResource Border.Card}" Width="480" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="32">
-                <StackPanel>
-                    <Grid Margin="0,0,0,20">
-                        <TextBlock Text="Create New Project" Style="{StaticResource Text.Heading2}" />
-                        <Button Style="{StaticResource Button.Icon}" Command="{Binding CloseCreateModalCommand}" HorizontalAlignment="Right">
-                            <Path Data="{StaticResource Icon.Close}" Fill="{DynamicResource Brush.TextMuted}" Width="12" Height="12" Stretch="Uniform" />
-                        </Button>
-                    </Grid>
+            <Border Style="{StaticResource Border.Card}" Width="520" MaxHeight="620" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="32" Margin="20">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,20">
+                            <TextBlock Text="Create New Project" Style="{StaticResource Text.Heading2}" />
+                            <Button Style="{StaticResource Button.Icon}" Command="{Binding CloseCreateModalCommand}" HorizontalAlignment="Right">
+                                <Path Data="{StaticResource Icon.Close}" Fill="{DynamicResource Brush.TextMuted}" Width="12" Height="12" Stretch="Uniform" />
+                            </Button>
+                        </Grid>
 
-                    <TextBlock Text="Project Title" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
-                    <TextBox Text="{Binding NewProjectTitle, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Margin="0,0,0,16" />
+                        <TextBlock Text="Project Title" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <TextBox Text="{Binding NewProjectTitle, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Margin="0,0,0,16" />
 
-                    <TextBlock Text="Description (Optional)" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
-                    <TextBox Text="{Binding NewProjectDescription, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Height="70" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto" Margin="0,0,0,16" />
+                        <TextBlock Text="Description (Optional)" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <TextBox Text="{Binding NewProjectDescription, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Multiline}" Height="120" Margin="0,0,0,16" />
 
-                    <TextBlock Text="Initial Status" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
-                    <ComboBox ItemsSource="{Binding AvailableStatuses}" SelectedItem="{Binding NewProjectStatus}" Style="{StaticResource ComboBox.Modern}" Margin="0,0,0,24" />
+                        <TextBlock Text="Initial Status" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <ComboBox ItemsSource="{Binding AvailableStatuses}" SelectedItem="{Binding NewProjectStatus}" Style="{StaticResource ComboBox.Modern}" Margin="0,0,0,24" />
 
-                    <Grid>
-                        <Button Style="{StaticResource Button.Ghost}" Content="Cancel" Command="{Binding CloseCreateModalCommand}" HorizontalAlignment="Left" />
-                        <Button Style="{StaticResource Button.Primary}" Content="Create Project" Command="{Binding SubmitCreateProjectCommand}" HorizontalAlignment="Right" Padding="20,0" />
-                    </Grid>
-                </StackPanel>
+                        <Grid>
+                            <Button Style="{StaticResource Button.Ghost}" Content="Cancel" Command="{Binding CloseCreateModalCommand}" HorizontalAlignment="Left" />
+                            <Button Style="{StaticResource Button.Primary}" Content="Create Project" Command="{Binding SubmitCreateProjectCommand}" HorizontalAlignment="Right" Padding="20,0" />
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
             </Border>
         </Grid>
 
         <!-- ── Modal: Join Project ──────────────────────────────────────── -->
         <Grid Background="#7F000000" Visibility="{Binding IsJoinModalOpen, Converter={StaticResource BoolToVis}}">
-            <Border Style="{StaticResource Border.Card}" Width="460" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="32">
-                <StackPanel>
-                    <Grid Margin="0,0,0,16">
-                        <TextBlock Text="Request to Join Project" Style="{StaticResource Text.Heading2}" />
-                        <Button Style="{StaticResource Button.Icon}" Command="{Binding CloseJoinModalCommand}" HorizontalAlignment="Right">
-                            <Path Data="{StaticResource Icon.Close}" Fill="{DynamicResource Brush.TextMuted}" Width="12" Height="12" Stretch="Uniform" />
-                        </Button>
-                    </Grid>
+            <Border Style="{StaticResource Border.Card}" Width="480" MaxHeight="580" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="32" Margin="20">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,16">
+                            <TextBlock Text="Request to Join Project" Style="{StaticResource Text.Heading2}" />
+                            <Button Style="{StaticResource Button.Icon}" Command="{Binding CloseJoinModalCommand}" HorizontalAlignment="Right">
+                                <Path Data="{StaticResource Icon.Close}" Fill="{DynamicResource Brush.TextMuted}" Width="12" Height="12" Stretch="Uniform" />
+                            </Button>
+                        </Grid>
 
-                    <TextBlock Text="Enter the Project GUID and choose your initial project role. The project creator will review and approve your request." 
-                               FontSize="13" Foreground="{DynamicResource Brush.TextSecondary}" TextWrapping="Wrap" LineHeight="18" Margin="0,0,0,20" />
+                        <TextBlock Text="Enter the Project GUID and choose your initial project role. The project creator will review and approve your request." 
+                                   FontSize="13" Foreground="{DynamicResource Brush.TextSecondary}" TextWrapping="Wrap" LineHeight="18" Margin="0,0,0,20" />
 
-                    <TextBlock Text="Project ID (GUID)" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
-                    <TextBox Text="{Binding JoinProjectId, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Margin="0,0,0,16" />
+                        <TextBlock Text="Project ID (GUID)" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <TextBox Text="{Binding JoinProjectId, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Margin="0,0,0,16" />
 
-                    <TextBlock Text="Your Role in Project" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
-                    <ComboBox ItemsSource="{Binding AvailableRoles}" SelectedItem="{Binding JoinSelectedRole}" Style="{StaticResource ComboBox.Modern}" Margin="0,0,0,24" />
+                        <TextBlock Text="Your Role in Project" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <ComboBox ItemsSource="{Binding AvailableRoles}" SelectedItem="{Binding JoinSelectedRole}" Style="{StaticResource ComboBox.Modern}" Margin="0,0,0,24" />
 
-                    <Grid>
-                        <Button Style="{StaticResource Button.Ghost}" Content="Cancel" Command="{Binding CloseJoinModalCommand}" HorizontalAlignment="Left" />
-                        <Button Style="{StaticResource Button.Primary}" Content="Send Join Request" Command="{Binding SubmitJoinProjectCommand}" HorizontalAlignment="Right" Padding="20,0" />
-                    </Grid>
-                </StackPanel>
+                        <Grid>
+                            <Button Style="{StaticResource Button.Ghost}" Content="Cancel" Command="{Binding CloseJoinModalCommand}" HorizontalAlignment="Left" />
+                            <Button Style="{StaticResource Button.Primary}" Content="Send Join Request" Command="{Binding SubmitJoinProjectCommand}" HorizontalAlignment="Right" Padding="20,0" />
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
             </Border>
         </Grid>
     </Grid>
