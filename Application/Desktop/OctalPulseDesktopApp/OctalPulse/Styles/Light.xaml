@@ -48,7 +48,7 @@
 
     <!--  No glow effect in Light theme  -->
     <x:Null x:Key="Effect.CardGlow" />
-    <!-- Normal border thickness in Light theme -->
+    <!--  Normal border thickness in Light theme  -->
     <Thickness x:Key="Theme.BorderThickness">1</Thickness>
 
 </ResourceDictionary>

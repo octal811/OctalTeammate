@@ -14,6 +14,7 @@ public class TokenService : ITokenService
     private string? _cachedAccessToken;
     private string? _cachedRefreshToken;
     private DateTime? _cachedAccessTokenExpiresAt;
+    private DateTime? _cachedRefreshTokenExpiresAt;
 
     public TokenService(ISecureStorageService secureStorage)
     {
@@ -30,6 +31,12 @@ public class TokenService : ITokenService
         {
             _cachedAccessTokenExpiresAt = expiry;
         }
+
+        var refreshExpiryStr = _secureStorage.GetSecret(RefreshTokenExpiryKey);
+        if (DateTime.TryParse(refreshExpiryStr, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind, out var refreshExpiry))
+        {
+            _cachedRefreshTokenExpiresAt = refreshExpiry;
+        }
     }
 
     public string? GetAccessToken() => _cachedAccessToken;
@@ -37,6 +44,8 @@ public class TokenService : ITokenService
     public string? GetRefreshToken() => _cachedRefreshToken;
 
     public DateTime? GetAccessTokenExpiresAt() => _cachedAccessTokenExpiresAt;
+
+    public DateTime? GetRefreshTokenExpiresAt() => _cachedRefreshTokenExpiresAt;
 
     public bool IsAccessTokenExpired()
     {
@@ -55,6 +64,7 @@ public class TokenService : ITokenService
         _cachedAccessToken = accessToken;
         _cachedRefreshToken = refreshToken;
         _cachedAccessTokenExpiresAt = accessExpiresAt;
+        _cachedRefreshTokenExpiresAt = refreshExpiresAt;
 
         _secureStorage.SaveSecret(AccessTokenKey, accessToken);
         _secureStorage.SaveSecret(RefreshTokenKey, refreshToken);
@@ -67,6 +77,7 @@ public class TokenService : ITokenService
         _cachedAccessToken = null;
         _cachedRefreshToken = null;
         _cachedAccessTokenExpiresAt = null;
+        _cachedRefreshTokenExpiresAt = null;
 
         _secureStorage.RemoveSecret(AccessTokenKey);
         _secureStorage.RemoveSecret(RefreshTokenKey);

@@ -93,6 +93,36 @@
                             <TextBlock Text="{Binding ErrorMessage}" Foreground="{DynamicResource Brush.Danger}" FontSize="13" TextWrapping="Wrap" />
                         </Border>
 
+                        <!-- Saved Accounts Section -->
+                        <StackPanel Visibility="{Binding HasSavedAccounts, Converter={StaticResource BoolToVis}}" Margin="0,0,0,20">
+                            <TextBlock Text="Saved accounts" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,10" />
+                            <ItemsControl ItemsSource="{Binding SavedAccounts}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border Background="{DynamicResource Brush.SurfaceElevated}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" CornerRadius="10" Padding="12,10" Margin="0,0,0,8">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,12,0">
+                                                    <TextBlock Text="{Binding Email}" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
+                                                    <TextBlock Text="Saved password on this device" FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" />
+                                                </StackPanel>
+                                                <Button Grid.Column="1" Style="{StaticResource Button.Primary}" Content="Sign In" Margin="0,0,8,0" Height="30" Padding="16,0"
+                                                        Command="{Binding DataContext.SignInWithSavedCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding}" />
+                                                <Button Grid.Column="2" Style="{StaticResource Button.Ghost}" Content="Remove" Height="30"
+                                                        Command="{Binding DataContext.RemoveSavedCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                        CommandParameter="{Binding}" />
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+
                         <!-- Email Field -->
                         <TextBlock Text="Email Address" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
                         <TextBox Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Margin="0,0,0,18" />

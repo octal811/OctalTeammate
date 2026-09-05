@@ -84,15 +84,25 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
 
     private void OnConnectionStateChanged(bool connected)
     {
-        System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+        var app = System.Windows.Application.Current;
+        if (app == null) return;
+
+        if (app.Dispatcher.CheckAccess())
         {
             IsSignalRConnected = connected;
-        });
+        }
+        else
+        {
+            // Never block the UI thread from a SignalR callback. Synchronous
+            // Invoke here deadlocks during shutdown, when the UI thread is
+            // busy stopping the DI container.
+            app.Dispatcher.BeginInvoke(() => IsSignalRConnected = connected);
+        }
     }
 
     private void OnToastRequested(string title, string message, ToastType type)
     {
-        System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+        void ShowToast()
         {
             ToastTitle = title;
             ToastMessage = message;
@@ -107,7 +117,19 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
                 IsToastVisible = false;
             };
             _toastTimer.Start();
-        });
+        }
+
+        var app = System.Windows.Application.Current;
+        if (app == null) return;
+
+        if (app.Dispatcher.CheckAccess())
+        {
+            ShowToast();
+        }
+        else
+        {
+            app.Dispatcher.BeginInvoke(ShowToast);
+        }
     }
 
     [RelayCommand]

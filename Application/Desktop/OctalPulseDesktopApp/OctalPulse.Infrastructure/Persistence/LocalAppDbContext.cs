@@ -14,6 +14,7 @@ public class LocalAppDbContext : DbContext
     public DbSet<CachedMajorTask> MajorTasks => Set<CachedMajorTask>();
     public DbSet<CachedMinorTask> MinorTasks => Set<CachedMinorTask>();
     public DbSet<CachedEvent> Events => Set<CachedEvent>();
+    public DbSet<SavedAccount> SavedAccounts => Set<SavedAccount>();
 
     public LocalAppDbContext()
     {
@@ -85,6 +86,13 @@ public class LocalAppDbContext : DbContext
         {
             entity.HasKey(e => e.Id);
             entity.HasIndex(e => e.ProjectId);
+        });
+
+        modelBuilder.Entity<SavedAccount>(entity =>
+        {
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.Email).IsRequired();
+            entity.HasIndex(e => e.Email).IsUnique();
         });
     }
 }

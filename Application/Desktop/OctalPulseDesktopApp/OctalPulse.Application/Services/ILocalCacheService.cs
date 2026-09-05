@@ -15,6 +15,12 @@ public interface ILocalCacheService
     Task<GitHubIntegrationSettings> GetGitHubSettingsAsync();
     Task SaveGitHubSettingsAsync(GitHubIntegrationSettings settings);
 
+    // Saved accounts (remember-me credentials)
+    Task<IReadOnlyList<SavedAccount>> GetSavedAccountsAsync();
+    Task<string?> GetSavedAccountPasswordAsync(string email);
+    Task SaveSavedAccountAsync(string email, string password);
+    Task RemoveSavedAccountAsync(string email);
+
     // Cached Entities for offline browsing
     Task<IReadOnlyList<CachedProject>> GetCachedProjectsAsync();
     Task SaveProjectsAsync(IEnumerable<CachedProject> projects);

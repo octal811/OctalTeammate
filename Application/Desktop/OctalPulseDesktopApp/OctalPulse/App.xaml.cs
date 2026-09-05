@@ -2,6 +2,7 @@ using System.Windows;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OctalPulse.Application.Abstractions;
+using OctalPulse.Application.Services;
 using OctalPulse.Infrastructure;
 using OctalPulse.Services;
 using OctalPulse.ViewModels;
@@ -71,6 +72,15 @@ public partial class App : System.Windows.Application
     {
         if (_host != null)
         {
+            // Stop the SignalR connection first while the UI thread is still free,
+            // so connection callbacks don't block (or deadlock with) container disposal.
+            var realtime = _host.Services.GetService<ISignalRRealtimeService>();
+            if (realtime != null)
+            {
+                var stop = realtime.DisconnectAsync();
+                await Task.WhenAny(stop, Task.Delay(TimeSpan.FromSeconds(3)));
+            }
+
             await _host.StopAsync();
             _host.Dispose();
         }

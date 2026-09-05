@@ -6,13 +6,79 @@
         xmlns:vm="clr-namespace:OctalPulse.ViewModels"
         xmlns:views="clr-namespace:OctalPulse.Views"
         mc:Ignorable="d"
-        Title="OctalPulse • Enterprise Project Management" 
-        Height="820" Width="1280" 
+        WindowStyle="None"
+        AllowsTransparency="False"
+        Title="OctalPulse • Enterprise Project Management"
+        Height="820" Width="1280"
         MinHeight="680" MinWidth="1050"
         WindowStartupLocation="CenterScreen"
-        Background="{DynamicResource Brush.Background}">
+        Background="{DynamicResource Brush.Background}"
+        StateChanged="Window_StateChanged">
+
+    <WindowChrome.WindowChrome>
+        <WindowChrome CaptionHeight="32"
+                      ResizeBorderThickness="5"
+                      GlassFrameThickness="0"
+                      CornerRadius="0" />
+    </WindowChrome.WindowChrome>
 
     <Window.Resources>
+        <!-- Title bar window-control button style -->
+        <Style x:Key="TitleBarButton" TargetType="Button">
+            <Setter Property="Width" Value="46" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource Brush.SurfaceHover}" />
+                                <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource Brush.Border}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Close button: red hover like native Windows -->
+        <Style x:Key="TitleBarButtonClose" TargetType="Button">
+            <Setter Property="Width" Value="46" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="bd" Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource Brush.Danger}" />
+                                <Setter Property="Foreground" Value="{DynamicResource Brush.PrimaryForeground}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#C01325" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
         <!-- Top-Level Route DataTemplates -->
         <DataTemplate DataType="{x:Type vm:LoginViewModel}">
             <views:LoginView />
@@ -32,7 +98,53 @@
     </Window.Resources>
 
     <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="32" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- ── Custom Title Bar (themed via XAML brushes, no Win32/DWM) ── -->
+        <Border Grid.Row="0" Background="{DynamicResource Brush.Surface}"
+                BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!-- Brand -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,10,0">
+                    <Border Width="20" Height="20" CornerRadius="5" Background="{DynamicResource Brush.Primary}">
+                        <Path Data="{StaticResource Icon.Logo}" Fill="{DynamicResource Brush.PrimaryForeground}"
+                              Width="12" Height="12" Stretch="Uniform" />
+                    </Border>
+                    <TextBlock Text="OctalPulse" VerticalAlignment="Center" Margin="8,0,0,0"
+                               FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
+                </StackPanel>
+
+                <!-- Window Controls -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Top">
+                    <Button Style="{StaticResource TitleBarButton}" Click="MinimizeButton_Click"
+                            WindowChrome.IsHitTestVisibleInChrome="True"
+                            ToolTip="Minimize">
+                        <TextBlock Text="&#xE921;" FontFamily="Segoe MDL2 Assets" FontSize="10" />
+                    </Button>
+                    <Button Style="{StaticResource TitleBarButton}" Click="MaximizeButton_Click"
+                            WindowChrome.IsHitTestVisibleInChrome="True"
+                            ToolTip="Maximize">
+                        <TextBlock x:Name="MaximizeGlyph" Text="&#xE922;" FontFamily="Segoe MDL2 Assets" FontSize="10" />
+                    </Button>
+                    <Button Style="{StaticResource TitleBarButtonClose}" Click="CloseButton_Click"
+                            WindowChrome.IsHitTestVisibleInChrome="True"
+                            ToolTip="Close">
+                        <TextBlock Text="&#xE8BB;" FontFamily="Segoe MDL2 Assets" FontSize="10" />
+                    </Button>
+                </StackPanel>
+            </Grid>
+        </Border>
+
         <!-- Root Content Host -->
-        <ContentControl Content="{Binding Navigation.CurrentViewModel}" />
+        <ContentControl Grid.Row="1" Content="{Binding Navigation.CurrentViewModel}" />
     </Grid>
 </Window>

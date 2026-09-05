@@ -1,3 +1,6 @@
+using System.Runtime.Versioning;
+using System.Security.Cryptography;
+using System.Text;
 using Microsoft.EntityFrameworkCore;
 using OctalPulse.Application.Services;
 using OctalPulse.Domain.Entities;
@@ -7,6 +10,7 @@ namespace OctalPulse.Infrastructure.Persistence;
 public class LocalCacheService : ILocalCacheService
 {
     private readonly IDbContextFactory<LocalAppDbContext> _dbFactory;
+    private static readonly byte[] CredentialEntropy = Encoding.UTF8.GetBytes("OctalPulse.SavedCredentials.2026");
 
     public LocalCacheService(IDbContextFactory<LocalAppDbContext> dbFactory)
     {
@@ -18,6 +22,19 @@ public class LocalCacheService : ILocalCacheService
     {
         using var db = _dbFactory.CreateDbContext();
         db.Database.EnsureCreated();
+
+        // EnsureCreated does not add new tables to an existing database.
+        // Create the SavedAccounts table explicitly so remember-me credentials
+        // work on databases that were created before this feature shipped.
+        db.Database.ExecuteSqlRaw("""
+            CREATE TABLE IF NOT EXISTS "SavedAccounts" (
+                "Id" TEXT NOT NULL CONSTRAINT "PK_SavedAccounts" PRIMARY KEY,
+                "Email" TEXT NOT NULL,
+                "EncryptedPassword" TEXT NOT NULL,
+                "LastUsedAt" TEXT NOT NULL
+            );
+            CREATE UNIQUE INDEX IF NOT EXISTS "IX_SavedAccounts_Email" ON "SavedAccounts" ("Email");
+            """);
     }
 
     public async Task<LocalSession?> GetActiveSessionAsync()
@@ -134,6 +151,77 @@ public class LocalCacheService : ILocalCacheService
             await db.GitHubSettings.AddAsync(settings);
         }
         await db.SaveChangesAsync();
+    }
+
+    public async Task<IReadOnlyList<SavedAccount>> GetSavedAccountsAsync()
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        return await db.SavedAccounts.OrderByDescending(a => a.LastUsedAt).ToListAsync();
+    }
+
+    public async Task<string?> GetSavedAccountPasswordAsync(string email)
+    {
+        if (!OperatingSystem.IsWindows()) return null;
+
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        var account = await db.SavedAccounts.FirstOrDefaultAsync(a => a.Email.ToLower() == email.Trim().ToLower());
+        return account is null ? null : DecryptPassword(account.EncryptedPassword);
+    }
+
+    public async Task SaveSavedAccountAsync(string email, string password)
+    {
+        var normalized = email.Trim();
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        var existing = await db.SavedAccounts.FirstOrDefaultAsync(a => a.Email.ToLower() == normalized.ToLower());
+        if (existing is not null)
+        {
+            existing.EncryptedPassword = OperatingSystem.IsWindows() ? EncryptPassword(password) : string.Empty;
+            existing.LastUsedAt = DateTime.UtcNow;
+        }
+        else
+        {
+            await db.SavedAccounts.AddAsync(new SavedAccount
+            {
+                Email = normalized,
+                EncryptedPassword = OperatingSystem.IsWindows() ? EncryptPassword(password) : string.Empty,
+                LastUsedAt = DateTime.UtcNow
+            });
+        }
+        await db.SaveChangesAsync();
+    }
+
+    public async Task RemoveSavedAccountAsync(string email)
+    {
+        await using var db = await _dbFactory.CreateDbContextAsync();
+        var existing = await db.SavedAccounts.FirstOrDefaultAsync(a => a.Email.ToLower() == email.Trim().ToLower());
+        if (existing is not null)
+        {
+            db.SavedAccounts.Remove(existing);
+            await db.SaveChangesAsync();
+        }
+    }
+
+    [SupportedOSPlatform("windows")]
+    private static string EncryptPassword(string password)
+    {
+        var plain = Encoding.UTF8.GetBytes(password);
+        var encrypted = ProtectedData.Protect(plain, CredentialEntropy, DataProtectionScope.CurrentUser);
+        return Convert.ToBase64String(encrypted);
+    }
+
+    [SupportedOSPlatform("windows")]
+    private static string? DecryptPassword(string encrypted)
+    {
+        try
+        {
+            var data = Convert.FromBase64String(encrypted);
+            var plain = ProtectedData.Unprotect(data, CredentialEntropy, DataProtectionScope.CurrentUser);
+            return Encoding.UTF8.GetString(plain);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     public async Task<IReadOnlyList<CachedProject>> GetCachedProjectsAsync()
