@@ -98,7 +98,7 @@
                                     <!-- Progress Bar -->
                                     <StackPanel Grid.Row="2" Margin="0,0,0,16">
                                         <Grid Margin="0,0,0,4">
-                                            <TextBlock Text="Overall Track Progress" FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" />
+                                            <TextBlock Text="Project Progress" FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" />
                                             <TextBlock Text="{Binding Progress, StringFormat='{}{0}%'}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource Brush.Primary}" HorizontalAlignment="Right" />
                                         </Grid>
                                         <ProgressBar Value="{Binding Progress}" Maximum="100" Style="{StaticResource ProgressBar.Modern}" />

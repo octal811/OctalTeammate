@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OctalPulse.Application.Abstractions;
@@ -40,6 +41,9 @@ public partial class TrackDetailViewModel : ObservableObject, INavigationAware
 
     [ObservableProperty]
     private string _newTaskDescription = string.Empty;
+
+    [ObservableProperty]
+    private string _newTaskDetails = string.Empty;
 
     [ObservableProperty]
     private Priority _newTaskPriority = Priority.Medium;
@@ -176,6 +180,7 @@ public partial class TrackDetailViewModel : ObservableObject, INavigationAware
     {
         NewTaskTitle = string.Empty;
         NewTaskDescription = string.Empty;
+        NewTaskDetails = string.Empty;
         NewTaskPriority = Priority.Medium;
         NewTaskDueDate = DateTime.Today.AddDays(7);
         NewTaskLink = string.Empty;
@@ -204,7 +209,7 @@ public partial class TrackDetailViewModel : ObservableObject, INavigationAware
                 TrackId,
                 NewTaskTitle.Trim(),
                 string.IsNullOrWhiteSpace(NewTaskDescription) ? null : NewTaskDescription.Trim(),
-                null,
+                string.IsNullOrWhiteSpace(NewTaskDetails) ? null : NewTaskDetails.Trim(),
                 string.IsNullOrWhiteSpace(NewTaskLink) ? null : NewTaskLink.Trim(),
                 MajorTaskState.Todo,
                 NewTaskPriority,
@@ -260,6 +265,20 @@ public partial class TrackDetailViewModel : ObservableObject, INavigationAware
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private void OpenExternalLink(string? url)
+    {
+        if (string.IsNullOrWhiteSpace(url)) return;
+        try
+        {
+            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            _dialogService.ShowToast("Open Link Error", ex.Message, ToastType.Error);
         }
     }
 

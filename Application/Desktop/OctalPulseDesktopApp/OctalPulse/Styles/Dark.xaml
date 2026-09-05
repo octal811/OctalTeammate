@@ -47,4 +47,9 @@
     <SolidColorBrush x:Key="Brush.Danger" Color="{StaticResource Color.Danger}" />
     <SolidColorBrush x:Key="Brush.Info" Color="{StaticResource Color.Info}" />
 
+    <!-- No glow effect in Dark theme -->
+    <x:Null x:Key="Effect.CardGlow" />
+    <!-- Normal border thickness in Dark theme -->
+    <Thickness x:Key="Theme.BorderThickness">1</Thickness>
+
 </ResourceDictionary>

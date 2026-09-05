@@ -245,12 +245,8 @@
                             </Border>
                         </Button>
 
-                        <!-- Theme Toggle Button -->
-                        <Button Style="{StaticResource Button.Secondary}" Height="34" Padding="12,0" Command="{Binding ToggleThemeCommand}" ToolTip="Toggle Light / Dark theme">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="Theme" FontSize="12" FontWeight="Medium" Foreground="{DynamicResource Brush.TextPrimary}" />
-                            </StackPanel>
-                        </Button>
+
+
                     </StackPanel>
                 </Grid>
             </Border>

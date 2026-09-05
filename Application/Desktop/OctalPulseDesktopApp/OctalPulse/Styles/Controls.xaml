@@ -541,11 +541,12 @@
 
     <!-- Modern Card -->
     <Style x:Key="Border.Card" TargetType="Border">
-        <Setter Property="Background" Value="{DynamicResource Brush.CardBackground}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="12" />
-        <Setter Property="Padding" Value="20" />
+        <Setter Property="Background"       Value="{DynamicResource Brush.CardBackground}" />
+        <Setter Property="BorderBrush"      Value="{DynamicResource Brush.Border}" />
+        <Setter Property="BorderThickness"  Value="{DynamicResource Theme.BorderThickness}" />
+        <Setter Property="CornerRadius"     Value="12" />
+        <Setter Property="Padding"          Value="20" />
+        <Setter Property="Effect"           Value="{DynamicResource Effect.CardGlow}" />
     </Style>
 
     <!-- Modern ProgressBar -->
@@ -571,27 +572,37 @@
         </Setter>
     </Style>
 
-    <!-- Minimal ScrollBar Style -->
+    <!-- Ultra-thin Scrollbar (4px) — macOS/modern style -->
     <Style TargetType="ScrollBar">
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Width" Value="8" />
+        <Setter Property="Background"  Value="Transparent" />
+        <Setter Property="Width"       Value="4" />
+        <Setter Property="MinWidth"    Value="4" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ScrollBar">
-                    <Grid x:Name="GridRoot" Background="Transparent">
-                        <Track x:Name="PART_Track" IsDirectionReversed="true">
+                    <Grid x:Name="GridRoot" Background="Transparent" Width="4">
+                        <Track x:Name="PART_Track" IsDirectionReversed="True">
                             <Track.Thumb>
                                 <Thumb>
                                     <Thumb.Template>
                                         <ControlTemplate TargetType="Thumb">
-                                            <Border Background="{DynamicResource Brush.SurfaceHover}"
-                                                    CornerRadius="4" />
+                                            <Border Background="{DynamicResource Brush.TextMuted}"
+                                                    CornerRadius="2"
+                                                    Margin="1,2" />
                                         </ControlTemplate>
                                     </Thumb.Template>
                                 </Thumb>
                             </Track.Thumb>
                         </Track>
                     </Grid>
+                    <ControlTemplate.Triggers>
+                        <!-- Horizontal orientation -->
+                        <Trigger Property="Orientation" Value="Horizontal">
+                            <Setter TargetName="GridRoot" Property="Width"  Value="Auto" />
+                            <Setter TargetName="GridRoot" Property="Height" Value="4" />
+                            <Setter TargetName="PART_Track" Property="IsDirectionReversed" Value="False" />
+                        </Trigger>
+                    </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

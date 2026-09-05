@@ -73,27 +73,123 @@
             <Border Style="{StaticResource Border.Card}" Padding="24" Margin="0,0,0,24">
                 <StackPanel>
                     <TextBlock Text="Appearance &amp; Theme" Style="{StaticResource Text.Heading3}" Margin="0,0,4,0" />
-                    <TextBlock Text="Select your preferred desktop interface theme. Changes take effect instantly without restarting." Style="{StaticResource Text.Subtitle}" Margin="0,0,0,18" />
+                    <TextBlock Text="Select your preferred desktop interface theme. Changes apply instantly without restarting." Style="{StaticResource Text.Subtitle}" Margin="0,0,0,18" />
 
-                    <StackPanel Orientation="Horizontal">
-                        <!-- Dark Theme Option -->
-                        <Button Style="{StaticResource Button.Secondary}" Command="{Binding SelectThemeCommand}" CommandParameter="Dark" 
-                                Width="140" Height="42" Margin="0,0,12,0">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="🌙  Dark Theme" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
-                            </StackPanel>
-                        </Button>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                        <!-- Dark Theme -->
+                        <Border CornerRadius="10" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" Margin="0,0,14,0" Cursor="Hand">
+                            <Button Style="{StaticResource Button.Ghost}" Command="{Binding SelectThemeCommand}" CommandParameter="Dark"
+                                    Width="160" Height="100" Padding="0">
+                                <StackPanel HorizontalAlignment="Left" RenderTransformOrigin="0.5,0.5">
+                                    <StackPanel.RenderTransform>
+                                        <TransformGroup>
+                                            <ScaleTransform/>
+                                            <SkewTransform/>
+                                            <RotateTransform/>
+                                            <TranslateTransform X="50"/>
+                                        </TransformGroup>
+                                    </StackPanel.RenderTransform>
+                                    <Border Width="64" Height="40" CornerRadius="8" Margin="0,0,0,8" Background="#111827"
+                                            BorderBrush="#2D3748" BorderThickness="1.5">
+                                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
+                                            <Ellipse Width="8" Height="8" Fill="#6366F1" Margin="0,0,5,0" />
+                                            <Ellipse Width="8" Height="8" Fill="#10B981" />
+                                        </StackPanel>
+                                    </Border>
+                                    <TextBlock Text="🌙  Dark" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" HorizontalAlignment="Center" Width="62" />
+                                </StackPanel>
+                            </Button>
+                        </Border>
 
-                        <!-- Light Theme Option -->
-                        <Button Style="{StaticResource Button.Secondary}" Command="{Binding SelectThemeCommand}" CommandParameter="Light" 
-                                Width="140" Height="42">
-                            <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="☀️  Light Theme" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
-                            </StackPanel>
-                        </Button>
+                        <!-- Light Theme -->
+                        <Border CornerRadius="10" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" Margin="0,0,14,0" Cursor="Hand">
+                            <Button Style="{StaticResource Button.Ghost}" Command="{Binding SelectThemeCommand}" CommandParameter="Light"
+                                    Width="160" Height="100" Padding="0">
+                                <StackPanel HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                                    <StackPanel.RenderTransform>
+                                        <TransformGroup>
+                                            <ScaleTransform/>
+                                            <SkewTransform/>
+                                            <RotateTransform/>
+                                            <TranslateTransform X="50"/>
+                                        </TransformGroup>
+                                    </StackPanel.RenderTransform>
+                                    <Border Width="64" Height="40" CornerRadius="8" Margin="0,0,0,8" Background="#F8FAFC"
+                                            BorderBrush="#E2E8F0" BorderThickness="1.5">
+                                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
+                                            <Ellipse Width="8" Height="8" Fill="#6366F1" Margin="0,0,5,0" />
+                                            <Ellipse Width="8" Height="8" Fill="#10B981" />
+                                        </StackPanel>
+                                    </Border>
+                                    <TextBlock Text="☀️  Light" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" HorizontalAlignment="Center" Width="63" />
+                                </StackPanel>
+                            </Button>
+                        </Border>
+
+                        <!-- OLED Dark Theme -->
+                        <Border CornerRadius="10" Margin="0,0,0,0" Cursor="Hand"
+                                BorderThickness="1.5">
+                            <Border.BorderBrush>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Color="#FFFFFF" Offset="0" />
+                                    <GradientStop Color="#6366F1" Offset="0.5" />
+                                    <GradientStop Color="#FFFFFF" Offset="1" />
+                                </LinearGradientBrush>
+                            </Border.BorderBrush>
+                            <Button Style="{StaticResource Button.Ghost}" Command="{Binding SelectThemeCommand}" CommandParameter="OledDark"
+                                    Width="160" Height="100" Padding="0" Background="#000000">
+                                <StackPanel HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5">
+                                    <StackPanel.RenderTransform>
+                                        <TransformGroup>
+                                            <ScaleTransform/>
+                                            <SkewTransform/>
+                                            <RotateTransform/>
+                                            <TranslateTransform X="40"/>
+                                        </TransformGroup>
+                                    </StackPanel.RenderTransform>
+                                    <Border Width="64" Height="40" CornerRadius="8" Margin="0,0,0,8" Background="#000000">
+                                        <Border.BorderBrush>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                <GradientStop Color="#FFFFFF" Offset="0" />
+                                                <GradientStop Color="#6366F1" Offset="1" />
+                                            </LinearGradientBrush>
+                                        </Border.BorderBrush>
+                                        <Border BorderThickness="1.5">
+                                            <Border.BorderBrush>
+                                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                    <GradientStop Color="#FFFFFF" Offset="0" />
+                                                    <GradientStop Color="#6366F1" Offset="1" />
+                                                </LinearGradientBrush>
+                                            </Border.BorderBrush>
+                                            <Border CornerRadius="6">
+                                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
+                                                    <Ellipse Width="8" Height="8" Fill="#FFFFFF" Margin="0,0,5,0" />
+                                                    <Ellipse Width="8" Height="8" Fill="#818CF8" />
+                                                </StackPanel>
+                                            </Border>
+                                        </Border>
+                                    </Border>
+                                    <TextBlock Text="⬛ OLED Dark" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center">
+                                        <TextBlock.Foreground>
+                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
+                                                <GradientStop Color="#FFFFFF" Offset="0" />
+                                                <GradientStop Color="#818CF8" Offset="1" />
+                                            </LinearGradientBrush>
+                                        </TextBlock.Foreground>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Button>
+                        </Border>
                     </StackPanel>
+
+                    <!-- Active Theme Label -->
+                    <TextBlock Margin="0,12,0,0" FontSize="12" Foreground="{DynamicResource Brush.TextMuted}">
+                        <Run Text="Active theme: " />
+                        <Run Text="{Binding CurrentTheme}" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Primary}" />
+                    </TextBlock>
                 </StackPanel>
             </Border>
+
 
             <!-- ── SECTION 2: GITHUB INTEGRATION ──────────────────────────── -->
             <Border Style="{StaticResource Border.Card}" Padding="24" Margin="0,0,0,24">

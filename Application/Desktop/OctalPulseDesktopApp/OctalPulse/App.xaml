@@ -1,17 +1,18 @@
-<Application x:Class="OctalPulse.App"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:OctalPulse">
+<Application
+    x:Class="OctalPulse.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="clr-namespace:OctalPulse">
     <Application.Resources>
         <ResourceDictionary>
             <ResourceDictionary.MergedDictionaries>
-                <!-- Default Theme: Light Mode (White) -->
+                <!--  Default Theme: Light Mode (White)  -->
                 <ResourceDictionary Source="pack://application:,,,/OctalPulse;component/Styles/Light.xaml" />
-                <!-- Typography Tokens -->
+                <!--  Typography Tokens  -->
                 <ResourceDictionary Source="pack://application:,,,/OctalPulse;component/Styles/Typography.xaml" />
-                <!-- Vector SVG Icons -->
+                <!--  Vector SVG Icons  -->
                 <ResourceDictionary Source="pack://application:,,,/OctalPulse;component/Styles/Icons.xaml" />
-                <!-- Modern Controls Styles -->
+                <!--  Modern Controls Styles  -->
                 <ResourceDictionary Source="pack://application:,,,/OctalPulse;component/Styles/Controls.xaml" />
             </ResourceDictionary.MergedDictionaries>
         </ResourceDictionary>

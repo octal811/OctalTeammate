@@ -49,6 +49,12 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
     private string _newMinorTarget = string.Empty;
 
     [ObservableProperty]
+    private string _newMinorDescription = string.Empty;
+
+    [ObservableProperty]
+    private string _newMinorNotes = string.Empty;
+
+    [ObservableProperty]
     private string _newMinorLink = string.Empty;
 
     public ObservableCollection<MinorTaskItem> MinorTasks { get; } = new();
@@ -245,16 +251,18 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
             await _taskService.CreateMinorTaskAsync(new CreateMinorTaskRequest(
                 MajorTaskId,
                 NewMinorTitle.Trim(),
-                null,
+                string.IsNullOrWhiteSpace(NewMinorDescription) ? null : NewMinorDescription.Trim(),
                 string.IsNullOrWhiteSpace(NewMinorTarget) ? null : NewMinorTarget.Trim(),
                 MinorTaskState.Todo,
-                null,
+                string.IsNullOrWhiteSpace(NewMinorNotes) ? null : NewMinorNotes.Trim(),
                 string.IsNullOrWhiteSpace(NewMinorLink) ? null : NewMinorLink.Trim(),
                 MinorTasks.Count + 1,
                 null));
 
             NewMinorTitle = string.Empty;
             NewMinorTarget = string.Empty;
+            NewMinorDescription = string.Empty;
+            NewMinorNotes = string.Empty;
             NewMinorLink = string.Empty;
 
             _dialogService.ShowToast("Task Added", "Sub-task added to checklist.", ToastType.Success);

@@ -23,6 +23,9 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
     public INavigationService Navigation => _navigationService;
 
     [ObservableProperty]
+    private string _currentTheme = "Light";
+
+    [ObservableProperty]
     private string _currentRoute = "Dashboard";
 
     [ObservableProperty]
@@ -124,6 +127,7 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
     private void ToggleTheme()
     {
         _themeService.ToggleTheme();
+        CurrentTheme = _themeService.CurrentTheme;
     }
 
     [RelayCommand]
