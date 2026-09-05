@@ -71,11 +71,45 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
 
     public void OnNavigatedTo(object? parameter)
     {
-        if (parameter is Guid id)
+        switch (parameter)
         {
-            MajorTaskId = id;
-            _ = LoadMinorTasksAsync();
+            case MajorTaskItem item:
+                ApplyTask(item);
+                break;
+
+            case MajorTaskCardModel card:
+                ApplyTask(card);
+                break;
+
+            case Guid id:
+                MajorTaskId = id;
+                _ = LoadMinorTasksAsync();
+                break;
         }
+    }
+
+    private void ApplyTask(MajorTaskItem task)
+    {
+        MajorTaskId = task.Id;
+        TaskTitle = task.Title;
+        TaskDescription = task.Description;
+        TaskLink = task.Link;
+        ProgressPercentage = task.Progress;
+        ParsedLink = !string.IsNullOrWhiteSpace(task.Link) ? ExternalWorkLink.FromUrl(task.Link) : null;
+
+        _ = LoadMinorTasksAsync();
+    }
+
+    private void ApplyTask(MajorTaskCardModel card)
+    {
+        MajorTaskId = card.Id;
+        TaskTitle = card.Title;
+        TaskDescription = card.Description;
+        TaskLink = card.Link;
+        ProgressPercentage = card.Progress;
+        ParsedLink = !string.IsNullOrWhiteSpace(card.Link) ? ExternalWorkLink.FromUrl(card.Link) : null;
+
+        _ = LoadMinorTasksAsync();
     }
 
     private void OnMinorTaskChanged(Guid minorTaskId, Guid trackId)

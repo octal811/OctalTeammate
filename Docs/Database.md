@@ -68,7 +68,7 @@ The connection string is read from `appsettings.json` -> `ConnectionStrings:Defa
 | **Soft Delete** | Every table has an `IsDeleted` boolean column. Deleting a record sets it to `true` instead of removing the row. |
 | **Created / Modified** | Auditable tables include `CreatedDate` and optional `ModifiedDate` (`DateTime`). |
 | **Identity** | The `User` entity extends `IdentityUser<Guid>`, so all identity fields (UserName, PasswordHash, Email, etc.) come from Microsoft Identity. |
-| **Progress Calculation** | Only `MajorTask.Progress` is stored as a column. `Track` and `Project` progress are **not stored** — they are computed at read time by `IProgressCalculator` (track = avg of its non-deleted major tasks; project = avg of its non-deleted tracks). See the *Progress Cascade* section. |
+| **Progress Calculation** | Progress is **never stored** — it is computed at read time by `IProgressCalculator` from child task states (major task = % of non-deleted minor tasks with state `Done`; track = % of its non-deleted major tasks in state `Done`; project = % of its non-deleted major tasks in state `Done`). See the *Progress Cascade* section. |
 
 ## Table Reference
 
@@ -256,7 +256,6 @@ A high-level task belonging to a track. Contains an ordered list of minor tasks.
 | Title | string | Task title. |
 | Description | string? | Short description. |
 | Details | string? | Longer/rich details (e.g., markdown). |
-| Progress | int | Auto-calculated 0–100 from finished minor tasks. |
 | Link | string? | External reference link. |
 | State | MajorTaskState (enum) | `Todo`, `InProgress`, `OnHold`, `Done`. |
 | Priority | Priority (enum) | `Low`, `Medium`, `High`, `Critical`. |
@@ -284,7 +283,7 @@ A high-level task belonging to a track. Contains an ordered list of minor tasks.
 
 ## 8. MinorTask — `MinorTasks`
 
-A small, actionable task under a major task. Completing minor tasks drives progress upward (MajorTask → Track → Project) and counts as an achievement for the assigned user.
+A small, actionable task under a major task. Completing minor tasks drives a major task's progress; marking a major task `Done` drives track/project progress. Counting as an achievement for the assigned user.
 
 | Field | Type | Description |
 |-------|------|-------------|
@@ -432,14 +431,14 @@ User 1 ──── * Event (CreatedByUserId)
 
 ## Progress Cascade
 
-Progress is **computed at read time** by `IProgressCalculator` — it is never stored on `Track` or `Project`, and never accepted as input. Only `MajorTask.Progress` is a stored column (source of truth). The derived values are:
+Progress is **computed at read time** by `IProgressCalculator` — it is never stored on `Track`, `Project`, or `MajorTask`, and never accepted as input. The derived values are:
 
 ```
-MajorTask.Progress = (Done minor tasks / total minor tasks) × 100   [stored on the row]
-   Track progress = average of its non-deleted MajorTasks' Progress values   [computed on read]
-      Project progress = average of its non-deleted Tracks' progress   [computed on read]
+MajorTask progress = (Done major-task minor tasks / total minor tasks) × 100   [computed on read]
+   Track progress = (Done major tasks / total major tasks in track) × 100       [computed on read]
+      Project progress = (Done major tasks / total major tasks in project) × 100 [computed on read]
 ```
 
-Progress is `0` when there are no children. Computing at read time avoids write races — progress is always consistent with the current children without any handler trying to re-persist it on every mutation.
+Progress is `0` when there are no children. All counts only consider **non-deleted** rows (global query filters). Computing at read time avoids write races — progress is always consistent with the current children without any handler trying to re-persist it on every mutation.
 
 Completing a minor task also records an **achievement** for its assigned user.

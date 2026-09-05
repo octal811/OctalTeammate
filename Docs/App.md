@@ -18,13 +18,14 @@ The design is intentionally **hierarchical and role-aware**:
 - **Projects** group a team around a goal (e.g. "OctalPulse mobile app").
 - **Tracks** are the verticals *inside* a project (e.g. "AI", "Backend", "Mobile"). A track has a **lead** who curates it and gates membership.
 - **Major tasks** are the deliverables a track owns.
-- **Minor tasks** are the concrete, finishable work items. **Completing them drives progress upward automatically**:
+- **Minor tasks** are the concrete, finishable work items. **Completing them drives progress automatically**:
 
 ```
 MinorTask done (state = Done)
-   → MajorTask.Progress = done / total × 100
-      → Track.Progress = average of its major tasks
-         → Project.Progress = average of its tracks
+   → MajorTask progress = done / total × 100
+      → marking a MajorTask Done (state = Done)
+         → Track progress = Done major tasks / total × 100
+            → Project progress = Done major tasks / total × 100
 ```
 
 Everyone carries a **main role** (their specialty: `BackEnd`, `Mobile`, `Designer`, ...) plus **one or more roles per project**. Members join tracks to receive notifications and log work. The system emails members about task updates (and about verification / password resets), and a calendar of events (meetings, deadlines, milestones) keeps the schedule visible.
@@ -57,7 +58,7 @@ Rules that hold the design together:
 - **Soft delete everywhere.** Rows are flagged `IsDeleted`, never hard-deleted.
 - **Guid identity.** Every key is a `Guid`.
 - **Auditing.** Auditable tables carry `CreatedDate` / `ModifiedDate`.
-- **Progress is auto-calculated.** Never accepted as input — `IProgressCalculator` computes it **at read time** from children (major tasks → track, tracks → project). Only `MajorTask.Progress` is stored; `Track`/`Project` progress are derived fresh on every response.
+- **Progress is auto-calculated.** Never accepted as input and never stored — `IProgressCalculator` computes it **at read time** from child task states (major task = % Done minor tasks; track & project = % Done major tasks). Derived fresh on every response.
 
 ## Feature Highlights (implemented so far)
 
@@ -138,9 +139,11 @@ Admin / lead creates a Project  (progress = 0)
       → members join tracks (TrackMember) and receive notifications
          → MajorTasks belong to a track
             → MinorTasks belong to a MajorTask, assigned to a user
-               → user marks MinorTask Done
-                   → Progress derived: MajorTask → Track → Project
-                   (computed at read time by IProgressCalculator; never manually set)
+→ user marks MinorTask Done
+                    → Progress derived: % Done minor tasks → MajorTask
+                       → Mark a MajorTask Done
+                          → % Done major tasks → Track → Project
+                  (computed at read time by IProgressCalculator; never stored or manually set)
 ```
 
 ### Runtime admin control

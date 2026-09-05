@@ -35,9 +35,6 @@ public class MajorTaskConfiguration : IEntityTypeConfiguration<MajorTask>
             .HasMaxLength(20)
             .IsRequired();
 
-        builder.Property(mt => mt.Progress)
-            .HasDefaultValue(0);
-
         builder.HasIndex(mt => new { mt.TrackId, mt.Order });
 
         builder.HasQueryFilter(mt => !mt.IsDeleted);

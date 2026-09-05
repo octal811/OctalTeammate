@@ -10,11 +10,16 @@ public class UpdateMajorTaskCommandHandler : IRequestHandler<UpdateMajorTaskComm
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IRealtimeNotifier _realtimeNotifier;
+    private readonly IProgressCalculator _progressCalculator;
 
-    public UpdateMajorTaskCommandHandler(IUnitOfWork unitOfWork, IRealtimeNotifier realtimeNotifier)
+    public UpdateMajorTaskCommandHandler(
+        IUnitOfWork unitOfWork,
+        IRealtimeNotifier realtimeNotifier,
+        IProgressCalculator progressCalculator)
     {
         _unitOfWork = unitOfWork;
         _realtimeNotifier = realtimeNotifier;
+        _progressCalculator = progressCalculator;
     }
 
     public async Task<UpdateMajorTaskResponse> Handle(
@@ -43,6 +48,8 @@ public class UpdateMajorTaskCommandHandler : IRequestHandler<UpdateMajorTaskComm
 
         await _realtimeNotifier.MajorTaskChangedAsync(task.TrackId, task.Id, cancellationToken);
 
+        var progress = await _progressCalculator.GetMajorTaskProgressAsync(task.Id, cancellationToken);
+
         return new UpdateMajorTaskResponse(
             task.Id,
             task.TrackId,
@@ -55,7 +62,7 @@ public class UpdateMajorTaskCommandHandler : IRequestHandler<UpdateMajorTaskComm
             task.DueDate,
             task.Order,
             task.AssignedUserId,
-            task.Progress,
+            progress,
             task.CreatedByUserId,
             task.DeletedByUserId,
             task.ModifiedDate);

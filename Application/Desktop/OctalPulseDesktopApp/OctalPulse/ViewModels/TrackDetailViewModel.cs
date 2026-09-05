@@ -230,7 +230,7 @@ public partial class TrackDetailViewModel : ObservableObject, INavigationAware
     private void OpenMajorTaskDetail(MajorTaskItem task)
     {
         if (task == null) return;
-        _navigationService.NavigateTo<MajorTaskDetailViewModel>(task.Id);
+        _navigationService.NavigateTo<MajorTaskDetailViewModel>(task);
     }
 
     [RelayCommand]

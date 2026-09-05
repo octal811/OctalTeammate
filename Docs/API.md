@@ -209,7 +209,7 @@ Creates a project. The authenticated user becomes its first member (role `Projec
 ```
 
 - `status`: `Active | Completed | OnHold | Archived` (default `Active`)
-- `progress` is **not accepted** — always starts at `0` (auto-calculated from tracks)
+- `progress` is **not accepted** — always starts at `0` (auto-calculated from major tasks)
 - `200` — `CreateProjectResponse`:
 
 ```json
@@ -310,7 +310,7 @@ Updates the title, description, and status of the project.
 }
 ```
 
-- `progress` is **not accepted** — auto-calculated from existing tracks
+- `progress` is **not accepted** — auto-calculated from existing major tasks
 - `200` — `UpdateProjectResponse` (`id`, `title`, `description`, `progress`, `status`, `modifiedDate`)
 - `404` — project not found; `400` — invalid fields
 
@@ -719,9 +719,9 @@ Returns **all** events in the given project for the given **calendar year and mo
 
 ## Tasks
 
-Tasks are read/write-gated like the rest of the app: the caller must be an **approved project member** of the task's track/project. A **major task** belongs to a *track*; a **minor task** belongs to a *major task*. Completing minor tasks drives **auto-computed progress** up the chain (MinorTask → MajorTask → Track → Project).
+Tasks are read/write-gated like the rest of the app: the caller must be an **approved project member** of the task's track/project. A **major task** belongs to a *track*; a **minor task** belongs to a *major task*. Completing minor tasks drives a major task's **auto-computed progress**; marking a major task `Done` drives track and project progress (MinorTask → MajorTask → Track → Project).
 
-Many clients rely on the rule **"progress is never accepted as input"** — it is always derived from the child minor tasks, so no task endpoint accepts a `progress` field.
+Many clients rely on the rule **"progress is never accepted as input"** — it is always derived from child task states at read time, so no task endpoint accepts a `progress` field.
 
 All task mutations are **creator-only** for update/delete and are real-time (`majorTaskChanged` / `minorTaskChanged` to the track group).
 
@@ -786,7 +786,7 @@ Creates a major task. An **approved project member** may create. `progress` is *
 ```
 
 - `state`: `Todo | InProgress | OnHold | Done`; `priority`: `Low | Medium | High | Critical`
-- `progress` is **not accepted** — always derived from minor tasks (starts at `0` for a new major task)
+- `progress` is **not accepted** — computed at read time from done minor tasks (returns `0` for a new major task with no minor tasks)
 - `createdByUserId` is recorded from the JWT
 - `200` — `CreateMajorTaskResponse` (same shape as the list item; `createdByUserId`, `progress`)
 - `403` — not an approved member; `404` — track not found; `400` — invalid fields
@@ -889,7 +889,7 @@ Creates a minor task. An **approved project member** may create.
 
 ### PUT `/api/minortasks`
 
-Updates a minor task. **Creator-only.** Setting `state` to `Done` triggers the progress cascade (the major task's `Progress` recomputes from done minor tasks).
+Updates a minor task. **Creator-only.** Setting `state` to `Done` calls up to the major task's **auto-computed progress** (% Done minor tasks — recomputed at read time).
 
 ```json
 // Request
@@ -986,10 +986,11 @@ When a capability is **disabled**, the *middleware* rejects calls to it before i
 
 ### Progress auto-calculation
 
-Progress is never accepted as input on any endpoint. It is **computed at read time** by `IProgressCalculator` — it is not stored on `Track` or `Project` (only `MajorTask.Progress` is a stored column):
+Progress is never accepted as input on any endpoint and is **never stored** — it is **computed at read time** by `IProgressCalculator` from child task states (only non-deleted rows count):
 
-- **Track progress** = average of its non-deleted major tasks' `Progress` values (0 if no tasks exist).
-- **Project progress** = average of its non-deleted tracks' `Progress` values (0 if no tracks exist).
+- **Major task progress** = (minor tasks with state `Done` / total minor tasks) × 100 (0 if no minor tasks).
+- **Track progress** = (major tasks with state `Done` / total major tasks in the track) × 100 (0 if no major tasks).
+- **Project progress** = (major tasks with state `Done` / total major tasks in the project) × 100 (0 if no major tasks).
 
 Progress is derived fresh on every response, so it is always consistent with the current children without any write-time recalculation or progress race condition.
 

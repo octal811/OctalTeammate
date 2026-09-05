@@ -105,6 +105,7 @@ public class StatusToBrushConverter : IValueConverter
         return str switch
         {
             "Active" or "InProgress" => new SolidColorBrush(Color.FromRgb(59, 130, 246)), // Blue 500
+            "Review" or "InReview" => new SolidColorBrush(Color.FromRgb(168, 85, 247)), // Purple 500
             "Done" or "Completed" or "Approved" => new SolidColorBrush(Color.FromRgb(34, 197, 94)), // Green 500
             "OnHold" or "Pending" => new SolidColorBrush(Color.FromRgb(245, 158, 11)), // Amber 500
             "Canceled" or "Failed" or "Rejected" or "Archived" => new SolidColorBrush(Color.FromRgb(239, 68, 68)), // Red 500

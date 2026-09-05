@@ -4,6 +4,7 @@ public enum MajorTaskState
 {
     Todo,
     InProgress,
-    OnHold,
-    Done
+    Review,
+    Done,
+    OnHold
 }

@@ -43,7 +43,6 @@ public class CreateMajorTaskCommandHandler : IRequestHandler<CreateMajorTaskComm
             Order = request.Order,
             AssignedUserId = request.AssignedUserId,
             CreatedByUserId = request.UserId,
-            Progress = 0,
             IsDeleted = false,
             CreatedDate = now
         };
@@ -65,7 +64,7 @@ public class CreateMajorTaskCommandHandler : IRequestHandler<CreateMajorTaskComm
             task.DueDate,
             task.Order,
             task.AssignedUserId,
-            task.Progress,
+            0,
             task.CreatedByUserId,
             task.CreatedDate);
     }

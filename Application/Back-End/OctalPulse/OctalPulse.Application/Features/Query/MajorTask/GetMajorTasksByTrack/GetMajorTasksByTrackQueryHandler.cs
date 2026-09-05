@@ -1,6 +1,7 @@
 using MediatR;
 using OctalPulse.Application.Exceptions;
 using OctalPulse.Application.Interface.Repositories;
+using OctalPulse.Application.Interface.Services;
 using OctalPulse.Domain.Enums;
 
 namespace OctalPulse.Application.Features.Query.MajorTask.GetMajorTasksByTrack;
@@ -8,10 +9,12 @@ namespace OctalPulse.Application.Features.Query.MajorTask.GetMajorTasksByTrack;
 public class GetMajorTasksByTrackQueryHandler : IRequestHandler<GetMajorTasksByTrackQuery, GetMajorTasksByTrackResponse>
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IProgressCalculator _progressCalculator;
 
-    public GetMajorTasksByTrackQueryHandler(IUnitOfWork unitOfWork)
+    public GetMajorTasksByTrackQueryHandler(IUnitOfWork unitOfWork, IProgressCalculator progressCalculator)
     {
         _unitOfWork = unitOfWork;
+        _progressCalculator = progressCalculator;
     }
 
     public async Task<GetMajorTasksByTrackResponse> Handle(
@@ -36,6 +39,10 @@ public class GetMajorTasksByTrackQueryHandler : IRequestHandler<GetMajorTasksByT
             t => t.TrackId == request.TrackId,
             cancellationToken)).ToList();
 
+        var progressMap = await _progressCalculator.GetMajorTasksProgressAsync(
+            tasks.Select(t => t.Id),
+            cancellationToken);
+
         var items = tasks
             .OrderBy(t => t.Order)
             .ThenByDescending(t => t.CreatedDate)
@@ -51,7 +58,7 @@ public class GetMajorTasksByTrackQueryHandler : IRequestHandler<GetMajorTasksByT
                 t.DueDate,
                 t.Order,
                 t.AssignedUserId,
-                t.Progress,
+                progressMap.GetValueOrDefault(t.Id),
                 t.CreatedByUserId,
                 t.DeletedByUserId,
                 t.CreatedDate))

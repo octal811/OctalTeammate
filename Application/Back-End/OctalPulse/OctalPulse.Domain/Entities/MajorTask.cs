@@ -12,7 +12,6 @@ public class MajorTask : AuditableEntity
     public string Title { get; set; } = string.Empty;
     public string? Description { get; set; }
     public string? Details { get; set; }
-    public int Progress { get; set; }
     public string? Link { get; set; }
     public MajorTaskState State { get; set; }
     public Priority Priority { get; set; }
