@@ -103,6 +103,7 @@ public record CreateMinorTaskResponse(
     string? Notes,
     string? Link,
     int Order,
+    long? WorkTimeSeconds,
     Guid? AssignedUserId,
     Guid? CreatedByUserId,
     bool IsDeleted,
@@ -120,6 +121,7 @@ public record MinorTaskItem(
     string? Notes,
     string? Link,
     int Order,
+    long? WorkTimeSeconds,
     Guid? AssignedUserId,
     Guid? CreatedByUserId,
     bool IsDeleted,
@@ -148,8 +150,17 @@ public record UpdateMinorTaskResponse(
     string? Notes,
     string? Link,
     int Order,
+    long? WorkTimeSeconds,
     Guid? AssignedUserId,
     Guid? CreatedByUserId,
     DateTime? ModifiedDate);
 
 public record DeleteMinorTaskRequest(Guid Id);
+
+public record AddMinorTaskWorkTimeRequest(
+    Guid Id,
+    long WorkTimeSeconds);
+
+public record AddMinorTaskWorkTimeResponse(
+    Guid Id,
+    long WorkTimeSeconds);

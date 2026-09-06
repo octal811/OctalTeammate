@@ -46,6 +46,7 @@ public class GetMinorTasksByMajorTaskQueryHandler : IRequestHandler<GetMinorTask
                 m.Notes,
                 m.Link,
                 m.Order,
+                m.WorkTime is null ? null : (long)m.WorkTime.Value.TotalSeconds,
                 m.AssignedUserId,
                 m.CreatedByUserId,
                 m.IsDeleted,

@@ -283,7 +283,7 @@
         <!-- ── Modal: Edit Project ──────────────────────────────────────── -->
         <Grid Background="#7F000000" Visibility="{Binding IsEditProjectModalOpen, Converter={StaticResource BoolToVis}}">
             <Border Style="{StaticResource Border.Card}" Width="520" MaxHeight="620" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="32" Margin="20">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,8,0">
                     <StackPanel>
                         <Grid Margin="0,0,0,20">
                             <TextBlock Text="Edit Project Details" Style="{StaticResource Text.Heading2}" />
@@ -322,7 +322,7 @@
         <!-- ── Modal: Create Track ──────────────────────────────────────── -->
         <Grid Background="#7F000000" Visibility="{Binding IsCreateTrackModalOpen, Converter={StaticResource BoolToVis}}">
             <Border Style="{StaticResource Border.Card}" Width="500" MaxHeight="600" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="32" Margin="20">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,8,0">
                     <StackPanel>
                         <Grid Margin="0,0,0,20">
                             <TextBlock Text="Create Workstream Track" Style="{StaticResource Text.Heading2}" />
@@ -349,7 +349,7 @@
         <!-- ── Modal: Create Event ──────────────────────────────────────── -->
         <Grid Background="#7F000000" Visibility="{Binding IsCreateEventModalOpen, Converter={StaticResource BoolToVis}}">
             <Border Style="{StaticResource Border.Card}" Width="500" MaxHeight="620" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="32" Margin="20">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,8,0">
                     <StackPanel>
                         <Grid Margin="0,0,0,20">
                             <TextBlock Text="Add Project Event" Style="{StaticResource Text.Heading2}" />

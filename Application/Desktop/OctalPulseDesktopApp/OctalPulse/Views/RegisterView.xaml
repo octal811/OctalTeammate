@@ -13,7 +13,7 @@
         <converters:NullToVisibilityConverter x:Key="NullToVis" />
     </UserControl.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,8,0">
         <Grid VerticalAlignment="Center" HorizontalAlignment="Center" Width="480" Margin="30,24">
             <Border Style="{StaticResource Border.Card}" Padding="36">
                 <StackPanel>

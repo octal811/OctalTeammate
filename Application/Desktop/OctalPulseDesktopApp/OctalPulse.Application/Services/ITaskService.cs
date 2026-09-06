@@ -14,5 +14,6 @@ public interface ITaskService
     Task<CreateMinorTaskResponse> CreateMinorTaskAsync(CreateMinorTaskRequest request, CancellationToken cancellationToken = default);
     Task<GetMinorTasksByMajorTaskResponse> GetMinorTasksByMajorTaskAsync(Guid majorTaskId, CancellationToken cancellationToken = default);
     Task<UpdateMinorTaskResponse> UpdateMinorTaskAsync(UpdateMinorTaskRequest request, CancellationToken cancellationToken = default);
+    Task<AddMinorTaskWorkTimeResponse> AddMinorTaskWorkTimeAsync(AddMinorTaskWorkTimeRequest request, CancellationToken cancellationToken = default);
     Task DeleteMinorTaskAsync(Guid id, CancellationToken cancellationToken = default);
 }

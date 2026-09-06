@@ -12,6 +12,7 @@ public record UpdateMinorTaskResponse(
     string? Notes,
     string? Link,
     int Order,
+    long? WorkTimeSeconds,
     Guid? AssignedUserId,
     Guid? CreatedByUserId,
     DateTime? ModifiedDate);

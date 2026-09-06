@@ -43,15 +43,20 @@ public partial class MainWindow : Window
 
         MaximizeGlyph.Text = isMaximized ? "\uE923" : "\uE922";
 
-        // Keep the maximized window inside the working area so it never covers the
-        // taskbar (System WindowChrome has no native handling for this).
         if (isMaximized)
         {
-            MaxWidth = SystemParameters.WorkArea.Width;
-            MaxHeight = SystemParameters.WorkArea.Height;
+            // When maximized, WindowChrome leaves an invisible resize border between the
+            // client area and the screen edge (painted black by Windows). Pull the content
+            // out by that width so it covers the whole screen, and let the window size a
+            // touch beyond the work area.
+            var bleed = SystemParameters.WindowResizeBorderThickness.Left;
+            RootLayout.Margin = new Thickness(-bleed, -bleed, -bleed, -bleed);
+            MaxWidth = SystemParameters.WorkArea.Width + bleed * 2;
+            MaxHeight = SystemParameters.WorkArea.Height + bleed * 2;
         }
         else
         {
+            RootLayout.Margin = new Thickness(0);
             MaxWidth = double.PositiveInfinity;
             MaxHeight = double.PositiveInfinity;
         }

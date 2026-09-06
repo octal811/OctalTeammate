@@ -35,6 +35,19 @@ public class LocalCacheService : ILocalCacheService
             );
             CREATE UNIQUE INDEX IF NOT EXISTS "IX_SavedAccounts_Email" ON "SavedAccounts" ("Email");
             """);
+
+        // EnsureCreated does not add new columns to an existing database. Add the
+        // WorkTimeSeconds column to MinorTasks manually (SQLite throws if it exists).
+        try
+        {
+            db.Database.ExecuteSqlRaw("""
+                ALTER TABLE "MinorTasks" ADD COLUMN "WorkTimeSeconds" INTEGER NULL;
+                """);
+        }
+        catch (Exception)
+        {
+            // Column already exists on databases created after this feature shipped.
+        }
     }
 
     public async Task<LocalSession?> GetActiveSessionAsync()

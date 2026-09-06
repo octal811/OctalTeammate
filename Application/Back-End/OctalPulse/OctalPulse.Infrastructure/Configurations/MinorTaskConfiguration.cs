@@ -33,6 +33,11 @@ public class MinorTaskConfiguration : IEntityTypeConfiguration<MinorTask>
             .HasMaxLength(20)
             .IsRequired();
 
+        builder.Property(mn => mn.WorkTime)
+            .HasConversion(
+                v => v.HasValue ? (long)v.Value.TotalSeconds : (long?)null,
+                v => v.HasValue ? TimeSpan.FromSeconds(v.Value) : (TimeSpan?)null);
+
         builder.HasIndex(mn => new { mn.MajorTaskId, mn.Order });
 
         builder.HasQueryFilter(mn => !mn.IsDeleted);

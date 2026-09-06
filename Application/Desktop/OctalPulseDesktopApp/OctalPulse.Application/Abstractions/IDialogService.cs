@@ -5,6 +5,7 @@ public interface IDialogService
     Task ShowMessageAsync(string title, string message);
     Task<bool> ShowConfirmationAsync(string title, string message, string confirmText = "Confirm", string cancelText = "Cancel");
     Task ShowErrorAsync(string title, string error);
+    Task<string?> ShowPromptAsync(string title, string prompt, string defaultText = "");
     void ShowToast(string title, string message, ToastType type = ToastType.Info);
 }
 

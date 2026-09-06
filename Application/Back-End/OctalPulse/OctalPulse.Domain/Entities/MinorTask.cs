@@ -16,6 +16,7 @@ public class MinorTask : AuditableEntity
     public string? Notes { get; set; }
     public string? Link { get; set; }
     public int Order { get; set; }
+    public TimeSpan? WorkTime { get; set; }
     public DateTime? CompletedDate { get; set; }
     public Guid MajorTaskId { get; set; }
     public Guid? AssignedUserId { get; set; }

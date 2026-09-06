@@ -61,6 +61,7 @@ public class CreateMinorTaskCommandHandler : IRequestHandler<CreateMinorTaskComm
             task.Notes,
             task.Link,
             task.Order,
+            task.WorkTime is null ? null : (long)task.WorkTime.Value.TotalSeconds,
             task.AssignedUserId,
             task.CreatedByUserId,
             task.IsDeleted,

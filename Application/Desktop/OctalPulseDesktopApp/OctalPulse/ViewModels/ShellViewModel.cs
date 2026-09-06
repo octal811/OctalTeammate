@@ -187,6 +187,13 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
         _navigationService.NavigateTo<SettingsViewModel>();
     }
 
+    [RelayCommand]
+    private void NavigateStopwatch()
+    {
+        CurrentRoute = "Stopwatch";
+        _navigationService.NavigateTo<StopwatchViewModel>();
+    }
+
 
     [RelayCommand]
     private async Task ReconnectSignalRAsync()

@@ -60,6 +60,18 @@ public class NullToVisibilityConverter : IValueConverter
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => Binding.DoNothing;
 }
 
+public class NullToEnabledConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var hasValue = value != null && !(value is string s && string.IsNullOrWhiteSpace(s));
+        if (parameter is string p && p.Equals("invert", StringComparison.OrdinalIgnoreCase)) hasValue = !hasValue;
+        return hasValue;
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => Binding.DoNothing;
+}
+
 public class StringToInitialConverter : IValueConverter
 {
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)

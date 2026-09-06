@@ -63,15 +63,15 @@
                 </Border>
 
                 <!-- Projects Grid -->
-                <ItemsControl ItemsSource="{Binding DisplayedProjects}">
+                <ItemsControl x:Name="ProjectsControl" ItemsSource="{Binding DisplayedProjects}">
                     <ItemsControl.ItemsPanel>
                         <ItemsPanelTemplate>
-                            <WrapPanel Orientation="Horizontal" />
+                            <UniformGrid Columns="1" />
                         </ItemsPanelTemplate>
                     </ItemsControl.ItemsPanel>
                     <ItemsControl.ItemTemplate>
                         <DataTemplate>
-                            <Border Style="{StaticResource Border.Card}" Width="440" Margin="0,0,18,18" Padding="20">
+                            <Border Style="{StaticResource Border.Card}" Margin="0,0,18,18" Padding="20">
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto" />
@@ -119,7 +119,7 @@
         <!-- ── Modal: Create Project ────────────────────────────────────── -->
         <Grid Background="#7F000000" Visibility="{Binding IsCreateModalOpen, Converter={StaticResource BoolToVis}}">
             <Border Style="{StaticResource Border.Card}" Width="520" MaxHeight="620" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="32" Margin="20">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,8,0">
                     <StackPanel>
                         <Grid Margin="0,0,0,20">
                             <TextBlock Text="Create New Project" Style="{StaticResource Text.Heading2}" />
@@ -149,7 +149,7 @@
         <!-- ── Modal: Join Project ──────────────────────────────────────── -->
         <Grid Background="#7F000000" Visibility="{Binding IsJoinModalOpen, Converter={StaticResource BoolToVis}}">
             <Border Style="{StaticResource Border.Card}" Width="480" MaxHeight="580" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="32" Margin="20">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,8,0">
                     <StackPanel>
                         <Grid Margin="0,0,0,16">
                             <TextBlock Text="Request to Join Project" Style="{StaticResource Text.Heading2}" />

@@ -107,7 +107,8 @@ public partial class WpfNavigationService : ObservableObject, INavigationService
                type == typeof(MajorTaskDetailViewModel) ||
                type == typeof(CalendarViewModel) ||
                type == typeof(TasksViewModel) ||
-               type == typeof(SettingsViewModel);
+               type == typeof(SettingsViewModel) ||
+               type == typeof(StopwatchViewModel);
     }
 }
 

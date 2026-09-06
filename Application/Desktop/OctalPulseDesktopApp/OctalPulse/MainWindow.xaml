@@ -106,7 +106,7 @@
         <!-- ── Custom Title Bar (themed via XAML brushes, no Win32/DWM) ── -->
         <Border Grid.Row="0" Background="{DynamicResource Brush.Surface}"
                 BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1">
-            <Grid>
+<Grid x:Name="RootLayout">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />

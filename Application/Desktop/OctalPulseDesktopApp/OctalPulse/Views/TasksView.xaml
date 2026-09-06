@@ -1,11 +1,13 @@
-<UserControl x:Class="OctalPulse.Views.TasksView"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:converters="clr-namespace:OctalPulse.Converters"
-             mc:Ignorable="d" 
-             d:DesignHeight="850" d:DesignWidth="1200">
+<UserControl
+    x:Class="OctalPulse.Views.TasksView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="clr-namespace:OctalPulse.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DesignHeight="850"
+    d:DesignWidth="1200"
+    mc:Ignorable="d">
 
     <UserControl.Resources>
         <converters:BooleanToVisibilityConverter x:Key="BoolToVis" />
@@ -15,7 +17,7 @@
     </UserControl.Resources>
 
     <Grid>
-        <!-- Main Board Layout -->
+        <!--  Main Board Layout  -->
         <Grid Margin="28,24,28,24">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
@@ -24,31 +26,65 @@
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <!-- 1. Header Row -->
+            <!--  1. Header Row  -->
             <Grid Grid.Row="0" Margin="0,0,0,16">
                 <StackPanel VerticalAlignment="Center">
-                    <TextBlock Text="Tasks Board" Style="{StaticResource Text.Heading1}" Margin="0,0,0,4" />
-                    <TextBlock Text="Agile Kanban workflow across organization tracks. Add cards and transition their stages." Style="{StaticResource Text.Subtitle}" />
+                    <TextBlock
+                        Margin="0,0,0,4"
+                        Style="{StaticResource Text.Heading1}"
+                        Text="Tasks Board" />
+                    <TextBlock Style="{StaticResource Text.Subtitle}" Text="Agile Kanban workflow across organization tracks. Add cards and transition their stages." />
                 </StackPanel>
 
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <Button Style="{StaticResource Button.Secondary}" Content="Refresh Board" Command="{Binding LoadAllTasksCommand}" Height="38" Padding="16,0" Margin="0,0,10,0">
+                <StackPanel
+                    HorizontalAlignment="Right"
+                    VerticalAlignment="Center"
+                    Orientation="Horizontal">
+                    <Button
+                        Height="38"
+                        Margin="0,0,10,0"
+                        Padding="16,0"
+                        Command="{Binding LoadAllTasksCommand}"
+                        Content="Refresh Board"
+                        Style="{StaticResource Button.Secondary}">
                         <Button.ContentTemplate>
                             <DataTemplate>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Path Data="{StaticResource Icon.Refresh}" Fill="{DynamicResource Brush.TextPrimary}" Width="14" Height="14" Stretch="Uniform" Margin="0,0,8,0" />
-                                    <TextBlock Text="Refresh" VerticalAlignment="Center" FontWeight="SemiBold" />
+                                <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                    <Path
+                                        Width="14"
+                                        Height="14"
+                                        Margin="0,0,8,0"
+                                        Data="{StaticResource Icon.Refresh}"
+                                        Fill="{DynamicResource Brush.TextPrimary}"
+                                        Stretch="Uniform" />
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        FontWeight="SemiBold"
+                                        Text="Refresh" />
                                 </StackPanel>
                             </DataTemplate>
                         </Button.ContentTemplate>
                     </Button>
 
-                    <Button Style="{StaticResource Button.Primary}" Command="{Binding OpenCreateTaskModalCommand}" Height="38" Padding="18,0">
+                    <Button
+                        Height="38"
+                        Padding="18,0"
+                        Command="{Binding OpenCreateTaskModalCommand}"
+                        Style="{StaticResource Button.Primary}">
                         <Button.ContentTemplate>
                             <DataTemplate>
-                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Path Data="{StaticResource Icon.Plus}" Fill="#FFFFFF" Width="14" Height="14" Stretch="Uniform" Margin="0,0,8,0" />
-                                    <TextBlock Text="Add Card" VerticalAlignment="Center" FontWeight="Bold" />
+                                <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                    <Path
+                                        Width="14"
+                                        Height="14"
+                                        Margin="0,0,8,0"
+                                        Data="{StaticResource Icon.Plus}"
+                                        Fill="#FFFFFF"
+                                        Stretch="Uniform" />
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        FontWeight="Bold"
+                                        Text="Add Card" />
                                 </StackPanel>
                             </DataTemplate>
                         </Button.ContentTemplate>
@@ -56,38 +92,71 @@
                 </StackPanel>
             </Grid>
 
-            <!-- 2. Controls & Search Toolbar -->
-            <Border Grid.Row="1" Style="{StaticResource Border.Card}" Padding="14,10" Margin="0,0,0,16">
+            <!--  2. Controls & Search Toolbar  -->
+            <Border
+                Grid.Row="1"
+                Margin="0,0,0,16"
+                Padding="14,10"
+                Style="{StaticResource Border.Card}">
                 <Grid>
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*" />
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <!-- Search Input -->
+                    <!--  Search Input  -->
                     <Grid Grid.Column="0" Margin="0,0,20,0">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto" />
                             <ColumnDefinition Width="*" />
                         </Grid.ColumnDefinitions>
-                        <Path Grid.Column="0" Data="{StaticResource Icon.Search}" Fill="{DynamicResource Brush.TextMuted}" Width="16" Height="16" Stretch="Uniform" VerticalAlignment="Center" Margin="8,0,10,0" />
-                        <TextBox Grid.Column="1" Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" 
-                                 Style="{StaticResource TextBox.Modern}" Height="36" />
+                        <Path
+                            Grid.Column="0"
+                            Width="16"
+                            Height="16"
+                            Margin="8,0,10,0"
+                            VerticalAlignment="Center"
+                            Data="{StaticResource Icon.Search}"
+                            Fill="{DynamicResource Brush.TextMuted}"
+                            Stretch="Uniform" />
+                        <TextBox
+                            Grid.Column="1"
+                            Height="36"
+                            Style="{StaticResource TextBox.Modern}"
+                            Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}" />
                     </Grid>
 
-                    <!-- Project Selector Filter -->
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
-                        <TextBlock Text="Filter Project:" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextMuted}" VerticalAlignment="Center" Margin="0,0,10,0" />
-                        <ComboBox ItemsSource="{Binding AvailableProjects}" SelectedItem="{Binding SelectedProjectFilter, Mode=TwoWay}" 
-                                  Style="{StaticResource ComboBox.Modern}" Width="200" Height="36" />
+                    <!--  Project Selector Filter  -->
+                    <StackPanel
+                        Grid.Column="1"
+                        VerticalAlignment="Center"
+                        Orientation="Horizontal">
+                        <TextBlock
+                            Margin="0,0,10,0"
+                            VerticalAlignment="Center"
+                            FontSize="13"
+                            FontWeight="SemiBold"
+                            Foreground="{DynamicResource Brush.TextMuted}"
+                            Text="Filter Project:" />
+                        <ComboBox
+                            Width="200"
+                            Height="36"
+                            ItemsSource="{Binding AvailableProjects}"
+                            SelectedItem="{Binding SelectedProjectFilter, Mode=TwoWay}"
+                            Style="{StaticResource ComboBox.Modern}" />
                     </StackPanel>
                 </Grid>
             </Border>
 
-            <!-- 3. Loading Indicator -->
-            <ProgressBar Grid.Row="2" IsIndeterminate="True" Style="{StaticResource ProgressBar.Modern}" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}" Margin="0,0,0,12" />
+            <!--  3. Loading Indicator  -->
+            <ProgressBar
+                Grid.Row="2"
+                Margin="0,0,0,12"
+                IsIndeterminate="True"
+                Style="{StaticResource ProgressBar.Modern}"
+                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}" />
 
-            <!-- 4. Kanban Columns Grid -->
+            <!--  4. Kanban Columns Grid  -->
             <Grid Grid.Row="3">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -99,40 +168,87 @@
                     <ColumnDefinition Width="*" />
                 </Grid.ColumnDefinitions>
 
-                <!-- ==================== COLUMN 1: TO DO ==================== -->
-                <Border Grid.Column="0" Background="{DynamicResource Brush.Surface}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" CornerRadius="12" Padding="12">
+                <!--  ==================== COLUMN 1: TO DO ====================  -->
+                <Border
+                    Grid.Column="0"
+                    Padding="12"
+                    Background="{DynamicResource Brush.Surface}"
+                    BorderBrush="{DynamicResource Brush.Border}"
+                    BorderThickness="1"
+                    CornerRadius="12">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
 
-                        <!-- Column Header -->
+                        <!--  Column Header  -->
                         <Grid Grid.Row="0" Margin="4,4,4,12">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Ellipse Width="10" Height="10" Fill="#94A3B8" Margin="0,0,8,0" />
-                                <TextBlock Text="To Do" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,8,0" />
-                                <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="10" Padding="8,2">
-                                    <TextBlock Text="{Binding TodoTasks.Count}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource Brush.TextMuted}" />
+                            <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                <Ellipse
+                                    Width="10"
+                                    Height="10"
+                                    Margin="0,0,8,0"
+                                    Fill="#94A3B8" />
+                                <TextBlock
+                                    Margin="0,0,8,0"
+                                    FontSize="15"
+                                    FontWeight="Bold"
+                                    Foreground="{DynamicResource Brush.TextPrimary}"
+                                    Text="To Do" />
+                                <Border
+                                    Padding="8,2"
+                                    Background="{DynamicResource Brush.SurfaceElevated}"
+                                    CornerRadius="10">
+                                    <TextBlock
+                                        FontSize="11"
+                                        FontWeight="Bold"
+                                        Foreground="{DynamicResource Brush.TextMuted}"
+                                        Text="{Binding TodoTasks.Count}" />
                                 </Border>
                             </StackPanel>
 
-                            <Button HorizontalAlignment="Right" Style="{StaticResource Button.Icon}" Width="28" Height="28"
-                                    Command="{Binding OpenCreateTaskModalCommand}" CommandParameter="Todo" ToolTip="Add Card to To Do">
-                                <Path Data="{StaticResource Icon.Plus}" Fill="{DynamicResource Brush.TextPrimary}" Width="12" Height="12" Stretch="Uniform" />
+                            <Button
+                                Width="28"
+                                Height="28"
+                                HorizontalAlignment="Right"
+                                Command="{Binding OpenCreateTaskModalCommand}"
+                                CommandParameter="Todo"
+                                Style="{StaticResource Button.Icon}"
+                                ToolTip="Add Card to To Do">
+                                <Path
+                                    Width="12"
+                                    Height="12"
+                                    Data="{StaticResource Icon.Plus}"
+                                    Fill="{DynamicResource Brush.TextPrimary}"
+                                    Stretch="Uniform" />
                             </Button>
                         </Grid>
 
-                        <!-- Column Body -->
-                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <!--  Column Body  -->
+                        <ScrollViewer
+                            Grid.Row="1"
+                            HorizontalScrollBarVisibility="Disabled"
+                            Padding="0,0,12,0"
+                            VerticalScrollBarVisibility="Auto">
                             <StackPanel>
-                                <TextBlock Text="No cards in To Do" FontSize="13" Foreground="{DynamicResource Brush.TextMuted}" HorizontalAlignment="Center" Margin="0,32,0,0"
-                                           Visibility="{Binding TodoTasks.Count, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
+                                <TextBlock
+                                    Margin="0,32,0,0"
+                                    HorizontalAlignment="Center"
+                                    FontSize="13"
+                                    Foreground="{DynamicResource Brush.TextMuted}"
+                                    Text="No cards in To Do"
+                                    Visibility="{Binding TodoTasks.Count, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
 
                                 <ItemsControl ItemsSource="{Binding TodoTasks}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Border Style="{StaticResource Border.Card}" Background="{DynamicResource Brush.SurfaceElevated}" Margin="0,0,0,12" Padding="14" CornerRadius="10">
+                                            <Border
+                                                Margin="0,0,0,12"
+                                                Padding="14"
+                                                Background="{DynamicResource Brush.SurfaceElevated}"
+                                                CornerRadius="10"
+                                                Style="{StaticResource Border.Card}">
                                                 <Grid>
                                                     <Grid.RowDefinitions>
                                                         <RowDefinition Height="Auto" />
@@ -142,47 +258,112 @@
                                                         <RowDefinition Height="Auto" />
                                                     </Grid.RowDefinitions>
 
-                                                    <!-- Card Top Meta -->
+                                                    <!--  Card Top Meta  -->
                                                     <Grid Grid.Row="0" Margin="0,0,0,6">
-                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                            <Border CornerRadius="6" Padding="6,2" Background="{DynamicResource Brush.Surface}" Margin="0,0,6,0">
-                                                                <TextBlock Text="{Binding Priority}" FontSize="10" FontWeight="Bold" Foreground="{Binding Priority, Converter={StaticResource PriorityToBrush}}" />
+                                                        <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                                            <Border
+                                                                Margin="0,0,6,0"
+                                                                Padding="6,2"
+                                                                Background="{DynamicResource Brush.Surface}"
+                                                                CornerRadius="6">
+                                                                <TextBlock
+                                                                    FontSize="10"
+                                                                    FontWeight="Bold"
+                                                                    Foreground="{Binding Priority, Converter={StaticResource PriorityToBrush}}"
+                                                                    Text="{Binding Priority}" />
                                                             </Border>
-                                                            <TextBlock Text="{Binding ProjectAndTrack}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextMuted}" MaxWidth="120" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                                            <TextBlock
+                                                                MaxWidth="120"
+                                                                VerticalAlignment="Center"
+                                                                FontSize="11"
+                                                                FontWeight="SemiBold"
+                                                                Foreground="{DynamicResource Brush.TextMuted}"
+                                                                Text="{Binding ProjectAndTrack}"
+                                                                TextTrimming="CharacterEllipsis" />
                                                         </StackPanel>
 
-                                                        <Button HorizontalAlignment="Right" Style="{StaticResource Button.Icon}" Width="24" Height="24"
-                                                                Command="{Binding DataContext.DeleteTaskCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                CommandParameter="{Binding}" ToolTip="Delete Card">
-                                                            <Path Data="{StaticResource Icon.Trash}" Fill="{DynamicResource Brush.Danger}" Width="11" Height="11" Stretch="Uniform" />
+                                                        <Button
+                                                            Width="24"
+                                                            Height="24"
+                                                            HorizontalAlignment="Right"
+                                                            Command="{Binding DataContext.DeleteTaskCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            Style="{StaticResource Button.Icon}"
+                                                            ToolTip="Delete Card">
+                                                            <Path
+                                                                Width="11"
+                                                                Height="11"
+                                                                Data="{StaticResource Icon.Trash}"
+                                                                Fill="{DynamicResource Brush.Danger}"
+                                                                Stretch="Uniform" />
                                                         </Button>
                                                     </Grid>
 
-                                                    <!-- Title -->
-                                                    <TextBlock Grid.Row="1" Text="{Binding Title}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource Brush.TextPrimary}" TextWrapping="Wrap" Margin="0,0,0,6" />
+                                                    <!--  Title  -->
+                                                    <TextBlock
+                                                        Grid.Row="1"
+                                                        Margin="0,0,0,6"
+                                                        FontSize="14"
+                                                        FontWeight="Bold"
+                                                        Foreground="{DynamicResource Brush.TextPrimary}"
+                                                        Text="{Binding Title}"
+                                                        TextWrapping="Wrap" />
 
-                                                    <!-- Description -->
-                                                    <TextBlock Grid.Row="2" Text="{Binding Description}" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" TextTrimming="CharacterEllipsis" MaxHeight="36" Margin="0,0,0,8" 
-                                                               Visibility="{Binding HasDescription, Converter={StaticResource BoolToVis}}" />
+                                                    <!--  Description  -->
+                                                    <TextBlock
+                                                        Grid.Row="2"
+                                                        MaxHeight="36"
+                                                        Margin="0,0,0,8"
+                                                        FontSize="12"
+                                                        Foreground="{DynamicResource Brush.TextSecondary}"
+                                                        Text="{Binding Description}"
+                                                        TextTrimming="CharacterEllipsis"
+                                                        Visibility="{Binding HasDescription, Converter={StaticResource BoolToVis}}" />
 
-                                                    <!-- Progress Bar -->
-                                                    <Grid Grid.Row="3" Margin="20,0,0,10">
-                                                        <Grid Margin="0,0,0,4">
-                                                            <TextBlock Text="Checklist Progress" FontSize="10" Foreground="{DynamicResource Brush.TextMuted}" />
-                                                            <TextBlock Text="{Binding Progress, StringFormat='{}{0}%'}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource Brush.Primary}" HorizontalAlignment="Right" />
+                                                    <!--  Progress Bar  -->
+                                                    <Grid Grid.Row="3" Margin="0,10,10,10">
+                                                        <Grid Margin="0,0,0,12">
+                                                            <TextBlock
+                                                                FontSize="10"
+                                                                Foreground="{DynamicResource Brush.TextMuted}"
+                                                                Text="Checklist Progress" />
+                                                            <TextBlock
+                                                                HorizontalAlignment="Right"
+                                                                FontSize="10"
+                                                                FontWeight="Bold"
+                                                                Foreground="{DynamicResource Brush.Primary}"
+                                                                Text="{Binding Progress, StringFormat='{}{0}%'}" />
                                                         </Grid>
-                                                        <ProgressBar Value="{Binding Progress}" Maximum="100" Height="4" Style="{StaticResource ProgressBar.Modern}" VerticalAlignment="Bottom" />
+                                                        <ProgressBar
+                                                            Height="4"
+                                                            VerticalAlignment="Bottom"
+                                                            Maximum="100"
+                                                            Style="{StaticResource ProgressBar.Modern}"
+                                                            Value="{Binding Progress}" />
                                                     </Grid>
 
-                                                    <!-- Bottom Actions -->
+                                                    <!--  Bottom Actions  -->
                                                     <Grid Grid.Row="4">
-                                                        <Button Style="{StaticResource Button.Ghost}" Content="Checklist →" FontSize="11" Height="28" Padding="6,0" HorizontalAlignment="Left"
-                                                                Command="{Binding DataContext.OpenTaskDetailCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                CommandParameter="{Binding}" />
+                                                        <Button
+                                                            Height="28"
+                                                            Padding="6,0"
+                                                            HorizontalAlignment="Left"
+                                                            Command="{Binding DataContext.OpenTaskDetailCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            Content="Checklist →"
+                                                            FontSize="11"
+                                                            Style="{StaticResource Button.Ghost}" />
 
-                                                        <Button Style="{StaticResource Button.Secondary}" Content="Start →" FontSize="11" Height="28" Padding="10,0" HorizontalAlignment="Right"
-                                                                Command="{Binding DataContext.MoveToInProgressCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                CommandParameter="{Binding}" ToolTip="Advance to In Progress" />
+                                                        <Button
+                                                            Height="28"
+                                                            Padding="10,0"
+                                                            HorizontalAlignment="Right"
+                                                            Command="{Binding DataContext.MoveToInProgressCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            Content="Start →"
+                                                            FontSize="11"
+                                                            Style="{StaticResource Button.Secondary}"
+                                                            ToolTip="Advance to In Progress" />
                                                     </Grid>
                                                 </Grid>
                                             </Border>
@@ -194,40 +375,87 @@
                     </Grid>
                 </Border>
 
-                <!-- ==================== COLUMN 2: IN PROGRESS ==================== -->
-                <Border Grid.Column="2" Background="{DynamicResource Brush.Surface}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" CornerRadius="12" Padding="12">
+                <!--  ==================== COLUMN 2: IN PROGRESS ====================  -->
+                <Border
+                    Grid.Column="2"
+                    Padding="12"
+                    Background="{DynamicResource Brush.Surface}"
+                    BorderBrush="{DynamicResource Brush.Border}"
+                    BorderThickness="1"
+                    CornerRadius="12">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
 
-                        <!-- Column Header -->
+                        <!--  Column Header  -->
                         <Grid Grid.Row="0" Margin="4,4,4,12">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Ellipse Width="10" Height="10" Fill="#3B82F6" Margin="0,0,8,0" />
-                                <TextBlock Text="In Progress" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,8,0" />
-                                <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="10" Padding="8,2">
-                                    <TextBlock Text="{Binding InProgressTasks.Count}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource Brush.Primary}" />
+                            <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                <Ellipse
+                                    Width="10"
+                                    Height="10"
+                                    Margin="0,0,8,0"
+                                    Fill="#3B82F6" />
+                                <TextBlock
+                                    Margin="0,0,8,0"
+                                    FontSize="15"
+                                    FontWeight="Bold"
+                                    Foreground="{DynamicResource Brush.TextPrimary}"
+                                    Text="In Progress" />
+                                <Border
+                                    Padding="8,2"
+                                    Background="{DynamicResource Brush.SurfaceElevated}"
+                                    CornerRadius="10">
+                                    <TextBlock
+                                        FontSize="11"
+                                        FontWeight="Bold"
+                                        Foreground="{DynamicResource Brush.Primary}"
+                                        Text="{Binding InProgressTasks.Count}" />
                                 </Border>
                             </StackPanel>
 
-                            <Button HorizontalAlignment="Right" Style="{StaticResource Button.Icon}" Width="28" Height="28"
-                                    Command="{Binding OpenCreateTaskModalCommand}" CommandParameter="InProgress" ToolTip="Add Card to In Progress">
-                                <Path Data="{StaticResource Icon.Plus}" Fill="{DynamicResource Brush.TextPrimary}" Width="12" Height="12" Stretch="Uniform" />
+                            <Button
+                                Width="28"
+                                Height="28"
+                                HorizontalAlignment="Right"
+                                Command="{Binding OpenCreateTaskModalCommand}"
+                                CommandParameter="InProgress"
+                                Style="{StaticResource Button.Icon}"
+                                ToolTip="Add Card to In Progress">
+                                <Path
+                                    Width="12"
+                                    Height="12"
+                                    Data="{StaticResource Icon.Plus}"
+                                    Fill="{DynamicResource Brush.TextPrimary}"
+                                    Stretch="Uniform" />
                             </Button>
                         </Grid>
 
-                        <!-- Column Body -->
-                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <!--  Column Body  -->
+                        <ScrollViewer
+                            Grid.Row="1"
+                            HorizontalScrollBarVisibility="Disabled"
+                            Padding="0,0,12,0"
+                            VerticalScrollBarVisibility="Auto">
                             <StackPanel>
-                                <TextBlock Text="No cards in Progress" FontSize="13" Foreground="{DynamicResource Brush.TextMuted}" HorizontalAlignment="Center" Margin="0,32,0,0"
-                                           Visibility="{Binding InProgressTasks.Count, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
+                                <TextBlock
+                                    Margin="0,32,0,0"
+                                    HorizontalAlignment="Center"
+                                    FontSize="13"
+                                    Foreground="{DynamicResource Brush.TextMuted}"
+                                    Text="No cards in Progress"
+                                    Visibility="{Binding InProgressTasks.Count, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
 
                                 <ItemsControl ItemsSource="{Binding InProgressTasks}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Border Style="{StaticResource Border.Card}" Background="{DynamicResource Brush.SurfaceElevated}" Margin="0,0,0,12" Padding="14" CornerRadius="10">
+                                            <Border
+                                                Margin="0,0,0,12"
+                                                Padding="14"
+                                                Background="{DynamicResource Brush.SurfaceElevated}"
+                                                CornerRadius="10"
+                                                Style="{StaticResource Border.Card}">
                                                 <Grid>
                                                     <Grid.RowDefinitions>
                                                         <RowDefinition Height="Auto" />
@@ -237,53 +465,124 @@
                                                         <RowDefinition Height="Auto" />
                                                     </Grid.RowDefinitions>
 
-                                                    <!-- Card Top Meta -->
+                                                    <!--  Card Top Meta  -->
                                                     <Grid Grid.Row="0" Margin="0,0,0,6">
-                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                            <Border CornerRadius="6" Padding="6,2" Background="{DynamicResource Brush.Surface}" Margin="0,0,6,0">
-                                                                <TextBlock Text="{Binding Priority}" FontSize="10" FontWeight="Bold" Foreground="{Binding Priority, Converter={StaticResource PriorityToBrush}}" />
+                                                        <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                                            <Border
+                                                                Margin="0,0,6,0"
+                                                                Padding="6,2"
+                                                                Background="{DynamicResource Brush.Surface}"
+                                                                CornerRadius="6">
+                                                                <TextBlock
+                                                                    FontSize="10"
+                                                                    FontWeight="Bold"
+                                                                    Foreground="{Binding Priority, Converter={StaticResource PriorityToBrush}}"
+                                                                    Text="{Binding Priority}" />
                                                             </Border>
-                                                            <TextBlock Text="{Binding ProjectAndTrack}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextMuted}" MaxWidth="120" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                                            <TextBlock
+                                                                MaxWidth="120"
+                                                                VerticalAlignment="Center"
+                                                                FontSize="11"
+                                                                FontWeight="SemiBold"
+                                                                Foreground="{DynamicResource Brush.TextMuted}"
+                                                                Text="{Binding ProjectAndTrack}"
+                                                                TextTrimming="CharacterEllipsis" />
                                                         </StackPanel>
 
-                                                        <Button HorizontalAlignment="Right" Style="{StaticResource Button.Icon}" Width="24" Height="24"
-                                                                Command="{Binding DataContext.DeleteTaskCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                CommandParameter="{Binding}" ToolTip="Delete Card">
-                                                            <Path Data="{StaticResource Icon.Trash}" Fill="{DynamicResource Brush.Danger}" Width="11" Height="11" Stretch="Uniform" />
+                                                        <Button
+                                                            Width="24"
+                                                            Height="24"
+                                                            HorizontalAlignment="Right"
+                                                            Command="{Binding DataContext.DeleteTaskCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            Style="{StaticResource Button.Icon}"
+                                                            ToolTip="Delete Card">
+                                                            <Path
+                                                                Width="11"
+                                                                Height="11"
+                                                                Data="{StaticResource Icon.Trash}"
+                                                                Fill="{DynamicResource Brush.Danger}"
+                                                                Stretch="Uniform" />
                                                         </Button>
                                                     </Grid>
 
-                                                    <!-- Title -->
-                                                    <TextBlock Grid.Row="1" Text="{Binding Title}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource Brush.TextPrimary}" TextWrapping="Wrap" Margin="0,0,0,6" />
+                                                    <!--  Title  -->
+                                                    <TextBlock
+                                                        Grid.Row="1"
+                                                        Margin="0,0,0,6"
+                                                        FontSize="14"
+                                                        FontWeight="Bold"
+                                                        Foreground="{DynamicResource Brush.TextPrimary}"
+                                                        Text="{Binding Title}"
+                                                        TextWrapping="Wrap" />
 
-                                                    <!-- Description -->
-                                                    <TextBlock Grid.Row="2" Text="{Binding Description}" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" TextTrimming="CharacterEllipsis" MaxHeight="36" Margin="0,0,0,8" 
-                                                               Visibility="{Binding HasDescription, Converter={StaticResource BoolToVis}}" />
+                                                    <!--  Description  -->
+                                                    <TextBlock
+                                                        Grid.Row="2"
+                                                        MaxHeight="36"
+                                                        Margin="0,0,0,8"
+                                                        FontSize="12"
+                                                        Foreground="{DynamicResource Brush.TextSecondary}"
+                                                        Text="{Binding Description}"
+                                                        TextTrimming="CharacterEllipsis"
+                                                        Visibility="{Binding HasDescription, Converter={StaticResource BoolToVis}}" />
 
-                                                    <!-- Progress Bar -->
-                                                    <Grid Grid.Row="3" Margin="0,0,0,10">
-                                                        <Grid Margin="0,0,0,4">
-                                                            <TextBlock Text="Checklist Progress" FontSize="10" Foreground="{DynamicResource Brush.TextMuted}" />
-                                                            <TextBlock Text="{Binding Progress, StringFormat='{}{0}%'}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource Brush.Primary}" HorizontalAlignment="Right" />
+                                                    <!--  Progress Bar  -->
+                                                    <Grid Grid.Row="3" Margin="0,10,10,10">
+                                                        <Grid Margin="0,0,0,12">
+                                                            <TextBlock
+                                                                FontSize="10"
+                                                                Foreground="{DynamicResource Brush.TextMuted}"
+                                                                Text="Checklist Progress" />
+                                                            <TextBlock
+                                                                HorizontalAlignment="Right"
+                                                                FontSize="10"
+                                                                FontWeight="Bold"
+                                                                Foreground="{DynamicResource Brush.Primary}"
+                                                                Text="{Binding Progress, StringFormat='{}{0}%'}" />
                                                         </Grid>
-                                                        <ProgressBar Value="{Binding Progress}" Maximum="100" Height="4" Style="{StaticResource ProgressBar.Modern}" VerticalAlignment="Bottom" />
+                                                        <ProgressBar
+                                                            Height="4"
+                                                            VerticalAlignment="Bottom"
+                                                            Maximum="100"
+                                                            Style="{StaticResource ProgressBar.Modern}"
+                                                            Value="{Binding Progress}" />
                                                     </Grid>
 
-                                                    <!-- Bottom Actions -->
+                                                    <!--  Bottom Actions  -->
                                                     <Grid Grid.Row="4">
-                                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                                                            <Button Style="{StaticResource Button.Ghost}" Content="← To Do" FontSize="11" Height="28" Padding="6,0" Margin="0,0,4,0"
-                                                                    Command="{Binding DataContext.MoveToTodoCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                    CommandParameter="{Binding}" ToolTip="Move back to To Do" />
+                                                        <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                                                            <Button
+                                                                Height="28"
+                                                                Margin="0,0,4,0"
+                                                                Padding="6,0"
+                                                                Command="{Binding DataContext.MoveToTodoCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                CommandParameter="{Binding}"
+                                                                Content="← To Do"
+                                                                FontSize="11"
+                                                                Style="{StaticResource Button.Ghost}"
+                                                                ToolTip="Move back to To Do" />
 
-                                                            <Button Style="{StaticResource Button.Ghost}" Content="Checklist →" FontSize="11" Height="28" Padding="6,0"
-                                                                    Command="{Binding DataContext.OpenTaskDetailCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                    CommandParameter="{Binding}" />
+                                                            <Button
+                                                                Height="28"
+                                                                Padding="6,0"
+                                                                Command="{Binding DataContext.OpenTaskDetailCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                CommandParameter="{Binding}"
+                                                                Content="Checklist →"
+                                                                FontSize="11"
+                                                                Style="{StaticResource Button.Ghost}" />
                                                         </StackPanel>
 
-                                                        <Button Style="{StaticResource Button.Secondary}" Content="Review →" FontSize="11" Height="28" Padding="10,0" HorizontalAlignment="Right"
-                                                                Command="{Binding DataContext.MoveToReviewCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                CommandParameter="{Binding}" ToolTip="Advance to Review" />
+                                                        <Button
+                                                            Height="28"
+                                                            Padding="10,0"
+                                                            HorizontalAlignment="Right"
+                                                            Command="{Binding DataContext.MoveToReviewCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            Content="Review →"
+                                                            FontSize="11"
+                                                            Style="{StaticResource Button.Secondary}"
+                                                            ToolTip="Advance to Review" />
                                                     </Grid>
                                                 </Grid>
                                             </Border>
@@ -295,40 +594,87 @@
                     </Grid>
                 </Border>
 
-                <!-- ==================== COLUMN 3: REVIEW ==================== -->
-                <Border Grid.Column="4" Background="{DynamicResource Brush.Surface}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" CornerRadius="12" Padding="12">
+                <!--  ==================== COLUMN 3: REVIEW ====================  -->
+                <Border
+                    Grid.Column="4"
+                    Padding="12"
+                    Background="{DynamicResource Brush.Surface}"
+                    BorderBrush="{DynamicResource Brush.Border}"
+                    BorderThickness="1"
+                    CornerRadius="12">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
 
-                        <!-- Column Header -->
+                        <!--  Column Header  -->
                         <Grid Grid.Row="0" Margin="4,4,4,12">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Ellipse Width="10" Height="10" Fill="#A855F7" Margin="0,0,8,0" />
-                                <TextBlock Text="Review" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,8,0" />
-                                <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="10" Padding="8,2">
-                                    <TextBlock Text="{Binding ReviewTasks.Count}" FontSize="11" FontWeight="Bold" Foreground="#A855F7" />
+                            <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                <Ellipse
+                                    Width="10"
+                                    Height="10"
+                                    Margin="0,0,8,0"
+                                    Fill="#A855F7" />
+                                <TextBlock
+                                    Margin="0,0,8,0"
+                                    FontSize="15"
+                                    FontWeight="Bold"
+                                    Foreground="{DynamicResource Brush.TextPrimary}"
+                                    Text="Review" />
+                                <Border
+                                    Padding="8,2"
+                                    Background="{DynamicResource Brush.SurfaceElevated}"
+                                    CornerRadius="10">
+                                    <TextBlock
+                                        FontSize="11"
+                                        FontWeight="Bold"
+                                        Foreground="#A855F7"
+                                        Text="{Binding ReviewTasks.Count}" />
                                 </Border>
                             </StackPanel>
 
-                            <Button HorizontalAlignment="Right" Style="{StaticResource Button.Icon}" Width="28" Height="28"
-                                    Command="{Binding OpenCreateTaskModalCommand}" CommandParameter="Review" ToolTip="Add Card to Review">
-                                <Path Data="{StaticResource Icon.Plus}" Fill="{DynamicResource Brush.TextPrimary}" Width="12" Height="12" Stretch="Uniform" />
+                            <Button
+                                Width="28"
+                                Height="28"
+                                HorizontalAlignment="Right"
+                                Command="{Binding OpenCreateTaskModalCommand}"
+                                CommandParameter="Review"
+                                Style="{StaticResource Button.Icon}"
+                                ToolTip="Add Card to Review">
+                                <Path
+                                    Width="12"
+                                    Height="12"
+                                    Data="{StaticResource Icon.Plus}"
+                                    Fill="{DynamicResource Brush.TextPrimary}"
+                                    Stretch="Uniform" />
                             </Button>
                         </Grid>
 
-                        <!-- Column Body -->
-                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <!--  Column Body  -->
+                        <ScrollViewer
+                            Grid.Row="1"
+                            HorizontalScrollBarVisibility="Disabled"
+                            Padding="0,0,12,0"
+                            VerticalScrollBarVisibility="Auto">
                             <StackPanel>
-                                <TextBlock Text="No cards in Review" FontSize="13" Foreground="{DynamicResource Brush.TextMuted}" HorizontalAlignment="Center" Margin="0,32,0,0"
-                                           Visibility="{Binding ReviewTasks.Count, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
+                                <TextBlock
+                                    Margin="0,32,0,0"
+                                    HorizontalAlignment="Center"
+                                    FontSize="13"
+                                    Foreground="{DynamicResource Brush.TextMuted}"
+                                    Text="No cards in Review"
+                                    Visibility="{Binding ReviewTasks.Count, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
 
                                 <ItemsControl ItemsSource="{Binding ReviewTasks}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Border Style="{StaticResource Border.Card}" Background="{DynamicResource Brush.SurfaceElevated}" Margin="0,0,0,12" Padding="14" CornerRadius="10">
+                                            <Border
+                                                Margin="0,0,0,12"
+                                                Padding="14"
+                                                Background="{DynamicResource Brush.SurfaceElevated}"
+                                                CornerRadius="10"
+                                                Style="{StaticResource Border.Card}">
                                                 <Grid>
                                                     <Grid.RowDefinitions>
                                                         <RowDefinition Height="Auto" />
@@ -338,53 +684,124 @@
                                                         <RowDefinition Height="Auto" />
                                                     </Grid.RowDefinitions>
 
-                                                    <!-- Card Top Meta -->
+                                                    <!--  Card Top Meta  -->
                                                     <Grid Grid.Row="0" Margin="0,0,0,6">
-                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                            <Border CornerRadius="6" Padding="6,2" Background="{DynamicResource Brush.Surface}" Margin="0,0,6,0">
-                                                                <TextBlock Text="{Binding Priority}" FontSize="10" FontWeight="Bold" Foreground="{Binding Priority, Converter={StaticResource PriorityToBrush}}" />
+                                                        <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                                            <Border
+                                                                Margin="0,0,6,0"
+                                                                Padding="6,2"
+                                                                Background="{DynamicResource Brush.Surface}"
+                                                                CornerRadius="6">
+                                                                <TextBlock
+                                                                    FontSize="10"
+                                                                    FontWeight="Bold"
+                                                                    Foreground="{Binding Priority, Converter={StaticResource PriorityToBrush}}"
+                                                                    Text="{Binding Priority}" />
                                                             </Border>
-                                                            <TextBlock Text="{Binding ProjectAndTrack}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextMuted}" MaxWidth="120" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                                            <TextBlock
+                                                                MaxWidth="120"
+                                                                VerticalAlignment="Center"
+                                                                FontSize="11"
+                                                                FontWeight="SemiBold"
+                                                                Foreground="{DynamicResource Brush.TextMuted}"
+                                                                Text="{Binding ProjectAndTrack}"
+                                                                TextTrimming="CharacterEllipsis" />
                                                         </StackPanel>
 
-                                                        <Button HorizontalAlignment="Right" Style="{StaticResource Button.Icon}" Width="24" Height="24"
-                                                                Command="{Binding DataContext.DeleteTaskCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                CommandParameter="{Binding}" ToolTip="Delete Card">
-                                                            <Path Data="{StaticResource Icon.Trash}" Fill="{DynamicResource Brush.Danger}" Width="11" Height="11" Stretch="Uniform" />
+                                                        <Button
+                                                            Width="24"
+                                                            Height="24"
+                                                            HorizontalAlignment="Right"
+                                                            Command="{Binding DataContext.DeleteTaskCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            Style="{StaticResource Button.Icon}"
+                                                            ToolTip="Delete Card">
+                                                            <Path
+                                                                Width="11"
+                                                                Height="11"
+                                                                Data="{StaticResource Icon.Trash}"
+                                                                Fill="{DynamicResource Brush.Danger}"
+                                                                Stretch="Uniform" />
                                                         </Button>
                                                     </Grid>
 
-                                                    <!-- Title -->
-                                                    <TextBlock Grid.Row="1" Text="{Binding Title}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource Brush.TextPrimary}" TextWrapping="Wrap" Margin="0,0,0,6" />
+                                                    <!--  Title  -->
+                                                    <TextBlock
+                                                        Grid.Row="1"
+                                                        Margin="0,0,0,6"
+                                                        FontSize="14"
+                                                        FontWeight="Bold"
+                                                        Foreground="{DynamicResource Brush.TextPrimary}"
+                                                        Text="{Binding Title}"
+                                                        TextWrapping="Wrap" />
 
-                                                    <!-- Description -->
-                                                    <TextBlock Grid.Row="2" Text="{Binding Description}" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" TextTrimming="CharacterEllipsis" MaxHeight="36" Margin="0,0,0,8" 
-                                                               Visibility="{Binding HasDescription, Converter={StaticResource BoolToVis}}" />
+                                                    <!--  Description  -->
+                                                    <TextBlock
+                                                        Grid.Row="2"
+                                                        MaxHeight="36"
+                                                        Margin="0,0,0,8"
+                                                        FontSize="12"
+                                                        Foreground="{DynamicResource Brush.TextSecondary}"
+                                                        Text="{Binding Description}"
+                                                        TextTrimming="CharacterEllipsis"
+                                                        Visibility="{Binding HasDescription, Converter={StaticResource BoolToVis}}" />
 
-                                                    <!-- Progress Bar -->
-                                                    <Grid Grid.Row="3" Margin="0,0,0,10">
-                                                        <Grid Margin="0,0,0,4">
-                                                            <TextBlock Text="Checklist Progress" FontSize="10" Foreground="{DynamicResource Brush.TextMuted}" />
-                                                            <TextBlock Text="{Binding Progress, StringFormat='{}{0}%'}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource Brush.Primary}" HorizontalAlignment="Right" />
+                                                    <!--  Progress Bar  -->
+                                                    <Grid Grid.Row="3" Margin="0,10,10,10">
+                                                        <Grid Margin="0,0,0,12">
+                                                            <TextBlock
+                                                                FontSize="10"
+                                                                Foreground="{DynamicResource Brush.TextMuted}"
+                                                                Text="Checklist Progress" />
+                                                            <TextBlock
+                                                                HorizontalAlignment="Right"
+                                                                FontSize="10"
+                                                                FontWeight="Bold"
+                                                                Foreground="{DynamicResource Brush.Primary}"
+                                                                Text="{Binding Progress, StringFormat='{}{0}%'}" />
                                                         </Grid>
-                                                        <ProgressBar Value="{Binding Progress}" Maximum="100" Height="4" Style="{StaticResource ProgressBar.Modern}" VerticalAlignment="Bottom" />
+                                                        <ProgressBar
+                                                            Height="4"
+                                                            VerticalAlignment="Bottom"
+                                                            Maximum="100"
+                                                            Style="{StaticResource ProgressBar.Modern}"
+                                                            Value="{Binding Progress}" />
                                                     </Grid>
 
-                                                    <!-- Bottom Actions -->
+                                                    <!--  Bottom Actions  -->
                                                     <Grid Grid.Row="4">
-                                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
-                                                            <Button Style="{StaticResource Button.Ghost}" Content="← Reopen" FontSize="11" Height="28" Padding="6,0" Margin="0,0,4,0"
-                                                                    Command="{Binding DataContext.MoveToInProgressCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                    CommandParameter="{Binding}" ToolTip="Return to In Progress" />
+                                                        <StackPanel HorizontalAlignment="Left" Orientation="Horizontal">
+                                                            <Button
+                                                                Height="28"
+                                                                Margin="0,0,4,0"
+                                                                Padding="6,0"
+                                                                Command="{Binding DataContext.MoveToInProgressCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                CommandParameter="{Binding}"
+                                                                Content="← Reopen"
+                                                                FontSize="11"
+                                                                Style="{StaticResource Button.Ghost}"
+                                                                ToolTip="Return to In Progress" />
 
-                                                            <Button Style="{StaticResource Button.Ghost}" Content="Checklist →" FontSize="11" Height="28" Padding="6,0"
-                                                                    Command="{Binding DataContext.OpenTaskDetailCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                    CommandParameter="{Binding}" />
+                                                            <Button
+                                                                Height="28"
+                                                                Padding="6,0"
+                                                                Command="{Binding DataContext.OpenTaskDetailCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                                CommandParameter="{Binding}"
+                                                                Content="Checklist →"
+                                                                FontSize="11"
+                                                                Style="{StaticResource Button.Ghost}" />
                                                         </StackPanel>
 
-                                                        <Button Style="{StaticResource Button.Primary}" Content="Complete ✓" FontSize="11" Height="28" Padding="10,0" HorizontalAlignment="Right"
-                                                                Command="{Binding DataContext.MoveToDoneCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                CommandParameter="{Binding}" ToolTip="Mark as Completed" />
+                                                        <Button
+                                                            Height="28"
+                                                            Padding="10,0"
+                                                            HorizontalAlignment="Right"
+                                                            Command="{Binding DataContext.MoveToDoneCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            Content="Complete ✓"
+                                                            FontSize="11"
+                                                            Style="{StaticResource Button.Primary}"
+                                                            ToolTip="Mark as Completed" />
                                                     </Grid>
                                                 </Grid>
                                             </Border>
@@ -396,40 +813,88 @@
                     </Grid>
                 </Border>
 
-                <!-- ==================== COLUMN 4: COMPLETED ==================== -->
-                <Border Grid.Column="6" Background="{DynamicResource Brush.Surface}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" CornerRadius="12" Padding="12">
+                <!--  ==================== COLUMN 4: COMPLETED ====================  -->
+                <Border
+                    Grid.Column="6"
+                    Padding="12"
+                    Background="{DynamicResource Brush.Surface}"
+                    BorderBrush="{DynamicResource Brush.Border}"
+                    BorderThickness="1"
+                    CornerRadius="12">
                     <Grid>
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto" />
                             <RowDefinition Height="*" />
                         </Grid.RowDefinitions>
 
-                        <!-- Column Header -->
+                        <!--  Column Header  -->
                         <Grid Grid.Row="0" Margin="4,4,4,12">
-                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                <Ellipse Width="10" Height="10" Fill="#22C55E" Margin="0,0,8,0" />
-                                <TextBlock Text="Completed" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,8,0" />
-                                <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="10" Padding="8,2">
-                                    <TextBlock Text="{Binding DoneTasks.Count}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource Brush.Success}" />
+                            <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                <Ellipse
+                                    Width="10"
+                                    Height="10"
+                                    Margin="0,0,8,0"
+                                    Fill="#22C55E" />
+                                <TextBlock
+                                    Margin="0,0,8,0"
+                                    FontSize="15"
+                                    FontWeight="Bold"
+                                    Foreground="{DynamicResource Brush.TextPrimary}"
+                                    Text="Completed" />
+                                <Border
+                                    Padding="8,2"
+                                    Background="{DynamicResource Brush.SurfaceElevated}"
+                                    CornerRadius="10">
+                                    <TextBlock
+                                        FontSize="11"
+                                        FontWeight="Bold"
+                                        Foreground="{DynamicResource Brush.Success}"
+                                        Text="{Binding DoneTasks.Count}" />
                                 </Border>
                             </StackPanel>
 
-                            <Button HorizontalAlignment="Right" Style="{StaticResource Button.Icon}" Width="28" Height="28"
-                                    Command="{Binding OpenCreateTaskModalCommand}" CommandParameter="Done" ToolTip="Add Card to Completed">
-                                <Path Data="{StaticResource Icon.Plus}" Fill="{DynamicResource Brush.TextPrimary}" Width="12" Height="12" Stretch="Uniform" />
+                            <Button
+                                Width="28"
+                                Height="28"
+                                HorizontalAlignment="Right"
+                                Command="{Binding OpenCreateTaskModalCommand}"
+                                CommandParameter="Done"
+                                Style="{StaticResource Button.Icon}"
+                                ToolTip="Add Card to Completed">
+                                <Path
+                                    Width="12"
+                                    Height="12"
+                                    Data="{StaticResource Icon.Plus}"
+                                    Fill="{DynamicResource Brush.TextPrimary}"
+                                    Stretch="Uniform" />
                             </Button>
                         </Grid>
 
-                        <!-- Column Body -->
-                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <!--  Column Body  -->
+                        <ScrollViewer
+                            Grid.Row="1"
+                            HorizontalScrollBarVisibility="Disabled"
+                            Padding="0,0,12,0"
+                            VerticalScrollBarVisibility="Auto">
                             <StackPanel>
-                                <TextBlock Text="No completed cards" FontSize="13" Foreground="{DynamicResource Brush.TextMuted}" HorizontalAlignment="Center" Margin="0,32,0,0"
-                                           Visibility="{Binding DoneTasks.Count, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
+                                <TextBlock
+                                    Margin="0,32,0,0"
+                                    HorizontalAlignment="Center"
+                                    FontSize="13"
+                                    Foreground="{DynamicResource Brush.TextMuted}"
+                                    Text="No completed cards"
+                                    Visibility="{Binding DoneTasks.Count, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
 
                                 <ItemsControl ItemsSource="{Binding DoneTasks}">
                                     <ItemsControl.ItemTemplate>
                                         <DataTemplate>
-                                            <Border Style="{StaticResource Border.Card}" Background="{DynamicResource Brush.SurfaceElevated}" Margin="0,0,0,12" Padding="14" CornerRadius="10" Opacity="0.92">
+                                            <Border
+                                                Margin="0,0,0,12"
+                                                Padding="14"
+                                                Background="{DynamicResource Brush.SurfaceElevated}"
+                                                CornerRadius="10"
+                                                Opacity="0.92"
+                                                Style="{StaticResource Border.Card}">
                                                 <Grid>
                                                     <Grid.RowDefinitions>
                                                         <RowDefinition Height="Auto" />
@@ -439,47 +904,114 @@
                                                         <RowDefinition Height="Auto" />
                                                     </Grid.RowDefinitions>
 
-                                                    <!-- Card Top Meta -->
+                                                    <!--  Card Top Meta  -->
                                                     <Grid Grid.Row="0" Margin="0,0,0,6">
-                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                            <Border CornerRadius="6" Padding="6,2" Background="{DynamicResource Brush.Surface}" Margin="0,0,6,0">
-                                                                <TextBlock Text="{Binding Priority}" FontSize="10" FontWeight="Bold" Foreground="{Binding Priority, Converter={StaticResource PriorityToBrush}}" />
+                                                        <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                                            <Border
+                                                                Margin="0,0,6,0"
+                                                                Padding="6,2"
+                                                                Background="{DynamicResource Brush.Surface}"
+                                                                CornerRadius="6">
+                                                                <TextBlock
+                                                                    FontSize="10"
+                                                                    FontWeight="Bold"
+                                                                    Foreground="{Binding Priority, Converter={StaticResource PriorityToBrush}}"
+                                                                    Text="{Binding Priority}" />
                                                             </Border>
-                                                            <TextBlock Text="{Binding ProjectAndTrack}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextMuted}" MaxWidth="120" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                                            <TextBlock
+                                                                MaxWidth="120"
+                                                                VerticalAlignment="Center"
+                                                                FontSize="11"
+                                                                FontWeight="SemiBold"
+                                                                Foreground="{DynamicResource Brush.TextMuted}"
+                                                                Text="{Binding ProjectAndTrack}"
+                                                                TextTrimming="CharacterEllipsis" />
                                                         </StackPanel>
 
-                                                        <Button HorizontalAlignment="Right" Style="{StaticResource Button.Icon}" Width="24" Height="24"
-                                                                Command="{Binding DataContext.DeleteTaskCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                CommandParameter="{Binding}" ToolTip="Delete Card">
-                                                            <Path Data="{StaticResource Icon.Trash}" Fill="{DynamicResource Brush.Danger}" Width="11" Height="11" Stretch="Uniform" />
+                                                        <Button
+                                                            Width="24"
+                                                            Height="24"
+                                                            HorizontalAlignment="Right"
+                                                            Command="{Binding DataContext.DeleteTaskCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            Style="{StaticResource Button.Icon}"
+                                                            ToolTip="Delete Card">
+                                                            <Path
+                                                                Width="11"
+                                                                Height="11"
+                                                                Data="{StaticResource Icon.Trash}"
+                                                                Fill="{DynamicResource Brush.Danger}"
+                                                                Stretch="Uniform" />
                                                         </Button>
                                                     </Grid>
 
-                                                    <!-- Title -->
-                                                    <TextBlock Grid.Row="1" Text="{Binding Title}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource Brush.TextPrimary}" TextWrapping="Wrap" Margin="0,0,0,6" TextDecorations="None" />
+                                                    <!--  Title  -->
+                                                    <TextBlock
+                                                        Grid.Row="1"
+                                                        Margin="0,0,0,6"
+                                                        FontSize="14"
+                                                        FontWeight="Bold"
+                                                        Foreground="{DynamicResource Brush.TextPrimary}"
+                                                        Text="{Binding Title}"
+                                                        TextDecorations="None"
+                                                        TextWrapping="Wrap" />
 
-                                                    <!-- Description -->
-                                                    <TextBlock Grid.Row="2" Text="{Binding Description}" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" TextTrimming="CharacterEllipsis" MaxHeight="36" Margin="0,0,0,8" 
-                                                               Visibility="{Binding HasDescription, Converter={StaticResource BoolToVis}}" />
+                                                    <!--  Description  -->
+                                                    <TextBlock
+                                                        Grid.Row="2"
+                                                        MaxHeight="36"
+                                                        Margin="0,0,0,8"
+                                                        FontSize="12"
+                                                        Foreground="{DynamicResource Brush.TextSecondary}"
+                                                        Text="{Binding Description}"
+                                                        TextTrimming="CharacterEllipsis"
+                                                        Visibility="{Binding HasDescription, Converter={StaticResource BoolToVis}}" />
 
-                                                    <!-- Progress Bar -->
-                                                    <Grid Grid.Row="3" Margin="0,0,0,10">
-                                                        <Grid Margin="0,0,0,4">
-                                                            <TextBlock Text="Checklist Progress" FontSize="10" Foreground="{DynamicResource Brush.TextMuted}" />
-                                                            <TextBlock Text="{Binding Progress, StringFormat='{}{0}%'}" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource Brush.Success}" HorizontalAlignment="Right" />
+                                                    <!--  Progress Bar  -->
+                                                    <Grid Grid.Row="3" Margin="0,10,10,10">
+                                                        <Grid Margin="0,0,0,12">
+                                                            <TextBlock
+                                                                FontSize="10"
+                                                                Foreground="{DynamicResource Brush.TextMuted}"
+                                                                Text="Checklist Progress" />
+                                                            <TextBlock
+                                                                HorizontalAlignment="Right"
+                                                                FontSize="10"
+                                                                FontWeight="Bold"
+                                                                Foreground="{DynamicResource Brush.Success}"
+                                                                Text="{Binding Progress, StringFormat='{}{0}%'}" />
                                                         </Grid>
-                                                        <ProgressBar Value="{Binding Progress}" Maximum="100" Height="4" Style="{StaticResource ProgressBar.Modern}" Foreground="{DynamicResource Brush.Success}" VerticalAlignment="Bottom" />
+                                                        <ProgressBar
+                                                            Height="4"
+                                                            VerticalAlignment="Bottom"
+                                                            Foreground="{DynamicResource Brush.Success}"
+                                                            Maximum="100"
+                                                            Style="{StaticResource ProgressBar.Modern}"
+                                                            Value="{Binding Progress}" />
                                                     </Grid>
 
-                                                    <!-- Bottom Actions -->
+                                                    <!--  Bottom Actions  -->
                                                     <Grid Grid.Row="4">
-                                                        <Button Style="{StaticResource Button.Ghost}" Content="Checklist →" FontSize="11" Height="28" Padding="6,0" HorizontalAlignment="Left"
-                                                                Command="{Binding DataContext.OpenTaskDetailCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                CommandParameter="{Binding}" />
+                                                        <Button
+                                                            Height="28"
+                                                            Padding="6,0"
+                                                            HorizontalAlignment="Left"
+                                                            Command="{Binding DataContext.OpenTaskDetailCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            Content="Checklist →"
+                                                            FontSize="11"
+                                                            Style="{StaticResource Button.Ghost}" />
 
-                                                        <Button Style="{StaticResource Button.Ghost}" Content="← Reopen" FontSize="11" Height="28" Padding="8,0" HorizontalAlignment="Right"
-                                                                Command="{Binding DataContext.MoveToInProgressCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                                CommandParameter="{Binding}" ToolTip="Move back to In Progress" />
+                                                        <Button
+                                                            Height="28"
+                                                            Padding="8,0"
+                                                            HorizontalAlignment="Right"
+                                                            Command="{Binding DataContext.MoveToInProgressCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}"
+                                                            Content="← Reopen"
+                                                            FontSize="11"
+                                                            Style="{StaticResource Button.Ghost}"
+                                                            ToolTip="Move back to In Progress" />
                                                     </Grid>
                                                 </Grid>
                                             </Border>
@@ -493,25 +1025,52 @@
             </Grid>
         </Grid>
 
-        <!-- ==================== MODAL: ADD NEW CARD ==================== -->
+        <!--  ==================== MODAL: ADD NEW CARD ====================  -->
         <Grid Background="#7F000000" Visibility="{Binding IsCreateTaskModalOpen, Converter={StaticResource BoolToVis}}">
-            <Border Style="{StaticResource Border.Card}" Width="540" MaxHeight="680" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="32" Margin="20">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+            <Border
+                Width="540"
+                MaxHeight="680"
+                Margin="20"
+                Padding="32"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Style="{StaticResource Border.Card}">
+<ScrollViewer
+                            HorizontalScrollBarVisibility="Disabled"
+                            Padding="0,0,8,0"
+                            VerticalScrollBarVisibility="Auto">
                     <StackPanel>
-                        <!-- Modal Header -->
+                        <!--  Modal Header  -->
                         <Grid Margin="0,0,0,20">
-                            <TextBlock Text="Add New Card" Style="{StaticResource Text.Heading2}" />
-                            <Button Style="{StaticResource Button.Icon}" Command="{Binding CloseCreateTaskModalCommand}" HorizontalAlignment="Right">
-                                <Path Data="{StaticResource Icon.Close}" Fill="{DynamicResource Brush.TextMuted}" Width="12" Height="12" Stretch="Uniform" />
+                            <TextBlock Style="{StaticResource Text.Heading2}" Text="Add New Card" />
+                            <Button
+                                HorizontalAlignment="Right"
+                                Command="{Binding CloseCreateTaskModalCommand}"
+                                Style="{StaticResource Button.Icon}">
+                                <Path
+                                    Width="12"
+                                    Height="12"
+                                    Data="{StaticResource Icon.Close}"
+                                    Fill="{DynamicResource Brush.TextMuted}"
+                                    Stretch="Uniform" />
                             </Button>
                         </Grid>
 
-                        <!-- Project & Track Selector -->
-                        <TextBlock Text="Target Project &amp; Track *" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
-                        <ComboBox ItemsSource="{Binding AvailableTracks}" SelectedItem="{Binding SelectedTrackOption}" 
-                                  DisplayMemberPath="DisplayName" Style="{StaticResource ComboBox.Modern}" Margin="0,0,0,16" />
+                        <!--  Project & Track Selector  -->
+                        <TextBlock
+                            Margin="0,0,0,6"
+                            FontSize="13"
+                            FontWeight="SemiBold"
+                            Foreground="{DynamicResource Brush.TextPrimary}"
+                            Text="Target Project &amp; Track *" />
+                        <ComboBox
+                            Margin="0,0,0,16"
+                            DisplayMemberPath="DisplayName"
+                            ItemsSource="{Binding AvailableTracks}"
+                            SelectedItem="{Binding SelectedTrackOption}"
+                            Style="{StaticResource ComboBox.Modern}" />
 
-                        <!-- Column / State -->
+                        <!--  Column / State  -->
                         <Grid Margin="0,0,0,16">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
@@ -520,36 +1079,94 @@
                             </Grid.ColumnDefinitions>
 
                             <StackPanel Grid.Column="0">
-                                <TextBlock Text="Board Column / State" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
-                                <ComboBox ItemsSource="{Binding AvailableStates}" SelectedItem="{Binding NewTaskState}" Style="{StaticResource ComboBox.Modern}" />
+                                <TextBlock
+                                    Margin="0,0,0,6"
+                                    FontSize="13"
+                                    FontWeight="SemiBold"
+                                    Foreground="{DynamicResource Brush.TextPrimary}"
+                                    Text="Board Column / State" />
+                                <ComboBox
+                                    ItemsSource="{Binding AvailableStates}"
+                                    SelectedItem="{Binding NewTaskState}"
+                                    Style="{StaticResource ComboBox.Modern}" />
                             </StackPanel>
 
                             <StackPanel Grid.Column="2">
-                                <TextBlock Text="Priority" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
-                                <ComboBox ItemsSource="{Binding AvailablePriorities}" SelectedItem="{Binding NewTaskPriority}" Style="{StaticResource ComboBox.Modern}" />
+                                <TextBlock
+                                    Margin="0,0,0,6"
+                                    FontSize="13"
+                                    FontWeight="SemiBold"
+                                    Foreground="{DynamicResource Brush.TextPrimary}"
+                                    Text="Priority" />
+                                <ComboBox
+                                    ItemsSource="{Binding AvailablePriorities}"
+                                    SelectedItem="{Binding NewTaskPriority}"
+                                    Style="{StaticResource ComboBox.Modern}" />
                             </StackPanel>
                         </Grid>
 
-                        <!-- Card Title -->
-                        <TextBlock Text="Card Title *" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
-                        <TextBox Text="{Binding NewTaskTitle, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Margin="0,0,0,16" />
+                        <!--  Card Title  -->
+                        <TextBlock
+                            Margin="0,0,0,6"
+                            FontSize="13"
+                            FontWeight="SemiBold"
+                            Foreground="{DynamicResource Brush.TextPrimary}"
+                            Text="Card Title *" />
+                        <TextBox
+                            Margin="0,0,0,16"
+                            Style="{StaticResource TextBox.Modern}"
+                            Text="{Binding NewTaskTitle, UpdateSourceTrigger=PropertyChanged}" />
 
-                        <!-- Due Date -->
-                        <TextBlock Text="Due Date" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
-                        <DatePicker SelectedDate="{Binding NewTaskDueDate}" Height="40" Margin="0,0,0,16" />
+                        <!--  Due Date  -->
+                        <TextBlock
+                            Margin="0,0,0,6"
+                            FontSize="13"
+                            FontWeight="SemiBold"
+                            Foreground="{DynamicResource Brush.TextPrimary}"
+                            Text="Due Date" />
+                        <DatePicker
+                            Height="40"
+                            Margin="0,0,0,16"
+                            SelectedDate="{Binding NewTaskDueDate}" />
 
-                        <!-- External Work Link -->
-                        <TextBlock Text="External Link (GitHub Issue / Jira / Docs)" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
-                        <TextBox Text="{Binding NewTaskLink, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Margin="0,0,0,16" />
+                        <!--  External Work Link  -->
+                        <TextBlock
+                            Margin="0,0,0,6"
+                            FontSize="13"
+                            FontWeight="SemiBold"
+                            Foreground="{DynamicResource Brush.TextPrimary}"
+                            Text="External Link (GitHub Issue / Jira / Docs)" />
+                        <TextBox
+                            Margin="0,0,0,16"
+                            Style="{StaticResource TextBox.Modern}"
+                            Text="{Binding NewTaskLink, UpdateSourceTrigger=PropertyChanged}" />
 
-                        <!-- Description -->
-                        <TextBlock Text="Description (Optional)" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
-                        <TextBox Text="{Binding NewTaskDescription, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Multiline}" Height="100" Margin="0,0,0,24" />
+                        <!--  Description  -->
+                        <TextBlock
+                            Margin="0,0,0,6"
+                            FontSize="13"
+                            FontWeight="SemiBold"
+                            Foreground="{DynamicResource Brush.TextPrimary}"
+                            Text="Description (Optional)" />
+                        <TextBox
+                            Height="100"
+                            Margin="0,0,0,24"
+                            Style="{StaticResource TextBox.Multiline}"
+                            Text="{Binding NewTaskDescription, UpdateSourceTrigger=PropertyChanged}" />
 
-                        <!-- Modal Actions -->
+                        <!--  Modal Actions  -->
                         <Grid>
-                            <Button Style="{StaticResource Button.Ghost}" Content="Cancel" Command="{Binding CloseCreateTaskModalCommand}" HorizontalAlignment="Left" />
-                            <Button Style="{StaticResource Button.Primary}" Content="Create Card" Command="{Binding SubmitCreateTaskCommand}" HorizontalAlignment="Right" Padding="22,0" />
+                            <Button
+                                HorizontalAlignment="Left"
+                                Command="{Binding CloseCreateTaskModalCommand}"
+                                Content="Cancel"
+                                Style="{StaticResource Button.Ghost}" />
+                            <Button
+                                Padding="22,0"
+                                HorizontalAlignment="Right"
+                                Command="{Binding SubmitCreateTaskCommand}"
+                                Content="Create Card"
+                                Style="{StaticResource Button.Primary}" />
                         </Grid>
                     </StackPanel>
                 </ScrollViewer>

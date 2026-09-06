@@ -13,6 +13,7 @@ public class CachedMinorTask
     public string? Notes { get; set; }
     public string? Link { get; set; }
     public int Order { get; set; }
+    public long? WorkTimeSeconds { get; set; }
     public Guid? AssignedUserId { get; set; }
     public Guid? CreatedByUserId { get; set; }
     public DateTime CreatedDate { get; set; }

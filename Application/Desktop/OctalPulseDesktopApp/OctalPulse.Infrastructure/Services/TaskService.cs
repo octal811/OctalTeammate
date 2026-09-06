@@ -78,6 +78,15 @@ public class TaskService : ITaskService
             cancellationToken);
     }
 
+    public Task<AddMinorTaskWorkTimeResponse> AddMinorTaskWorkTimeAsync(AddMinorTaskWorkTimeRequest request, CancellationToken cancellationToken = default)
+    {
+        return _apiClient.SendAsync<AddMinorTaskWorkTimeResponse>(
+            HttpMethod.Post,
+            "/api/minortasks/worktime",
+            request,
+            cancellationToken);
+    }
+
     public Task DeleteMinorTaskAsync(Guid id, CancellationToken cancellationToken = default)
     {
         return _apiClient.SendAsync(

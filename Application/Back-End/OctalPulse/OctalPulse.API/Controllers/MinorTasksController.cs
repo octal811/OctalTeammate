@@ -3,6 +3,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using OctalPulse.API.Attributes;
+using OctalPulse.Application.Features.Command.MinorTask.AddMinorTaskWorkTime;
 using OctalPulse.Application.Features.Command.MinorTask.CreateMinorTask;
 using OctalPulse.Application.Features.Command.MinorTask.DeleteMinorTask;
 using OctalPulse.Application.Features.Command.MinorTask.UpdateMinorTask;
@@ -48,6 +49,17 @@ public class MinorTasksController : ControllerBase
     [HttpPut]
     public async Task<ActionResult<UpdateMinorTaskResponse>> Update(
         [FromBody] UpdateMinorTaskCommand command,
+        CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(
+            command with { UserId = GetUserId() },
+            cancellationToken);
+        return Ok(result);
+    }
+
+    [HttpPost("worktime")]
+    public async Task<ActionResult<AddMinorTaskWorkTimeResponse>> AddWorkTime(
+        [FromBody] AddMinorTaskWorkTimeCommand command,
         CancellationToken cancellationToken)
     {
         var result = await _sender.Send(

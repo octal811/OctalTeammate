@@ -179,7 +179,7 @@
         <!-- ── Modal: Create Event ──────────────────────────────────────── -->
         <Grid Background="#7F000000" Visibility="{Binding IsCreateEventModalOpen, Converter={StaticResource BoolToVis}}">
             <Border Style="{StaticResource Border.Card}" Width="500" MaxHeight="620" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="32" Margin="20">
-                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,8,0">
                     <StackPanel>
                         <Grid Margin="0,0,0,20">
                             <TextBlock Text="Add Calendar Event" Style="{StaticResource Text.Heading2}" />

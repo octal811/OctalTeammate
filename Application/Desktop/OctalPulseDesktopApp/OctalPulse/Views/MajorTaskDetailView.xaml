@@ -75,11 +75,30 @@
             <!-- Minor Tasks Checklist Section -->
             <Border Style="{StaticResource Border.Card}" Padding="28">
                 <StackPanel>
-                    <TextBlock Text="Minor Tasks (Sub-tasks Checklist)" Style="{StaticResource Text.Heading2}" Margin="0,0,0,4" />
+                    <Grid Margin="0,0,0,8">
+                        <TextBlock Text="Minor Tasks (Sub-tasks Checklist)" Style="{StaticResource Text.Heading2}" />
+                        <Button
+                            Height="36"
+                            Padding="18,0"
+                            HorizontalAlignment="Right"
+                            Command="{Binding ToggleAddMinorCommand}">
+                            <Button.Style>
+                                <Style TargetType="Button" BasedOn="{StaticResource Button.Primary}">
+                                    <Setter Property="Content" Value="+ Add Minor Task" />
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsAddingMinor}" Value="True">
+                                            <Setter Property="Content" Value="✕ Close" />
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </Button.Style>
+                        </Button>
+                    </Grid>
                     <TextBlock Text="Checking off items automatically recalculates and cascades progress upward to the Major Task and Track." Style="{StaticResource Text.Subtitle}" Margin="0,0,0,20" />
 
-                    <!-- Add Minor Task Form Card -->
-                    <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="10" Padding="20" Margin="0,0,0,24">
+                    <!-- Add Minor Task Form Card (toggled by the Add button) -->
+                    <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="10" Padding="20" Margin="0,0,0,24"
+                            Visibility="{Binding IsAddingMinor, Converter={StaticResource BoolToVis}}">
                         <StackPanel>
                             <Grid Margin="0,0,0,14">
                                 <Grid.ColumnDefinitions>
@@ -125,11 +144,11 @@
 
                     <!-- Empty State -->
                     <TextBlock Text="No sub-tasks in this checklist yet. Add one above." FontSize="14" Foreground="{DynamicResource Brush.TextMuted}" 
-                               Visibility="{Binding MinorTasks.Count, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" 
+                               Visibility="{Binding MinorTaskRows.Count, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" 
                                HorizontalAlignment="Center" Margin="0,20" />
 
                     <!-- Checklist Items -->
-                    <ItemsControl ItemsSource="{Binding MinorTasks}">
+                    <ItemsControl ItemsSource="{Binding MinorTaskRows}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border Style="{StaticResource Border.Card}" Margin="0,0,0,14" Padding="16">
@@ -138,16 +157,16 @@
                                         <Grid Margin="0,0,0,10">
                                             <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                                 <CheckBox VerticalAlignment="Center" Margin="0,0,14,0" Cursor="Hand"
-                                                          IsChecked="{Binding State, Converter={StaticResource StateToBool}, Mode=OneWay}"
+                                                          IsChecked="{Binding Item.State, Converter={StaticResource StateToBool}, Mode=OneWay}"
                                                           Command="{Binding DataContext.ToggleTaskDoneCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                           CommandParameter="{Binding}"
                                                           ToolTip="Check to mark done / uncheck to reopen" />
-                                                <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap">
+                                                <TextBlock Text="{Binding Item.Title}" FontSize="14" FontWeight="SemiBold" VerticalAlignment="Center" TextWrapping="Wrap">
                                                     <TextBlock.Style>
                                                         <Style TargetType="TextBlock">
                                                             <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}" />
                                                             <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding State}" Value="Done">
+                                                                <DataTrigger Binding="{Binding Item.State}" Value="Done">
                                                                     <Setter Property="TextDecorations" Value="Strikethrough" />
                                                                     <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}" />
                                                                 </DataTrigger>
@@ -165,9 +184,9 @@
                                                             <Style TargetType="TextBlock">
                                                                 <Setter Property="Text" Value="In Progress" />
                                                                 <Setter Property="Foreground" Value="{DynamicResource Brush.Primary}" />
-                                                                <Style.Triggers>
-                                                                    <DataTrigger Binding="{Binding State}" Value="Done">
-                                                                        <Setter Property="Text" Value="Completed ✓" />
+<Style.Triggers>
+                                                                <DataTrigger Binding="{Binding Item.State}" Value="Done">
+                                                                    <Setter Property="Text" Value="Completed ✓" />
                                                                         <Setter Property="Foreground" Value="{DynamicResource Brush.Success}" />
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
@@ -175,6 +194,14 @@
                                                         </TextBlock.Style>
                                                     </TextBlock>
                                                 </Border>
+
+                                                <!-- Add Time Button (owner only) -->
+                                                <Button Style="{StaticResource Button.Icon}"
+                                                        Command="{Binding DataContext.AddWorkTimeCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}" ToolTip="Add work time"
+                                                        Visibility="{Binding IsOwner, Converter={StaticResource BoolToVis}}">
+                                                    <Path Data="{StaticResource Icon.Stopwatch}" Fill="{DynamicResource Brush.TextSecondary}" Width="14" Height="14" Stretch="Uniform" />
+                                                </Button>
 
                                                 <!-- Delete Item Button -->
                                                 <Button Style="{StaticResource Button.Icon}"
@@ -185,27 +212,34 @@
                                             </StackPanel>
                                         </Grid>
 
+                                        <!-- Work Time -->
+                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8"
+                                                    Visibility="{Binding HasWorkTime, Converter={StaticResource BoolToVis}}">
+                                            <Path Data="{StaticResource Icon.Stopwatch}" Fill="{DynamicResource Brush.Primary}" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" />
+                                            <TextBlock Text="{Binding WorkTimeDisplay}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Primary}" />
+                                        </StackPanel>
+
                                         <!-- Target / Acceptance Criteria -->
-                                        <TextBlock Text="{Binding Target}" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,0,0,8" TextWrapping="Wrap"
-                                                   Visibility="{Binding Target, Converter={StaticResource NullToVis}}" />
+                                        <TextBlock Text="{Binding Item.Target}" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,0,0,8" TextWrapping="Wrap"
+                                                   Visibility="{Binding Item.Target, Converter={StaticResource NullToVis}}" />
 
                                         <!-- Description -->
-                                        <TextBlock Text="{Binding Description}" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,0,0,8" TextWrapping="Wrap"
-                                                   Visibility="{Binding Description, Converter={StaticResource NullToVis}}" />
+                                        <TextBlock Text="{Binding Item.Description}" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,0,0,8" TextWrapping="Wrap"
+                                                   Visibility="{Binding Item.Description, Converter={StaticResource NullToVis}}" />
 
                                         <!-- Notes -->
-                                        <TextBlock Text="{Binding Notes}" FontSize="12" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,0,0,8" TextWrapping="Wrap"
-                                                   Visibility="{Binding Notes, Converter={StaticResource NullToVis}}" />
+                                        <TextBlock Text="{Binding Item.Notes}" FontSize="12" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,0,0,8" TextWrapping="Wrap"
+                                                   Visibility="{Binding Item.Notes, Converter={StaticResource NullToVis}}" />
 
                                         <!-- Link Row (Clickable) -->
                                         <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="8" Padding="10,6"
-                                                Visibility="{Binding Link, Converter={StaticResource NullToVis}}">
+                                                Visibility="{Binding Item.Link, Converter={StaticResource NullToVis}}">
                                             <Button Style="{StaticResource Button.Ghost}" Padding="0" Cursor="Hand" HorizontalAlignment="Left"
                                                     Command="{Binding DataContext.OpenExternalLinkCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                    CommandParameter="{Binding Link}" ToolTip="Open external link">
+                                                    CommandParameter="{Binding Item.Link}" ToolTip="Open external link">
                                                 <StackPanel Orientation="Horizontal">
                                                     <Path Data="{StaticResource Icon.GitHub}" Fill="{DynamicResource Brush.Primary}" Width="14" Height="14" Stretch="Uniform" Margin="0,0,8,0" />
-                                                    <TextBlock Text="{Binding Link}" FontSize="12" Foreground="{DynamicResource Brush.Primary}" TextTrimming="CharacterEllipsis" />
+                                                    <TextBlock Text="{Binding Item.Link}" FontSize="12" Foreground="{DynamicResource Brush.Primary}" TextTrimming="CharacterEllipsis" />
                                                     <TextBlock Text=" ↗" FontSize="12" Foreground="{DynamicResource Brush.Primary}" />
                                                 </StackPanel>
                                             </Button>

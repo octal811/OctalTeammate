@@ -4,21 +4,21 @@ using OctalPulse.Application.Interface.Repositories;
 using OctalPulse.Application.Interface.Services;
 using OctalPulse.Domain.Enums;
 
-namespace OctalPulse.Application.Features.Command.MinorTask.UpdateMinorTask;
+namespace OctalPulse.Application.Features.Command.MinorTask.AddMinorTaskWorkTime;
 
-public class UpdateMinorTaskCommandHandler : IRequestHandler<UpdateMinorTaskCommand, UpdateMinorTaskResponse>
+public class AddMinorTaskWorkTimeCommandHandler : IRequestHandler<AddMinorTaskWorkTimeCommand, AddMinorTaskWorkTimeResponse>
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IRealtimeNotifier _realtimeNotifier;
 
-    public UpdateMinorTaskCommandHandler(IUnitOfWork unitOfWork, IRealtimeNotifier realtimeNotifier)
+    public AddMinorTaskWorkTimeCommandHandler(IUnitOfWork unitOfWork, IRealtimeNotifier realtimeNotifier)
     {
         _unitOfWork = unitOfWork;
         _realtimeNotifier = realtimeNotifier;
     }
 
-    public async Task<UpdateMinorTaskResponse> Handle(
-        UpdateMinorTaskCommand request,
+    public async Task<AddMinorTaskWorkTimeResponse> Handle(
+        AddMinorTaskWorkTimeCommand request,
         CancellationToken cancellationToken)
     {
         var task = await _unitOfWork.MinorTasks.GetByIdAsync(request.Id, cancellationToken);
@@ -32,16 +32,10 @@ public class UpdateMinorTaskCommandHandler : IRequestHandler<UpdateMinorTaskComm
         await EnsureApprovedTrackMemberAsync(majorTask.TrackId, request.UserId, cancellationToken);
 
         if (task.CreatedByUserId != request.UserId)
-            throw new ForbiddenException("Only the creator of this minor task can update it.");
+            throw new ForbiddenException("Only the creator of this minor task can add work time.");
 
-        task.Title = request.Title;
-        task.Description = request.Description;
-        task.Target = request.Target;
-        task.State = request.State;
-        task.Notes = request.Notes;
-        task.Link = request.Link;
-        task.Order = request.Order;
-        task.AssignedUserId = request.AssignedUserId;
+        var delta = TimeSpan.FromSeconds(request.WorkTimeSeconds);
+        task.WorkTime = (task.WorkTime ?? TimeSpan.Zero) + delta;
         task.ModifiedDate = DateTime.UtcNow;
 
         _unitOfWork.MinorTasks.Update(task);
@@ -49,20 +43,9 @@ public class UpdateMinorTaskCommandHandler : IRequestHandler<UpdateMinorTaskComm
 
         await _realtimeNotifier.MinorTaskChangedAsync(majorTask.TrackId, task.Id, cancellationToken);
 
-        return new UpdateMinorTaskResponse(
+        return new AddMinorTaskWorkTimeResponse(
             task.Id,
-            task.MajorTaskId,
-            task.Title,
-            task.Description,
-            task.Target,
-            task.State,
-            task.Notes,
-            task.Link,
-            task.Order,
-            task.WorkTime is null ? null : (long)task.WorkTime.Value.TotalSeconds,
-            task.AssignedUserId,
-            task.CreatedByUserId,
-            task.ModifiedDate);
+            (long)task.WorkTime.Value.TotalSeconds);
     }
 
     private async Task EnsureApprovedTrackMemberAsync(Guid trackId, Guid userId, CancellationToken cancellationToken)
@@ -72,6 +55,6 @@ public class UpdateMinorTaskCommandHandler : IRequestHandler<UpdateMinorTaskComm
             cancellationToken);
 
         if (!isMember)
-            throw new ForbiddenException("Only approved track members can update minor tasks in this track.");
+            throw new ForbiddenException("Only approved track members can add work time in this track.");
     }
 }

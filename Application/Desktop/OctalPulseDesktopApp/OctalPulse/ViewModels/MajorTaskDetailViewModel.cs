@@ -19,6 +19,7 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
     private readonly ISignalRRealtimeService _signalRService;
     private readonly INavigationService _navigationService;
     private readonly IDialogService _dialogService;
+    private readonly IUserSession _userSession;
 
     [ObservableProperty]
     private Guid _majorTaskId;
@@ -41,6 +42,9 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
     [ObservableProperty]
     private bool _isBusy;
 
+    [ObservableProperty]
+    private bool _isAddingMinor;
+
     // Create Minor Task
     [ObservableProperty]
     private string _newMinorTitle = string.Empty;
@@ -57,20 +61,22 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
     [ObservableProperty]
     private string _newMinorLink = string.Empty;
 
-    public ObservableCollection<MinorTaskItem> MinorTasks { get; } = new();
+    public ObservableCollection<MinorTaskRowViewModel> MinorTaskRows { get; } = new();
 
     public MajorTaskDetailViewModel(
         ITaskService taskService,
         ILocalCacheService localCache,
         ISignalRRealtimeService signalRService,
         INavigationService navigationService,
-        IDialogService dialogService)
+        IDialogService dialogService,
+        IUserSession userSession)
     {
         _taskService = taskService;
         _localCache = localCache;
         _signalRService = signalRService;
         _navigationService = navigationService;
         _dialogService = dialogService;
+        _userSession = userSession;
 
         _signalRService.MinorTaskChanged += OnMinorTaskChanged;
     }
@@ -134,12 +140,12 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
         try
         {
             var res = await _taskService.GetMinorTasksByMajorTaskAsync(MajorTaskId);
-            MinorTasks.Clear();
+            MinorTaskRows.Clear();
 
             var doneCount = 0;
             foreach (var m in res.MinorTasks)
             {
-                MinorTasks.Add(m);
+                MinorTaskRows.Add(new MinorTaskRowViewModel(m, m.CreatedByUserId == _userSession.UserId));
                 if (m.State == MinorTaskState.Done)
                 {
                     doneCount++;
@@ -165,20 +171,23 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
                 Notes = m.Notes,
                 Link = m.Link,
                 Order = m.Order,
+                WorkTimeSeconds = m.WorkTimeSeconds,
                 AssignedUserId = m.AssignedUserId,
                 CreatedByUserId = m.CreatedByUserId,
                 CreatedDate = m.CreatedDate
             }));
         }
-        catch
+        catch (Exception ex)
         {
+            _dialogService.ShowToast("Load Error", $"Could not load sub-tasks: {ex.Message}", ToastType.Warning);
+
             // SQLite cache
             var cached = await _localCache.GetCachedMinorTasksAsync(MajorTaskId);
-            MinorTasks.Clear();
+            MinorTaskRows.Clear();
             var doneCount = 0;
             foreach (var c in cached)
             {
-                MinorTasks.Add(new MinorTaskItem(
+                var item = new MinorTaskItem(
                     c.Id,
                     c.MajorTaskId,
                     c.Title,
@@ -188,10 +197,12 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
                     c.Notes,
                     c.Link,
                     c.Order,
+                    c.WorkTimeSeconds,
                     c.AssignedUserId,
                     c.CreatedByUserId,
                     false,
-                    c.CreatedDate));
+                    c.CreatedDate);
+                MinorTaskRows.Add(new MinorTaskRowViewModel(item, item.CreatedByUserId == _userSession.UserId));
 
                 if (c.State == MinorTaskState.Done) doneCount++;
             }
@@ -204,9 +215,10 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
     }
 
     [RelayCommand]
-    private async Task ToggleTaskDoneAsync(MinorTaskItem task)
+    private async Task ToggleTaskDoneAsync(MinorTaskRowViewModel row)
     {
-        if (task == null) return;
+        if (row == null) return;
+        var task = row.Item;
 
         var newState = task.State == MinorTaskState.Done ? MinorTaskState.InProgress : MinorTaskState.Done;
 
@@ -256,7 +268,7 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
                 MinorTaskState.Todo,
                 string.IsNullOrWhiteSpace(NewMinorNotes) ? null : NewMinorNotes.Trim(),
                 string.IsNullOrWhiteSpace(NewMinorLink) ? null : NewMinorLink.Trim(),
-                MinorTasks.Count + 1,
+                MinorTaskRows.Count + 1,
                 null));
 
             NewMinorTitle = string.Empty;
@@ -266,6 +278,7 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
             NewMinorLink = string.Empty;
 
             _dialogService.ShowToast("Task Added", "Sub-task added to checklist.", ToastType.Success);
+            IsAddingMinor = false;
             await LoadMinorTasksAsync();
         }
         catch (Exception ex)
@@ -279,14 +292,14 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
     }
 
     [RelayCommand]
-    private async Task DeleteMinorTaskAsync(MinorTaskItem task)
+    private async Task DeleteMinorTaskAsync(MinorTaskRowViewModel row)
     {
-        if (task == null) return;
+        if (row == null) return;
 
         IsBusy = true;
         try
         {
-            await _taskService.DeleteMinorTaskAsync(task.Id);
+            await _taskService.DeleteMinorTaskAsync(row.Item.Id);
             _dialogService.ShowToast("Task Removed", "Sub-task deleted.", ToastType.Info);
             await LoadMinorTasksAsync();
         }
@@ -298,6 +311,67 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
         {
             IsBusy = false;
         }
+    }
+
+    [RelayCommand]
+    private void ToggleAddMinor()
+    {
+        IsAddingMinor = !IsAddingMinor;
+    }
+
+    [RelayCommand]
+    private async Task AddWorkTimeAsync(MinorTaskRowViewModel row)
+    {
+        if (row == null || !row.IsOwner) return;
+
+        IsBusy = true;
+        try
+        {
+            var input = await _dialogService.ShowPromptAsync(
+                "Add Work Time",
+                $"Add work time to \"{row.Item.Title}\" in HH:MM format (e.g. 01:30 = 1h 30m).",
+                "00:00");
+            if (string.IsNullOrWhiteSpace(input)) return;
+
+            var seconds = ParseTimeInput(input);
+            if (seconds <= 0)
+            {
+                _dialogService.ShowToast("Invalid Value", "Enter a positive time in HH:MM format.", ToastType.Warning);
+                return;
+            }
+
+            var res = await _taskService.AddMinorTaskWorkTimeAsync(new AddMinorTaskWorkTimeRequest(row.Item.Id, seconds));
+            _dialogService.ShowToast(
+                "Work Time Added",
+                $"Added {MinorTaskRowViewModel.Format(seconds)}. Total: {MinorTaskRowViewModel.Format(res.WorkTimeSeconds)}.",
+                ToastType.Success);
+            await LoadMinorTasksAsync();
+        }
+        catch (Exception ex)
+        {
+            _dialogService.ShowToast("Add Time Error", ex.Message, ToastType.Error);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private static long ParseTimeInput(string input)
+    {
+        var s = input.Trim();
+        if (s.Contains(':'))
+        {
+            var parts = s.Split(':');
+            if (parts.Length is < 2 or > 3) return 0;
+            if (!int.TryParse(parts[0], out var h) || !int.TryParse(parts[1], out var m)) return 0;
+            var sec = parts.Length == 3 && int.TryParse(parts[2], out var ss) ? ss : 0;
+            if (h < 0 || m < 0 || sec < 0 || m > 59 || sec > 59) return 0;
+            return h * 3600L + m * 60L + sec;
+        }
+
+        if (int.TryParse(s, out var minutes) && minutes > 0) return minutes * 60L;
+        return 0;
     }
 
     [RelayCommand]

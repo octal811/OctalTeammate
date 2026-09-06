@@ -25,6 +25,16 @@ public class WpfDialogService : IDialogService
         return Task.CompletedTask;
     }
 
+    public Task<string?> ShowPromptAsync(string title, string prompt, string defaultText = "")
+    {
+        var dialog = new InputDialog(title, prompt, defaultText)
+        {
+            Owner = System.Windows.Application.Current?.MainWindow
+        };
+        var result = dialog.ShowDialog();
+        return Task.FromResult(result == true ? dialog.ResultText : null);
+    }
+
     public void ShowToast(string title, string message, ToastType type = ToastType.Info)
     {
         ToastRequested?.Invoke(title, message, type);
