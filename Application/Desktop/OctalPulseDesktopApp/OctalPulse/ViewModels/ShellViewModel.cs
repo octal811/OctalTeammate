@@ -201,6 +201,13 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
         _navigationService.NavigateTo<ProfileViewModel>();
     }
 
+    [RelayCommand]
+    private void NavigateMedia()
+    {
+        CurrentRoute = "Media";
+        _navigationService.NavigateTo<MediaViewModel>();
+    }
+
 
     [RelayCommand]
     private async Task ReconnectSignalRAsync()

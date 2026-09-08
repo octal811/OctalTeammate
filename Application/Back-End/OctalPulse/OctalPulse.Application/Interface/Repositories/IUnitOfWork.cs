@@ -11,6 +11,9 @@ public interface IUnitOfWork : IDisposable
     IMajorTaskRepository MajorTasks { get; }
     IMinorTaskRepository MinorTasks { get; }
     IEventRepository Events { get; }
+    IPostRepository Posts { get; }
+    IPostReactionRepository PostReactions { get; }
+    IPostCommentRepository PostComments { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<int> CompleteAsync(CancellationToken cancellationToken = default);

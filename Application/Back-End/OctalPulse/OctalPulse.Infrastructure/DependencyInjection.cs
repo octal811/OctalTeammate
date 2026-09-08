@@ -47,6 +47,9 @@ public static class DependencyInjection
         services.AddScoped<IEventRepository, EventRepository>();
         services.AddScoped<IRefreshTokenRepository, RefreshTokenRepository>();
         services.AddScoped<IApiAvailabilityRepository, ApiAvailabilityRepository>();
+        services.AddScoped<IPostRepository, PostRepository>();
+        services.AddScoped<IPostReactionRepository, PostReactionRepository>();
+        services.AddScoped<IPostCommentRepository, PostCommentRepository>();
 
         return services;
     }

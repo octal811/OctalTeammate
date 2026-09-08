@@ -32,6 +32,12 @@ public class SignalRRealtimeService : ISignalRRealtimeService
     public event Action<Guid, Guid>? MajorTaskChanged;
     public event Action<Guid, Guid>? MinorTaskChanged;
     public event Action<Guid, Guid>? EventChanged;
+    public event Action<Guid, Guid?, Guid?>? PostCreated;
+    public event Action<Guid, Guid?, Guid?>? PostUpdated;
+    public event Action<Guid, Guid?, Guid?>? PostDeleted;
+    public event Action<Guid, Guid?>? PostReactionChanged;
+    public event Action<Guid, Guid, Guid?, Guid?>? CommentAdded;
+    public event Action<Guid, Guid, Guid?>? CommentDeleted;
     public event Action<bool>? ConnectionStateChanged;
 
     public SignalRRealtimeService(string hubBaseUrl, ITokenService tokenService, ILogger<SignalRRealtimeService> logger)
@@ -272,6 +278,42 @@ public class SignalRRealtimeService : ISignalRRealtimeService
         {
             _logger.LogDebug("SignalR eventChanged received: Event={EventId}, Project={ProjectId}", eventId, projectId);
             EventChanged?.Invoke(eventId, projectId);
+        });
+
+        _hubConnection.On<Guid, Guid?, Guid?>("postCreated", (postId, projectId, trackId) =>
+        {
+            _logger.LogDebug("SignalR postCreated received: Post={PostId}", postId);
+            PostCreated?.Invoke(postId, projectId, trackId);
+        });
+
+        _hubConnection.On<Guid, Guid?, Guid?>("postUpdated", (postId, projectId, trackId) =>
+        {
+            _logger.LogDebug("SignalR postUpdated received: Post={PostId}", postId);
+            PostUpdated?.Invoke(postId, projectId, trackId);
+        });
+
+        _hubConnection.On<Guid, Guid?, Guid?>("postDeleted", (postId, projectId, trackId) =>
+        {
+            _logger.LogDebug("SignalR postDeleted received: Post={PostId}", postId);
+            PostDeleted?.Invoke(postId, projectId, trackId);
+        });
+
+        _hubConnection.On<Guid, Guid?>("postReactionChanged", (postId, projectId) =>
+        {
+            _logger.LogDebug("SignalR postReactionChanged received: Post={PostId}", postId);
+            PostReactionChanged?.Invoke(postId, projectId);
+        });
+
+        _hubConnection.On<Guid, Guid, Guid?, Guid?>("commentAdded", (postId, commentId, parentCommentId, projectId) =>
+        {
+            _logger.LogDebug("SignalR commentAdded received: Post={PostId}, Comment={CommentId}", postId, commentId);
+            CommentAdded?.Invoke(postId, commentId, parentCommentId, projectId);
+        });
+
+        _hubConnection.On<Guid, Guid, Guid?>("commentDeleted", (postId, commentId, projectId) =>
+        {
+            _logger.LogDebug("SignalR commentDeleted received: Post={PostId}, Comment={CommentId}", postId, commentId);
+            CommentDeleted?.Invoke(postId, commentId, projectId);
         });
     }
 

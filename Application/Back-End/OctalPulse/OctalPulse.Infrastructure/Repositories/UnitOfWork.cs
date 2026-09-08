@@ -15,6 +15,9 @@ public class UnitOfWork : IUnitOfWork
     private IMajorTaskRepository? _majorTasks;
     private IMinorTaskRepository? _minorTasks;
     private IEventRepository? _events;
+    private IPostRepository? _posts;
+    private IPostReactionRepository? _postReactions;
+    private IPostCommentRepository? _postComments;
 
     public UnitOfWork(ApplicationDbContext context)
     {
@@ -30,6 +33,9 @@ public class UnitOfWork : IUnitOfWork
     public IMajorTaskRepository MajorTasks => _majorTasks ??= new MajorTaskRepository(_context);
     public IMinorTaskRepository MinorTasks => _minorTasks ??= new MinorTaskRepository(_context);
     public IEventRepository Events => _events ??= new EventRepository(_context);
+    public IPostRepository Posts => _posts ??= new PostRepository(_context);
+    public IPostReactionRepository PostReactions => _postReactions ??= new PostReactionRepository(_context);
+    public IPostCommentRepository PostComments => _postComments ??= new PostCommentRepository(_context);
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

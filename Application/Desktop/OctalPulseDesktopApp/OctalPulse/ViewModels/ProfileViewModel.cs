@@ -21,6 +21,7 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
     private readonly IUserSession _userSession;
     private readonly ILocalCacheService _localCache;
     private readonly IDialogService _dialogService;
+    private readonly IPostService _postService;
 
     [ObservableProperty]
     private string _profileName = string.Empty;
@@ -65,12 +66,14 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
         IAuthService authService,
         IUserSession userSession,
         ILocalCacheService localCache,
-        IDialogService dialogService)
+        IDialogService dialogService,
+        IPostService postService)
     {
         _authService = authService;
         _userSession = userSession;
         _localCache = localCache;
         _dialogService = dialogService;
+        _postService = postService;
 
         InitializeFromSession();
         InitializeShowcaseData();
@@ -123,6 +126,7 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
             }
 
             ApplyProfile(me);
+            await LoadUserPostsAsync();
             if (!isSilent)
             {
                 _dialogService.ShowToast("Profile Loaded", "Your profile was refreshed.", ToastType.Info);
@@ -139,6 +143,45 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
         {
             IsLoading = false;
         }
+    }
+
+    private async Task LoadUserPostsAsync()
+    {
+        if (!_userSession.IsAuthenticated || !_userSession.UserId.HasValue) return;
+
+        try
+        {
+            var res = await _postService.GetProfilePostsAsync(_userSession.UserId.Value, 1, 20);
+            if (res.Items != null && res.Items.Count > 0)
+            {
+                Posts.Clear();
+                foreach (var p in res.Items)
+                {
+                    Posts.Add(new ProfilePostItem(
+                        Title: p.Content.Length > 40 ? p.Content[..40] + "..." : p.Content,
+                        Category: "General Note",
+                        TimeAgo: FormatTimeAgo(p.CreatedDate),
+                        Content: p.Content,
+                        Tags: string.Empty,
+                        LikesCount: p.TotalReactions,
+                        CommentsCount: p.CommentsCount));
+                }
+            }
+        }
+        catch
+        {
+            // fallback gracefully to showcase data
+        }
+    }
+
+    private static string FormatTimeAgo(DateTime dt)
+    {
+        var diff = DateTime.UtcNow - dt.ToUniversalTime();
+        if (diff.TotalMinutes < 1) return "Just now";
+        if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes}m ago";
+        if (diff.TotalHours < 24) return $"{(int)diff.TotalHours}h ago";
+        if (diff.TotalDays < 7) return $"{(int)diff.TotalDays}d ago";
+        return dt.ToLocalTime().ToString("MMM dd, yyyy");
     }
 
     [RelayCommand]

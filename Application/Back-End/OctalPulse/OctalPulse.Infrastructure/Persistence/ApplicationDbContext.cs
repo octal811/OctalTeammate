@@ -23,6 +23,9 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     public DbSet<Event> Events => Set<Event>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<ApiAvailability> ApiAvailability => Set<ApiAvailability>();
+    public DbSet<Post> Posts => Set<Post>();
+    public DbSet<PostReaction> PostReactions => Set<PostReaction>();
+    public DbSet<PostComment> PostComments => Set<PostComment>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

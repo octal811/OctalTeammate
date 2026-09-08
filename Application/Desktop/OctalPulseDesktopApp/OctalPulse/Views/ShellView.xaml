@@ -49,6 +49,9 @@
         <DataTemplate DataType="{x:Type vm:ProfileViewModel}">
             <views:ProfileView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:MediaViewModel}">
+            <views:MediaView />
+        </DataTemplate>
     </UserControl.Resources>
 
     <Grid>
@@ -319,6 +322,37 @@
                                     FontWeight="Medium"
                                     Foreground="{DynamicResource Brush.TextPrimary}"
                                     Text="Profile" />
+                            </StackPanel>
+                        </Button>
+
+                        <!--  Media  -->
+                        <Button
+                            Height="42"
+                            Margin="0,2"
+                            Padding="12,0"
+                            HorizontalContentAlignment="Left"
+                            Command="{Binding NavigateMediaCommand}"
+                            Style="{StaticResource Button.Ghost}">
+                            <StackPanel Orientation="Horizontal">
+                                <Grid
+                                    Width="24"
+                                    Height="24"
+                                    Margin="0,0,12,0">
+                                    <Path
+                                        Width="18"
+                                        Height="18"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Data="{StaticResource Icon.Media}"
+                                        Fill="{DynamicResource Brush.TextSecondary}"
+                                        Stretch="Uniform" />
+                                </Grid>
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    FontSize="14"
+                                    FontWeight="Medium"
+                                    Foreground="{DynamicResource Brush.TextPrimary}"
+                                    Text="Media" />
                             </StackPanel>
                         </Button>
 

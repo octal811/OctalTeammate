@@ -47,4 +47,100 @@ public class SignalRNotifier : IRealtimeNotifier
             .Group(CollaborationHub.ProjectGroupName(projectId))
             .SendAsync("eventChanged", eventId, projectId, cancellationToken);
     }
+
+    public async Task PostCreatedAsync(Guid postId, Guid? projectId, Guid? trackId, CancellationToken cancellationToken = default)
+    {
+        if (projectId.HasValue)
+        {
+            await _hubContext.Clients
+                .Group(CollaborationHub.ProjectGroupName(projectId.Value))
+                .SendAsync("postCreated", postId, projectId.Value, trackId, cancellationToken);
+        }
+        else
+        {
+            await _hubContext.Clients
+                .All
+                .SendAsync("postCreated", postId, null, null, cancellationToken);
+        }
+    }
+
+    public async Task PostUpdatedAsync(Guid postId, Guid? projectId, Guid? trackId, CancellationToken cancellationToken = default)
+    {
+        if (projectId.HasValue)
+        {
+            await _hubContext.Clients
+                .Group(CollaborationHub.ProjectGroupName(projectId.Value))
+                .SendAsync("postUpdated", postId, projectId.Value, trackId, cancellationToken);
+        }
+        else
+        {
+            await _hubContext.Clients
+                .All
+                .SendAsync("postUpdated", postId, null, null, cancellationToken);
+        }
+    }
+
+    public async Task PostDeletedAsync(Guid postId, Guid? projectId, Guid? trackId, CancellationToken cancellationToken = default)
+    {
+        if (projectId.HasValue)
+        {
+            await _hubContext.Clients
+                .Group(CollaborationHub.ProjectGroupName(projectId.Value))
+                .SendAsync("postDeleted", postId, projectId.Value, trackId, cancellationToken);
+        }
+        else
+        {
+            await _hubContext.Clients
+                .All
+                .SendAsync("postDeleted", postId, null, null, cancellationToken);
+        }
+    }
+
+    public async Task PostReactionChangedAsync(Guid postId, Guid? projectId, CancellationToken cancellationToken = default)
+    {
+        if (projectId.HasValue)
+        {
+            await _hubContext.Clients
+                .Group(CollaborationHub.ProjectGroupName(projectId.Value))
+                .SendAsync("postReactionChanged", postId, projectId.Value, cancellationToken);
+        }
+        else
+        {
+            await _hubContext.Clients
+                .All
+                .SendAsync("postReactionChanged", postId, null, cancellationToken);
+        }
+    }
+
+    public async Task CommentAddedAsync(Guid postId, Guid commentId, Guid? parentCommentId, Guid? projectId, CancellationToken cancellationToken = default)
+    {
+        if (projectId.HasValue)
+        {
+            await _hubContext.Clients
+                .Group(CollaborationHub.ProjectGroupName(projectId.Value))
+                .SendAsync("commentAdded", postId, commentId, parentCommentId, projectId.Value, cancellationToken);
+        }
+        else
+        {
+            await _hubContext.Clients
+                .All
+                .SendAsync("commentAdded", postId, commentId, parentCommentId, null, cancellationToken);
+        }
+    }
+
+    public async Task CommentDeletedAsync(Guid postId, Guid commentId, Guid? projectId, CancellationToken cancellationToken = default)
+    {
+        if (projectId.HasValue)
+        {
+            await _hubContext.Clients
+                .Group(CollaborationHub.ProjectGroupName(projectId.Value))
+                .SendAsync("commentDeleted", postId, commentId, projectId.Value, cancellationToken);
+        }
+        else
+        {
+            await _hubContext.Clients
+                .All
+                .SendAsync("commentDeleted", postId, commentId, null, cancellationToken);
+        }
+    }
 }

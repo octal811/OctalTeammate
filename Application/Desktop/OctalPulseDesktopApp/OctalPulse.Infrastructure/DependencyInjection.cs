@@ -59,6 +59,7 @@ public static class DependencyInjection
         services.AddScoped<ITrackService, TrackService>();
         services.AddScoped<ITaskService, TaskService>();
         services.AddScoped<IEventService, EventService>();
+        services.AddScoped<IPostService, PostService>();
         services.AddScoped<IApiAvailabilityAdminService, ApiAvailabilityAdminService>();
 
         // SignalR Realtime Service
