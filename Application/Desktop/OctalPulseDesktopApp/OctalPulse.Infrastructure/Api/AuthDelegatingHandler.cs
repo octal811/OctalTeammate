@@ -65,16 +65,19 @@ public class AuthDelegatingHandler : DelegatingHandler
 
     private async Task<bool> TryRefreshTokenAsync(string? baseAuthority, CancellationToken cancellationToken)
     {
-        var refreshToken = _tokenService.GetRefreshToken();
-        if (string.IsNullOrEmpty(refreshToken) || string.IsNullOrEmpty(baseAuthority))
+        if (string.IsNullOrEmpty(baseAuthority))
             return false;
 
         await _refreshLock.WaitAsync(cancellationToken);
         try
         {
-            // Check if another thread already refreshed
+            // Check if another thread already refreshed while we waited
             if (!_tokenService.IsAccessTokenExpired())
                 return true;
+
+            var refreshToken = _tokenService.GetRefreshToken();
+            if (string.IsNullOrEmpty(refreshToken))
+                return false;
 
             using var refreshClient = new HttpClient { BaseAddress = new Uri(baseAuthority) };
             var payload = JsonSerializer.Serialize(new RefreshTokenRequest(refreshToken));

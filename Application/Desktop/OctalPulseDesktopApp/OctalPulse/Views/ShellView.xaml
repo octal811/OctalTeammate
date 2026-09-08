@@ -16,6 +16,7 @@
         <converters:BooleanToVisibilityConverter x:Key="BoolToVis" />
         <converters:NullToVisibilityConverter x:Key="NullToVis" />
         <converters:StringToInitialConverter x:Key="StringToInitial" />
+        <converters:RelativeUrlToImageSourceConverter x:Key="RelativeUrlToImage" />
 
         <!--  DataTemplates for Main Shell Content Area  -->
         <DataTemplate DataType="{x:Type vm:DashboardViewModel}">
@@ -44,6 +45,9 @@
         </DataTemplate>
         <DataTemplate DataType="{x:Type vm:StopwatchViewModel}">
             <views:StopwatchView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:ProfileViewModel}">
+            <views:ProfileView />
         </DataTemplate>
     </UserControl.Resources>
 
@@ -287,6 +291,37 @@
                             </StackPanel>
                         </Button>
 
+                        <!--  Profile  -->
+                        <Button
+                            Height="42"
+                            Margin="0,2"
+                            Padding="12,0"
+                            HorizontalContentAlignment="Left"
+                            Command="{Binding NavigateProfileCommand}"
+                            Style="{StaticResource Button.Ghost}">
+                            <StackPanel Orientation="Horizontal">
+                                <Grid
+                                    Width="24"
+                                    Height="24"
+                                    Margin="0,0,12,0">
+                                    <Path
+                                        Width="18"
+                                        Height="18"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Data="{StaticResource Icon.User}"
+                                        Fill="{DynamicResource Brush.TextSecondary}"
+                                        Stretch="Uniform" />
+                                </Grid>
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    FontSize="14"
+                                    FontWeight="Medium"
+                                    Foreground="{DynamicResource Brush.TextPrimary}"
+                                    Text="Profile" />
+                            </StackPanel>
+                        </Button>
+
                         <!--  Section: Preferences  -->
                         <TextBlock
                             Margin="12,24,0,10"
@@ -343,21 +378,26 @@
                         </Grid.ColumnDefinitions>
 
                         <!--  Avatar Initial Circle  -->
-                        <Border
-                            Grid.Column="0"
-                            Width="36"
-                            Height="36"
-                            Margin="0,0,10,0"
-                            Background="{DynamicResource Brush.Primary}"
-                            CornerRadius="18">
-                            <TextBlock
-                                HorizontalAlignment="Center"
-                                VerticalAlignment="Center"
-                                FontSize="15"
-                                FontWeight="Bold"
-                                Foreground="#FFFFFF"
-                                Text="{Binding UserSession.Name, Converter={StaticResource StringToInitial}}" />
-                        </Border>
+                        <Grid Grid.Column="0" Width="36" Height="36" Margin="0,0,10,0">
+                            <Border
+                                Background="{DynamicResource Brush.Primary}"
+                                CornerRadius="18">
+                                <TextBlock
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontSize="15"
+                                    FontWeight="Bold"
+                                    Foreground="#FFFFFF"
+                                    Text="{Binding UserSession.Name, Converter={StaticResource StringToInitial}}" />
+                            </Border>
+                            <Ellipse>
+                                <Ellipse.Fill>
+                                    <ImageBrush
+                                        ImageSource="{Binding UserSession.ProfileImageUrl, Converter={StaticResource RelativeUrlToImage}}"
+                                        Stretch="UniformToFill" />
+                                </Ellipse.Fill>
+                            </Ellipse>
+                        </Grid>
 
                         <!--  User Info  -->
                         <StackPanel Grid.Column="1" VerticalAlignment="Center">
@@ -398,8 +438,8 @@
                 <RowDefinition Height="56.05" />
                 <RowDefinition Height="7.95" />
                 <!--  Active Content View  -->
-                <RowDefinition Height="7*" />
-                <RowDefinition Height="729*" />
+                <RowDefinition Height="0*" />
+                <RowDefinition />
             </Grid.RowDefinitions>
 
             <!--  Top Header Bar  -->

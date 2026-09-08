@@ -25,6 +25,8 @@ public class GetProfileQueryHandler : IRequestHandler<GetProfileQuery, UserProfi
             user.Email ?? string.Empty,
             user.MainRole,
             user.Rank,
-            user.ProfilePictureUrl);
+            user.ProfilePictureUrl,
+            user.BackgroundImageUrl,
+            user.Bio);
     }
 }

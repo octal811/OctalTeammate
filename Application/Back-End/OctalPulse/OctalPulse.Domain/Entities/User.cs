@@ -10,6 +10,8 @@ public class User : IdentityUser<Guid>, DomainEntity
     public UserRole MainRole { get; set; }
     public UserRank Rank { get; set; }
     public string? ProfilePictureUrl { get; set; }
+    public string? BackgroundImageUrl { get; set; }
+    public string? Bio { get; set; }
     public bool IsDeleted { get; set; }
 
     public ICollection<ProjectMember> ProjectMemberships { get; set; } = new List<ProjectMember>();

@@ -2,10 +2,8 @@ using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OctalPulse.Application.Abstractions;
-using OctalPulse.Application.Contracts;
 using OctalPulse.Application.Services;
 using OctalPulse.Domain.Entities;
-using OctalPulse.Domain.Enums;
 using OctalPulse.Services;
 
 namespace OctalPulse.ViewModels;
@@ -13,31 +11,15 @@ namespace OctalPulse.ViewModels;
 public partial class SettingsViewModel : ObservableObject, INavigationAware
 {
     private readonly ThemeService _themeService;
-    private readonly IUserSession _userSession;
     private readonly ILocalCacheService _localCache;
     private readonly ISecureStorageService _secureStorage;
     private readonly IGitHubService _gitHubService;
-    private readonly IAuthService _authService;
     private readonly IDialogService _dialogService;
 
     private const string GitHubTokenSecretKey = "OctalPulse_GitHubToken";
 
-    public IUserSession UserSession => _userSession;
-
     [ObservableProperty]
     private string _currentTheme = "Light";
-
-    // User Profile Management
-    [ObservableProperty]
-    private string _profileName = string.Empty;
-
-    [ObservableProperty]
-    private UserRole _profileRole = UserRole.SoftwareEngineer;
-
-    [ObservableProperty]
-    private bool _isSavingProfile;
-
-    public ObservableCollection<UserRole> AvailableRoles { get; } = new(Enum.GetValues<UserRole>());
 
     // GitHub Integration
     [ObservableProperty]
@@ -56,19 +38,15 @@ public partial class SettingsViewModel : ObservableObject, INavigationAware
 
     public SettingsViewModel(
         ThemeService themeService,
-        IUserSession userSession,
         ILocalCacheService localCache,
         ISecureStorageService secureStorage,
         IGitHubService gitHubService,
-        IAuthService authService,
         IDialogService dialogService)
     {
         _themeService = themeService;
-        _userSession = userSession;
         _localCache = localCache;
         _secureStorage = secureStorage;
         _gitHubService = gitHubService;
-        _authService = authService;
         _dialogService = dialogService;
 
         _currentTheme = _themeService.CurrentTheme;
@@ -85,26 +63,6 @@ public partial class SettingsViewModel : ObservableObject, INavigationAware
         IsBusy = true;
         try
         {
-            // Populate profile from current session
-            ProfileName = _userSession.Name ?? string.Empty;
-            ProfileRole = _userSession.MainRole ?? UserRole.SoftwareEngineer;
-
-            // Attempt to load fresh profile details from backend
-            try
-            {
-                var me = await _authService.GetProfileAsync();
-                if (me != null)
-                {
-                    ProfileName = me.Name;
-                    ProfileRole = me.MainRole;
-                    _userSession.SetSession(me.Id, me.Email, me.Name, me.MainRole, me.Rank);
-                }
-            }
-            catch
-            {
-                // Offline or server not ready; local session values preserved
-            }
-
             var pref = await _localCache.GetPreferencesAsync();
             CurrentTheme = pref.Theme;
 
@@ -131,47 +89,6 @@ public partial class SettingsViewModel : ObservableObject, INavigationAware
         finally
         {
             IsBusy = false;
-        }
-    }
-
-    [RelayCommand]
-    private async Task SaveProfileAsync()
-    {
-        if (string.IsNullOrWhiteSpace(ProfileName))
-        {
-            _dialogService.ShowToast("Validation Error", "Name cannot be empty.", ToastType.Warning);
-            return;
-        }
-
-        IsSavingProfile = true;
-        try
-        {
-            var updated = await _authService.UpdateProfileAsync(new UpdateUserProfileRequest(
-                ProfileName.Trim(),
-                ProfileRole,
-                null));
-
-            _userSession.SetSession(updated.Id, updated.Email, updated.Name, updated.MainRole, updated.Rank);
-
-            // Update SQLite cached session as well
-            var session = await _localCache.GetActiveSessionAsync();
-            if (session != null)
-            {
-                session.Name = updated.Name;
-                session.MainRole = updated.MainRole;
-                session.Rank = updated.Rank;
-                await _localCache.SaveSessionAsync(session);
-            }
-
-            _dialogService.ShowToast("Profile Updated", "Your profile details have been saved.", ToastType.Success);
-        }
-        catch (Exception ex)
-        {
-            _dialogService.ShowToast("Profile Error", ex.Message, ToastType.Error);
-        }
-        finally
-        {
-            IsSavingProfile = false;
         }
     }
 

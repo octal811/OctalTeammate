@@ -19,6 +19,9 @@ public partial class UserSession : ObservableObject, IUserSession
     private string? _name;
 
     [ObservableProperty]
+    private string? _profileImageUrl;
+
+    [ObservableProperty]
     private UserRole? _mainRole;
 
     [ObservableProperty]
@@ -26,13 +29,14 @@ public partial class UserSession : ObservableObject, IUserSession
 
     public bool IsAdmin => Rank == UserRank.Admin;
 
-    public void SetSession(Guid userId, string email, string name, UserRole mainRole, UserRank rank)
+    public void SetSession(Guid userId, string email, string name, UserRole mainRole, UserRank rank, string? profileImageUrl = null)
     {
         UserId = userId;
         Email = email;
         Name = name;
         MainRole = mainRole;
         Rank = rank;
+        ProfileImageUrl = profileImageUrl;
         IsAuthenticated = true;
         OnPropertyChanged(nameof(IsAdmin));
     }
@@ -44,6 +48,7 @@ public partial class UserSession : ObservableObject, IUserSession
         Name = null;
         MainRole = null;
         Rank = null;
+        ProfileImageUrl = null;
         IsAuthenticated = false;
         OnPropertyChanged(nameof(IsAdmin));
     }

@@ -172,6 +172,15 @@ if (app.Environment.IsDevelopment())
     });
 }
 
+// Serve uploaded user images from the Resources folder (public, no auth, before HTTPS redirect).
+var resourcesRoot = Path.Combine(Directory.GetCurrentDirectory(), "Resources");
+Directory.CreateDirectory(resourcesRoot);
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(resourcesRoot),
+    RequestPath = "/Resources"
+});
+
 app.UseHttpsRedirection();
 
 app.UseAuthentication();

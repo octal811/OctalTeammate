@@ -404,6 +404,9 @@ FodyWeavers.xsd
 **/Logs/
 **/Logs/*
 
+# OctalPulse - uploaded user files
+**/OctalPulse.API/Resources/
+
 # OctalPulse - local configuration secrets
 **/appsettings.json
 appsettings.Development.json

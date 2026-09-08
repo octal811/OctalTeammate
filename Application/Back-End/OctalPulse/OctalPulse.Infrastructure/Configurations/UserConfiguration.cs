@@ -25,6 +25,12 @@ public class UserConfiguration : IEntityTypeConfiguration<User>
         builder.Property(u => u.ProfilePictureUrl)
             .HasMaxLength(500);
 
+        builder.Property(u => u.BackgroundImageUrl)
+            .HasMaxLength(500);
+
+        builder.Property(u => u.Bio)
+            .HasMaxLength(500);
+
         builder.HasIndex(u => u.IsDeleted);
     }
 }

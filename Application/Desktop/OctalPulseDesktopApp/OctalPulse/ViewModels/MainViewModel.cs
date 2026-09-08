@@ -109,7 +109,7 @@ public partial class MainViewModel : ObservableObject
                 {
                     System.Windows.Application.Current?.Dispatcher.Invoke(() =>
                     {
-                        _userSession.SetSession(profile.Id, profile.Email, profile.Name, profile.MainRole, profile.Rank);
+                        _userSession.SetSession(profile.Id, profile.Email, profile.Name, profile.MainRole, profile.Rank, profile.ProfilePictureUrl);
                     });
 
                     session.Name = profile.Name;

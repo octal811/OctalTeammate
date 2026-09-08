@@ -15,5 +15,8 @@ public class UpdateProfileCommandValidator : AbstractValidator<UpdateProfileComm
 
         RuleFor(x => x.MainRole)
             .IsInEnum().WithMessage("A valid main role is required.");
+
+        RuleFor(x => x.Bio)
+            .MaximumLength(500).WithMessage("Bio must not exceed 500 characters.");
     }
 }

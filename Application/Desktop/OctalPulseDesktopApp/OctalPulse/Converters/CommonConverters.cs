@@ -2,7 +2,9 @@ using System.Globalization;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
+using System.Windows.Media.Imaging;
 using OctalPulse.Domain.Enums;
+using OctalPulse.Infrastructure.Api;
 
 namespace OctalPulse.Converters;
 
@@ -162,3 +164,89 @@ public class DateFormattingConverter : IValueConverter
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => throw new NotImplementedException();
 }
+
+public class RelativeUrlToImageSourceConverter : IValueConverter
+{
+    private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, ImageSource> _cache = new();
+
+    public static void SetCachedImage(string? relativeOrFullUrl, ImageSource image)
+    {
+        var resolved = ApiConfiguration.ResolveUrl(relativeOrFullUrl);
+        if (!string.IsNullOrEmpty(resolved))
+        {
+            _cache[resolved] = image;
+        }
+    }
+
+    public object? Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var rawUrl = value as string;
+        var url = ApiConfiguration.ResolveUrl(rawUrl);
+        if (string.IsNullOrEmpty(url))
+        {
+            return null;
+        }
+
+        if (_cache.TryGetValue(url, out var cached) && cached != null)
+        {
+            return cached;
+        }
+
+        try
+        {
+            var uri = new Uri(url, UriKind.RelativeOrAbsolute);
+            if (!uri.IsAbsoluteUri)
+            {
+                return null;
+            }
+
+            var bitmap = new BitmapImage();
+            bitmap.BeginInit();
+            bitmap.UriSource = uri;
+            bitmap.CacheOption = BitmapCacheOption.OnLoad;
+            bitmap.CreateOptions = BitmapCreateOptions.None;
+            bitmap.EndInit();
+
+            if (!bitmap.IsDownloading)
+            {
+                if (bitmap.CanFreeze)
+                {
+                    bitmap.Freeze();
+                }
+                _cache[url] = bitmap;
+            }
+            else
+            {
+                bitmap.DownloadCompleted += (s, e) =>
+                {
+                    try
+                    {
+                        if (bitmap.CanFreeze)
+                        {
+                            bitmap.Freeze();
+                        }
+                        _cache[url] = bitmap;
+                    }
+                    catch
+                    {
+                    }
+                };
+
+                bitmap.DownloadFailed += (s, e) =>
+                {
+                    _cache.TryRemove(url, out _);
+                };
+            }
+
+            return bitmap;
+        }
+        catch
+        {
+            // Unreachable or unreadable image — callers fall back to a placeholder.
+            return null;
+        }
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => Binding.DoNothing;
+}
+

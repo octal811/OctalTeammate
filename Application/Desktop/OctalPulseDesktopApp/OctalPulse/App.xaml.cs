@@ -52,6 +52,7 @@ public partial class App : System.Windows.Application
                 services.AddTransient<TasksViewModel>();
                 services.AddTransient<SettingsViewModel>();
                 services.AddSingleton<StopwatchViewModel>();
+                services.AddSingleton<ProfileViewModel>();
 
                 // Windows
                 services.AddSingleton<MainWindow>();

@@ -17,6 +17,8 @@ public static class DependencyInjection
     [System.Runtime.Versioning.SupportedOSPlatform("windows")]
     public static IServiceCollection AddInfrastructureServices(this IServiceCollection services, string apiBaseUrl = "https://localhost:7001")
     {
+        ApiConfiguration.BaseUrl = apiBaseUrl.TrimEnd('/');
+
         // Security & Session
         services.AddSingleton<ISecureStorageService, WindowsDpapiSecureStorageService>();
         services.AddSingleton<ITokenService, TokenService>();

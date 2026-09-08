@@ -8,4 +8,6 @@ public record UserProfileResponse(
     string Email,
     UserRole MainRole,
     UserRank Rank,
-    string? ProfilePictureUrl);
+    string? ProfilePictureUrl,
+    string? BackgroundImageUrl,
+    string? Bio);

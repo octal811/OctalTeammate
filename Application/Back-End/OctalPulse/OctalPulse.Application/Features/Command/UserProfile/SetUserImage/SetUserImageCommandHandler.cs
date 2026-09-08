@@ -2,30 +2,33 @@ using MediatR;
 using OctalPulse.Application.Exceptions;
 using OctalPulse.Application.Features.Query.UserProfile.GetProfile;
 using OctalPulse.Application.Interface.Repositories;
+using OctalPulse.Domain.Enums;
 
-namespace OctalPulse.Application.Features.Command.UserProfile.UpdateProfile;
+namespace OctalPulse.Application.Features.Command.UserProfile.SetUserImage;
 
-public class UpdateProfileCommandHandler : IRequestHandler<UpdateProfileCommand, UserProfileResponse>
+public class SetUserImageCommandHandler : IRequestHandler<SetUserImageCommand, UserProfileResponse>
 {
     private readonly IUnitOfWork _unitOfWork;
 
-    public UpdateProfileCommandHandler(IUnitOfWork unitOfWork)
+    public SetUserImageCommandHandler(IUnitOfWork unitOfWork)
     {
         _unitOfWork = unitOfWork;
     }
 
-    public async Task<UserProfileResponse> Handle(UpdateProfileCommand request, CancellationToken cancellationToken)
+    public async Task<UserProfileResponse> Handle(SetUserImageCommand request, CancellationToken cancellationToken)
     {
         var user = await _unitOfWork.Users.GetByIdAsync(request.UserId, cancellationToken);
         if (user is null)
             throw new NotFoundException("User not found.");
 
-        user.Name = request.Name.Trim();
-        user.MainRole = request.MainRole;
-        user.Bio = string.IsNullOrWhiteSpace(request.Bio) ? null : request.Bio.Trim();
-        if (request.ProfilePictureUrl != null)
+        switch (request.ImageType)
         {
-            user.ProfilePictureUrl = request.ProfilePictureUrl.Trim();
+            case UserImageType.Profile:
+                user.ProfilePictureUrl = request.ImageUrl;
+                break;
+            case UserImageType.Background:
+                user.BackgroundImageUrl = request.ImageUrl;
+                break;
         }
 
         _unitOfWork.Users.Update(user);

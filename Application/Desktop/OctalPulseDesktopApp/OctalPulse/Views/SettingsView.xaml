@@ -7,10 +7,9 @@
              mc:Ignorable="d" 
              d:DesignHeight="900" d:DesignWidth="1000">
 
-    <UserControl.Resources>
+<UserControl.Resources>
         <converters:BooleanToVisibilityConverter x:Key="BoolToVis" />
         <converters:NullToVisibilityConverter x:Key="NullToVis" />
-        <converters:StringToInitialConverter x:Key="StringToInitial" />
     </UserControl.Resources>
 
     <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="32">
@@ -19,55 +18,8 @@
             <TextBlock Text="Settings &amp; Integrations" Style="{StaticResource Text.Heading1}" Margin="0,0,0,4" />
             <TextBlock Text="Manage desktop client preferences, security keys, and developer integrations." Style="{StaticResource Text.Subtitle}" Margin="0,0,0,28" />
 
-            <!-- Loading Indicator -->
+<!-- Loading Indicator -->
             <ProgressBar IsIndeterminate="True" Style="{StaticResource ProgressBar.Modern}" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}" Margin="0,0,0,20" />
-
-            <!-- ── SECTION 0: USER PROFILE ─────────────────────────────────── -->
-            <Border Style="{StaticResource Border.Card}" Padding="24" Margin="0,0,0,24">
-                <StackPanel>
-                    <Grid Margin="0,0,0,18">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="Auto" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-
-                        <!-- Large Avatar Circle -->
-                        <Border Grid.Column="0" Width="48" Height="48" CornerRadius="24" Background="{DynamicResource Brush.Primary}" Margin="0,0,16,0">
-                            <TextBlock Text="{Binding ProfileName, Converter={StaticResource StringToInitial}}" FontSize="20" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                        </Border>
-
-                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                            <TextBlock Text="My Profile" Style="{StaticResource Text.Heading3}" Margin="0,0,0,2" />
-                            <TextBlock Text="Update your team member profile details and engineering role." Style="{StaticResource Text.Subtitle}" />
-                        </StackPanel>
-                    </Grid>
-
-                    <!-- Form Grid -->
-                    <Grid Margin="0,0,0,8">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="*" />
-                        </Grid.ColumnDefinitions>
-
-                        <!-- Display Name -->
-                        <StackPanel Grid.Column="0" Margin="0,0,12,0">
-                            <TextBlock Text="Full Name *" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
-                            <TextBox Text="{Binding ProfileName, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" />
-                        </StackPanel>
-
-                        <!-- Main Role -->
-                        <StackPanel Grid.Column="1" Margin="12,0,0,0">
-                            <TextBlock Text="Main Engineering Role *" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
-                            <ComboBox ItemsSource="{Binding AvailableRoles}" SelectedItem="{Binding ProfileRole}" Style="{StaticResource ComboBox.Modern}" />
-                        </StackPanel>
-                    </Grid>
-
-                    <!-- Save Button -->
-                    <Button Style="{StaticResource Button.Primary}" Content="Save Profile Changes" 
-                            Command="{Binding SaveProfileCommand}" 
-                            HorizontalAlignment="Right" Height="40" Padding="22,0" Margin="0,12,0,0" />
-                </StackPanel>
-            </Border>
 
             <!-- ── SECTION 1: APPEARANCE ─────────────────────────────────── -->
             <Border Style="{StaticResource Border.Card}" Padding="24" Margin="0,0,0,24">

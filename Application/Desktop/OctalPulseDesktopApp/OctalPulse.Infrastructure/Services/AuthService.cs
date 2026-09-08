@@ -134,4 +134,21 @@ public class AuthService : IAuthService
             request,
             cancellationToken);
     }
+
+    public Task<UserProfileResponse> UploadProfileImageAsync(
+        string imageType,
+        byte[] fileBytes,
+        string fileName,
+        string contentType,
+        CancellationToken cancellationToken = default)
+    {
+        return _apiClient.UploadAsync<UserProfileResponse>(
+            "/api/users/profile/image",
+            fileBytes,
+            fileName,
+            contentType,
+            formFieldName: "type",
+            formFieldValue: imageType,
+            cancellationToken);
+    }
 }

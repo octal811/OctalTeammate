@@ -21,11 +21,14 @@ public record UserProfileResponse(
     string Email,
     UserRole MainRole,
     UserRank Rank,
-    string? ProfilePictureUrl);
+    string? ProfilePictureUrl,
+    string? BackgroundImageUrl,
+    string? Bio);
 
 public record UpdateUserProfileRequest(
     string Name,
     UserRole MainRole,
+    string? Bio,
     string? ProfilePictureUrl);
 
 public record RegisterRequest(

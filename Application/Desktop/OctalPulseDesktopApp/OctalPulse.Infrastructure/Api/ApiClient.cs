@@ -59,6 +59,38 @@ public class ApiClient
         await EnsureSuccessAsync(response, cancellationToken);
     }
 
+    public async Task<TResponse> UploadAsync<TResponse>(
+        string url,
+        byte[] fileBytes,
+        string fileName,
+        string contentType,
+        string? formFieldName = null,
+        string? formFieldValue = null,
+        CancellationToken cancellationToken = default)
+    {
+        using var request = new HttpRequestMessage(HttpMethod.Post, url);
+        using var requestContent = new MultipartFormDataContent();
+        using var fileContent = new ByteArrayContent(fileBytes);
+        fileContent.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(contentType);
+        requestContent.Add(fileContent, "file", fileName);
+        if (!string.IsNullOrEmpty(formFieldName))
+        {
+            requestContent.Add(new StringContent(formFieldValue ?? string.Empty), formFieldName);
+        }
+        request.Content = requestContent;
+
+        using var response = await _httpClient.SendAsync(request, cancellationToken);
+        await EnsureSuccessAsync(response, cancellationToken);
+
+        var content = await response.Content.ReadAsStringAsync(cancellationToken);
+        if (string.IsNullOrWhiteSpace(content))
+        {
+            return default!;
+        }
+
+        return JsonSerializer.Deserialize<TResponse>(content, _jsonOptions)!;
+    }
+
     private HttpRequestMessage CreateRequestMessage(HttpMethod method, string url, object? body)
     {
         var request = new HttpRequestMessage(method, url);

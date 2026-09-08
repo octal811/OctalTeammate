@@ -8,4 +8,5 @@ public record UpdateProfileCommand(
     Guid UserId,
     string Name,
     UserRole MainRole,
+    string? Bio,
     string? ProfilePictureUrl) : IRequest<UserProfileResponse>;
