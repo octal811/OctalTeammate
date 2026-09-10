@@ -26,6 +26,8 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     public DbSet<Post> Posts => Set<Post>();
     public DbSet<PostReaction> PostReactions => Set<PostReaction>();
     public DbSet<PostComment> PostComments => Set<PostComment>();
+    public DbSet<UserBadge> UserBadges => Set<UserBadge>();
+    public DbSet<DailyWorkLog> DailyWorkLogs => Set<DailyWorkLog>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

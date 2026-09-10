@@ -18,6 +18,8 @@ public class UnitOfWork : IUnitOfWork
     private IPostRepository? _posts;
     private IPostReactionRepository? _postReactions;
     private IPostCommentRepository? _postComments;
+    private IUserBadgeRepository? _userBadges;
+    private IDailyWorkLogRepository? _dailyWorkLogs;
 
     public UnitOfWork(ApplicationDbContext context)
     {
@@ -36,6 +38,8 @@ public class UnitOfWork : IUnitOfWork
     public IPostRepository Posts => _posts ??= new PostRepository(_context);
     public IPostReactionRepository PostReactions => _postReactions ??= new PostReactionRepository(_context);
     public IPostCommentRepository PostComments => _postComments ??= new PostCommentRepository(_context);
+    public IUserBadgeRepository UserBadges => _userBadges ??= new UserBadgeRepository(_context);
+    public IDailyWorkLogRepository DailyWorkLogs => _dailyWorkLogs ??= new DailyWorkLogRepository(_context);
 
     public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
     {

@@ -10,11 +10,16 @@ public class AddMinorTaskWorkTimeCommandHandler : IRequestHandler<AddMinorTaskWo
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IRealtimeNotifier _realtimeNotifier;
+    private readonly IBadgeService _badgeService;
 
-    public AddMinorTaskWorkTimeCommandHandler(IUnitOfWork unitOfWork, IRealtimeNotifier realtimeNotifier)
+    public AddMinorTaskWorkTimeCommandHandler(
+        IUnitOfWork unitOfWork,
+        IRealtimeNotifier realtimeNotifier,
+        IBadgeService badgeService)
     {
         _unitOfWork = unitOfWork;
         _realtimeNotifier = realtimeNotifier;
+        _badgeService = badgeService;
     }
 
     public async Task<AddMinorTaskWorkTimeResponse> Handle(
@@ -39,6 +44,7 @@ public class AddMinorTaskWorkTimeCommandHandler : IRequestHandler<AddMinorTaskWo
         task.ModifiedDate = DateTime.UtcNow;
 
         _unitOfWork.MinorTasks.Update(task);
+        await _badgeService.EvaluateCriticalFocusAsync(request.UserId, request.WorkTimeSeconds, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         await _realtimeNotifier.MinorTaskChangedAsync(majorTask.TrackId, task.Id, cancellationToken);

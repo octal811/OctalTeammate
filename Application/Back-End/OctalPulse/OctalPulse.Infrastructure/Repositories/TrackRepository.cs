@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using OctalPulse.Application.Interface.Repositories;
 using OctalPulse.Domain.Entities;
@@ -65,6 +66,18 @@ public class TrackRepository : BaseRepository<Track>, ITrackRepository
             .AsNoTracking()
             .Include(t => t.MajorTasks)
             .Where(t => ids.Contains(t.ProjectId))
+            .ToListAsync(cancellationToken);
+    }
+
+    public async Task<IReadOnlyList<Track>> FindWithMembersAsync(
+        Expression<Func<Track, bool>> predicate,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.Tracks
+            .AsNoTracking()
+            .Include(t => t.Members)
+                .ThenInclude(m => m.User)
+            .Where(predicate)
             .ToListAsync(cancellationToken);
     }
 }

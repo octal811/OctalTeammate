@@ -14,6 +14,8 @@ public interface IUnitOfWork : IDisposable
     IPostRepository Posts { get; }
     IPostReactionRepository PostReactions { get; }
     IPostCommentRepository PostComments { get; }
+    IUserBadgeRepository UserBadges { get; }
+    IDailyWorkLogRepository DailyWorkLogs { get; }
 
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
     Task<int> CompleteAsync(CancellationToken cancellationToken = default);

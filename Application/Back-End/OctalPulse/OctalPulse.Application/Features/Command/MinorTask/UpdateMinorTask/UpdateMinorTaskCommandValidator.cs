@@ -1,4 +1,5 @@
 using FluentValidation;
+using OctalPulse.Domain.Enums;
 
 namespace OctalPulse.Application.Features.Command.MinorTask.UpdateMinorTask;
 
@@ -30,5 +31,9 @@ public class UpdateMinorTaskCommandValidator : AbstractValidator<UpdateMinorTask
 
         RuleFor(x => x.Order)
             .GreaterThanOrEqualTo(0);
+
+        RuleFor(x => x.JobType)
+            .IsInEnum()
+            .When(x => x.JobType.HasValue);
     }
 }

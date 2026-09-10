@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Windows;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -22,6 +24,7 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
     private readonly ILocalCacheService _localCache;
     private readonly IDialogService _dialogService;
     private readonly IPostService _postService;
+    private readonly IBadgeService _badgeService;
 
     [ObservableProperty]
     private string _profileName = string.Empty;
@@ -67,16 +70,17 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
         IUserSession userSession,
         ILocalCacheService localCache,
         IDialogService dialogService,
-        IPostService postService)
+        IPostService postService,
+        IBadgeService badgeService)
     {
         _authService = authService;
         _userSession = userSession;
         _localCache = localCache;
         _dialogService = dialogService;
         _postService = postService;
+        _badgeService = badgeService;
 
         InitializeFromSession();
-        InitializeShowcaseData();
     }
 
     private void InitializeFromSession()
@@ -126,7 +130,7 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
             }
 
             ApplyProfile(me);
-            await LoadUserPostsAsync();
+            await Task.WhenAll(LoadBadgesAsync(), LoadUserPostsAsync());
             if (!isSilent)
             {
                 _dialogService.ShowToast("Profile Loaded", "Your profile was refreshed.", ToastType.Info);
@@ -152,9 +156,9 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
         try
         {
             var res = await _postService.GetProfilePostsAsync(_userSession.UserId.Value, 1, 20);
-            if (res.Items != null && res.Items.Count > 0)
+            Posts.Clear();
+            if (res.Items != null)
             {
-                Posts.Clear();
                 foreach (var p in res.Items)
                 {
                     Posts.Add(new ProfilePostItem(
@@ -164,25 +168,100 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
                         Content: p.Content,
                         Tags: string.Empty,
                         LikesCount: p.TotalReactions,
-                        CommentsCount: p.CommentsCount));
+                        CommentsCount: p.CommentsCount,
+                        PhotoUrl: p.PhotoUrl));
                 }
             }
         }
         catch
         {
-            // fallback gracefully to showcase data
+            Posts.Clear();
         }
     }
 
-    private static string FormatTimeAgo(DateTime dt)
+    private async Task LoadBadgesAsync()
     {
-        var diff = DateTime.UtcNow - dt.ToUniversalTime();
-        if (diff.TotalMinutes < 1) return "Just now";
-        if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes}m ago";
-        if (diff.TotalHours < 24) return $"{(int)diff.TotalHours}h ago";
-        if (diff.TotalDays < 7) return $"{(int)diff.TotalDays}d ago";
-        return dt.ToLocalTime().ToString("MMM dd, yyyy");
+        if (!_userSession.IsAuthenticated) return;
+
+        try
+        {
+            var res = await _badgeService.GetMyBadgesAsync();
+            Badges.Clear();
+            if (res?.Badges == null) return;
+
+            foreach (var b in res.Badges)
+            {
+                var (iconKey, brush) = GetBadgeVisuals(b.Type);
+                var hasShine = b.CurrentLevel is "Gold" or "Platinum" or "Diamond" or "Legend";
+                var isLegend = b.CurrentLevel == "Legend";
+                var description = b.CurrentLevel != null
+                    ? $"Unlocked!"
+                    : $"Progress toward {GetNextLabel(b.Type, b.NextTarget)}";
+
+                Badges.Add(new ProfileBadgeItem(
+                    Title: GetBadgeTitle(b.Type),
+                    Description: description,
+                    Level: b.CurrentLevel ?? "Locked",
+                    ProgressPercent: b.ProgressPercent,
+                    IsUnlocked: b.CurrentLevel != null,
+                    IconKey: iconKey,
+                    AccentBrush: brush,
+                    HasShine: hasShine,
+                    IsLegend: isLegend));
+            }
+        }
+        catch
+        {
+            Badges.Clear();
+        }
     }
+
+    private static string GetBadgeTitle(string type) => type switch
+    {
+        "CriticalFocus" => "Critical Focus",
+        "HeavyWork" => "Heavy Work",
+        "BugHunter" => "Bug Hunter",
+        _ => type
+    };
+
+    private static string GetNextLabel(string type, long nextTarget) => type switch
+    {
+        "CriticalFocus" => nextTarget >= 3600
+            ? $"{nextTarget / 3600}h focus"
+            : $"{nextTarget / 60} min focus",
+        "HeavyWork" => $"{nextTarget}% contribution",
+        "BugHunter" => $"{nextTarget} bugs solved",
+        _ => ""
+    };
+
+    private static (string IconKey, Brush Brush) GetBadgeVisuals(string type) => type switch
+    {
+        "CriticalFocus" => ("Icon.Stopwatch", new SolidColorBrush(Color.FromRgb(0xCD, 0x7F, 0x32))),
+        "HeavyWork" => ("Icon.Award", new SolidColorBrush(Color.FromRgb(0xE5, 0xE4, 0xE2))),
+        "BugHunter" => ("Icon.Shield", new SolidColorBrush(Color.FromRgb(0x4F, 0xD6, 0xF7))),
+        _ => ("Icon.Sparkles", new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8)))
+    };
+
+    private static Brush GetBadgeLevelBrush(string? level) => level switch
+    {
+        "Bronze" => new SolidColorBrush(Color.FromRgb(0xCD, 0x7F, 0x32)),
+        "Silver" => new SolidColorBrush(Color.FromRgb(0xA8, 0xA9, 0xAD)),
+        "Gold" => new SolidColorBrush(Color.FromRgb(0xF5, 0x9E, 0x0B)),
+        "Platinum" => new SolidColorBrush(Color.FromRgb(0xE5, 0xE4, 0xE2)),
+        "Diamond" => new SolidColorBrush(Color.FromRgb(0x4F, 0xD6, 0xF7)),
+        "Legend" => new LinearGradientBrush
+        {
+            StartPoint = new Point(0, 0),
+            EndPoint = new Point(1, 1),
+            GradientStops =
+            {
+                new GradientStop(Color.FromRgb(0x25, 0x63, 0xEB), 0),
+                new GradientStop(Color.FromRgb(0xEF, 0x44, 0x44), 0.5),
+                new GradientStop(Color.FromRgb(0xFA, 0xCC, 0x15), 1)
+            }
+        },
+        _ => new SolidColorBrush(Color.FromRgb(0x1E, 0x29, 0x3B))
+    };
 
     [RelayCommand]
     private async Task SaveProfileAsync()
@@ -333,79 +412,27 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
             ToastType.Info);
     }
 
-    private void InitializeShowcaseData()
+    private static string FormatTimeAgo(DateTime dt)
     {
-        Badges.Clear();
-        Badges.Add(new ProfileBadgeItem(
-            "Early Adopter",
-            "Founding contributor in OctalPulse workspace",
-            "Workspace",
-            "Diamond",
-            100,
-            true,
-            "Icon.Sparkles",
-            "#38BDF8"));
-
-        Badges.Add(new ProfileBadgeItem(
-            "Sprint Champion",
-            "Delivered all planned sprint deliverables on time",
-            "Agile",
-            "Platinum",
-            100,
-            true,
-            "Icon.Trophy",
-            "#A855F7"));
-
-        Badges.Add(new ProfileBadgeItem(
-            "Bug Hunter",
-            "Squashed 25+ critical issues across tracks",
-            "Quality",
-            "Gold",
-            85,
-            true,
-            "Icon.Award",
-            "#F59E0B"));
-
-        Badges.Add(new ProfileBadgeItem(
-            "Clean Architect",
-            "Zero compiler warnings and solid code review score",
-            "Code",
-            "Silver",
-            60,
-            false,
-            "Icon.Shield",
-            "#6366F1"));
-
-        Posts.Clear();
-        Posts.Add(new ProfilePostItem(
-            "Sprint 14 Retro & UI Redesign",
-            "Engineering Note",
-            "2 hours ago",
-            "Just shipped the modernized profile and navigation updates. Next milestone will integrate realtime SignalR task notifications and interactive sprint retrospective notes.",
-            "#ui #desktop #dotnet10",
-            14,
-            5));
-
-        Posts.Add(new ProfilePostItem(
-            "Local Session DPAPI Storage Rollout",
-            "Milestone",
-            "Yesterday",
-            "Finished migrating the authentication cache to Windows DPAPI encryption for enhanced security and zero-friction desktop launch.",
-            "#security #architecture #desktop",
-            22,
-            8));
+        var diff = DateTime.UtcNow - dt.ToUniversalTime();
+        if (diff.TotalMinutes < 1) return "Just now";
+        if (diff.TotalMinutes < 60) return $"{(int)diff.TotalMinutes}m ago";
+        if (diff.TotalHours < 24) return $"{(int)diff.TotalHours}h ago";
+        if (diff.TotalDays < 7) return $"{(int)diff.TotalDays}d ago";
+        return dt.ToLocalTime().ToString("MMM dd, yyyy");
     }
 }
 
 public record ProfileBadgeItem(
     string Title,
     string Description,
-    string Category,
-    string Tier,
+    string Level,
     int ProgressPercent,
     bool IsUnlocked,
     string IconKey,
-    string AccentColor);
+    Brush AccentBrush,
+    bool HasShine,
+    bool IsLegend);
 
 public record ProfilePostItem(
     string Title,
@@ -414,4 +441,5 @@ public record ProfilePostItem(
     string Content,
     string Tags,
     int LikesCount,
-    int CommentsCount);
+    int CommentsCount,
+    string? PhotoUrl);

@@ -32,6 +32,7 @@ public static class DependencyInjection
         services.AddSingleton<IUserOperationLock, UserOperationLock>();
         services.AddScoped<IApiAvailabilityService, ApiAvailabilityService>();
         services.AddScoped<IProgressCalculator, ProgressCalculator>();
+        services.AddScoped<IBadgeService, BadgeService>();
 
         services.AddScoped(typeof(IGenericRepository<>), typeof(BaseRepository<>));
         services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -50,6 +51,8 @@ public static class DependencyInjection
         services.AddScoped<IPostRepository, PostRepository>();
         services.AddScoped<IPostReactionRepository, PostReactionRepository>();
         services.AddScoped<IPostCommentRepository, PostCommentRepository>();
+        services.AddScoped<IUserBadgeRepository, UserBadgeRepository>();
+        services.AddScoped<IDailyWorkLogRepository, DailyWorkLogRepository>();
 
         return services;
     }

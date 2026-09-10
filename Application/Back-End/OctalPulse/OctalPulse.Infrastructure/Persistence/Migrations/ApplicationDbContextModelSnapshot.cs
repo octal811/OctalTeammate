@@ -190,6 +190,41 @@ namespace OctalPulse.Infrastructure.Persistence.Migrations
                     b.ToTable("ApiAvailability", (string)null);
                 });
 
+            modelBuilder.Entity("OctalPulse.Domain.Entities.DailyWorkLog", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<long>("TotalSeconds")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("UpdatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateOnly>("WorkDate")
+                        .HasColumnType("date");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "WorkDate")
+                        .IsUnique();
+
+                    b.ToTable("DailyWorkLogs", (string)null);
+                });
+
             modelBuilder.Entity("OctalPulse.Domain.Entities.Event", b =>
                 {
                     b.Property<Guid>("Id")
@@ -371,6 +406,10 @@ namespace OctalPulse.Infrastructure.Persistence.Migrations
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
+
+                    b.Property<string>("JobType")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<string>("Link")
                         .HasMaxLength(500)
@@ -829,6 +868,48 @@ namespace OctalPulse.Infrastructure.Persistence.Migrations
                     b.ToTable("Users", (string)null);
                 });
 
+            modelBuilder.Entity("OctalPulse.Domain.Entities.UserBadge", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("AwardedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Level")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("ModifiedDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("RefId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(40)
+                        .HasColumnType("nvarchar(40)");
+
+                    b.Property<Guid>("UserId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "Type")
+                        .IsUnique();
+
+                    b.ToTable("UserBadges", (string)null);
+                });
+
             modelBuilder.Entity("OctalPulse.Domain.Entities.UserProjectRole", b =>
                 {
                     b.Property<Guid>("Id")
@@ -902,6 +983,17 @@ namespace OctalPulse.Infrastructure.Persistence.Migrations
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+                });
+
+            modelBuilder.Entity("OctalPulse.Domain.Entities.DailyWorkLog", b =>
+                {
+                    b.HasOne("OctalPulse.Domain.Entities.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("OctalPulse.Domain.Entities.Event", b =>
@@ -1167,6 +1259,17 @@ namespace OctalPulse.Infrastructure.Persistence.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("OctalPulse.Domain.Entities.UserBadge", b =>
+                {
+                    b.HasOne("OctalPulse.Domain.Entities.User", "User")
+                        .WithMany("Badges")
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("OctalPulse.Domain.Entities.UserProjectRole", b =>
                 {
                     b.HasOne("OctalPulse.Domain.Entities.ProjectMember", "ProjectMember")
@@ -1221,6 +1324,8 @@ namespace OctalPulse.Infrastructure.Persistence.Migrations
                     b.Navigation("AssignedMajorTasks");
 
                     b.Navigation("AssignedMinorTasks");
+
+                    b.Navigation("Badges");
 
                     b.Navigation("CreatedEvents");
 

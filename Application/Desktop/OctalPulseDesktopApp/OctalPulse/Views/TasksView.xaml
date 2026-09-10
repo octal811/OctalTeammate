@@ -267,7 +267,7 @@
                                                                 Background="{DynamicResource Brush.Surface}"
                                                                 CornerRadius="6">
                                                                 <TextBlock
-                                                                    FontSize="10"
+                                                                    FontSize="8"
                                                                     FontWeight="Bold"
                                                                     Foreground="{Binding Priority, Converter={StaticResource PriorityToBrush}}"
                                                                     Text="{Binding Priority}" />
@@ -275,10 +275,10 @@
                                                             <TextBlock
                                                                 MaxWidth="120"
                                                                 VerticalAlignment="Center"
-                                                                FontSize="11"
-                                                                FontWeight="SemiBold"
-                                                                Foreground="{DynamicResource Brush.TextMuted}"
-                                                                Text="{Binding ProjectAndTrack}"
+FontSize="10"
+                                                                    FontWeight="SemiBold"
+                                                                    Foreground="{DynamicResource Brush.TextMuted}"
+                                                                    Text="{Binding ProjectAndTrack}"
                                                                 TextTrimming="CharacterEllipsis" />
                                                         </StackPanel>
 
@@ -303,7 +303,7 @@
                                                     <TextBlock
                                                         Grid.Row="1"
                                                         Margin="0,0,0,6"
-                                                        FontSize="14"
+                                                        FontSize="11"
                                                         FontWeight="Bold"
                                                         Foreground="{DynamicResource Brush.TextPrimary}"
                                                         Text="{Binding Title}"
@@ -314,22 +314,22 @@
                                                         Grid.Row="2"
                                                         MaxHeight="36"
                                                         Margin="0,0,0,8"
-                                                        FontSize="12"
+                                                        FontSize="11"
                                                         Foreground="{DynamicResource Brush.TextSecondary}"
                                                         Text="{Binding Description}"
                                                         TextTrimming="CharacterEllipsis"
-                                                        Visibility="{Binding HasDescription, Converter={StaticResource BoolToVis}}" />
+                                                        Visibility="Collapsed" />
 
                                                     <!--  Progress Bar  -->
                                                     <Grid Grid.Row="3" Margin="0,10,10,10">
                                                         <Grid Margin="0,0,0,12">
                                                             <TextBlock
-                                                                FontSize="10"
+                                                                FontSize="8"
                                                                 Foreground="{DynamicResource Brush.TextMuted}"
                                                                 Text="Checklist Progress" />
                                                             <TextBlock
                                                                 HorizontalAlignment="Right"
-                                                                FontSize="10"
+                                                                FontSize="8"
                                                                 FontWeight="Bold"
                                                                 Foreground="{DynamicResource Brush.Primary}"
                                                                 Text="{Binding Progress, StringFormat='{}{0}%'}" />
@@ -474,7 +474,7 @@
                                                                 Background="{DynamicResource Brush.Surface}"
                                                                 CornerRadius="6">
                                                                 <TextBlock
-                                                                    FontSize="10"
+                                                                    FontSize="8"
                                                                     FontWeight="Bold"
                                                                     Foreground="{Binding Priority, Converter={StaticResource PriorityToBrush}}"
                                                                     Text="{Binding Priority}" />
@@ -482,10 +482,10 @@
                                                             <TextBlock
                                                                 MaxWidth="120"
                                                                 VerticalAlignment="Center"
-                                                                FontSize="11"
-                                                                FontWeight="SemiBold"
-                                                                Foreground="{DynamicResource Brush.TextMuted}"
-                                                                Text="{Binding ProjectAndTrack}"
+FontSize="10"
+                                                                    FontWeight="SemiBold"
+                                                                    Foreground="{DynamicResource Brush.TextMuted}"
+                                                                    Text="{Binding ProjectAndTrack}"
                                                                 TextTrimming="CharacterEllipsis" />
                                                         </StackPanel>
 
@@ -510,7 +510,7 @@
                                                     <TextBlock
                                                         Grid.Row="1"
                                                         Margin="0,0,0,6"
-                                                        FontSize="14"
+                                                        FontSize="11"
                                                         FontWeight="Bold"
                                                         Foreground="{DynamicResource Brush.TextPrimary}"
                                                         Text="{Binding Title}"
@@ -521,22 +521,22 @@
                                                         Grid.Row="2"
                                                         MaxHeight="36"
                                                         Margin="0,0,0,8"
-                                                        FontSize="12"
+                                                        FontSize="11"
                                                         Foreground="{DynamicResource Brush.TextSecondary}"
                                                         Text="{Binding Description}"
                                                         TextTrimming="CharacterEllipsis"
-                                                        Visibility="{Binding HasDescription, Converter={StaticResource BoolToVis}}" />
+                                                        Visibility="Collapsed" />
 
                                                     <!--  Progress Bar  -->
                                                     <Grid Grid.Row="3" Margin="0,10,10,10">
                                                         <Grid Margin="0,0,0,12">
                                                             <TextBlock
-                                                                FontSize="10"
+                                                                FontSize="8"
                                                                 Foreground="{DynamicResource Brush.TextMuted}"
                                                                 Text="Checklist Progress" />
                                                             <TextBlock
                                                                 HorizontalAlignment="Right"
-                                                                FontSize="10"
+                                                                FontSize="8"
                                                                 FontWeight="Bold"
                                                                 Foreground="{DynamicResource Brush.Primary}"
                                                                 Text="{Binding Progress, StringFormat='{}{0}%'}" />
@@ -693,7 +693,7 @@
                                                                 Background="{DynamicResource Brush.Surface}"
                                                                 CornerRadius="6">
                                                                 <TextBlock
-                                                                    FontSize="10"
+                                                                    FontSize="8"
                                                                     FontWeight="Bold"
                                                                     Foreground="{Binding Priority, Converter={StaticResource PriorityToBrush}}"
                                                                     Text="{Binding Priority}" />
@@ -701,10 +701,10 @@
                                                             <TextBlock
                                                                 MaxWidth="120"
                                                                 VerticalAlignment="Center"
-                                                                FontSize="11"
-                                                                FontWeight="SemiBold"
-                                                                Foreground="{DynamicResource Brush.TextMuted}"
-                                                                Text="{Binding ProjectAndTrack}"
+FontSize="10"
+                                                                    FontWeight="SemiBold"
+                                                                    Foreground="{DynamicResource Brush.TextMuted}"
+                                                                    Text="{Binding ProjectAndTrack}"
                                                                 TextTrimming="CharacterEllipsis" />
                                                         </StackPanel>
 
@@ -729,7 +729,7 @@
                                                     <TextBlock
                                                         Grid.Row="1"
                                                         Margin="0,0,0,6"
-                                                        FontSize="14"
+                                                        FontSize="11"
                                                         FontWeight="Bold"
                                                         Foreground="{DynamicResource Brush.TextPrimary}"
                                                         Text="{Binding Title}"
@@ -740,22 +740,22 @@
                                                         Grid.Row="2"
                                                         MaxHeight="36"
                                                         Margin="0,0,0,8"
-                                                        FontSize="12"
+                                                        FontSize="11"
                                                         Foreground="{DynamicResource Brush.TextSecondary}"
                                                         Text="{Binding Description}"
                                                         TextTrimming="CharacterEllipsis"
-                                                        Visibility="{Binding HasDescription, Converter={StaticResource BoolToVis}}" />
+                                                        Visibility="Collapsed" />
 
                                                     <!--  Progress Bar  -->
                                                     <Grid Grid.Row="3" Margin="0,10,10,10">
                                                         <Grid Margin="0,0,0,12">
                                                             <TextBlock
-                                                                FontSize="10"
+                                                                FontSize="8"
                                                                 Foreground="{DynamicResource Brush.TextMuted}"
                                                                 Text="Checklist Progress" />
                                                             <TextBlock
                                                                 HorizontalAlignment="Right"
-                                                                FontSize="10"
+                                                                FontSize="8"
                                                                 FontWeight="Bold"
                                                                 Foreground="{DynamicResource Brush.Primary}"
                                                                 Text="{Binding Progress, StringFormat='{}{0}%'}" />
@@ -913,7 +913,7 @@
                                                                 Background="{DynamicResource Brush.Surface}"
                                                                 CornerRadius="6">
                                                                 <TextBlock
-                                                                    FontSize="10"
+                                                                    FontSize="8"
                                                                     FontWeight="Bold"
                                                                     Foreground="{Binding Priority, Converter={StaticResource PriorityToBrush}}"
                                                                     Text="{Binding Priority}" />
@@ -921,10 +921,10 @@
                                                             <TextBlock
                                                                 MaxWidth="120"
                                                                 VerticalAlignment="Center"
-                                                                FontSize="11"
-                                                                FontWeight="SemiBold"
-                                                                Foreground="{DynamicResource Brush.TextMuted}"
-                                                                Text="{Binding ProjectAndTrack}"
+FontSize="10"
+                                                                    FontWeight="SemiBold"
+                                                                    Foreground="{DynamicResource Brush.TextMuted}"
+                                                                    Text="{Binding ProjectAndTrack}"
                                                                 TextTrimming="CharacterEllipsis" />
                                                         </StackPanel>
 
@@ -949,7 +949,7 @@
                                                     <TextBlock
                                                         Grid.Row="1"
                                                         Margin="0,0,0,6"
-                                                        FontSize="14"
+                                                        FontSize="11"
                                                         FontWeight="Bold"
                                                         Foreground="{DynamicResource Brush.TextPrimary}"
                                                         Text="{Binding Title}"
@@ -961,22 +961,22 @@
                                                         Grid.Row="2"
                                                         MaxHeight="36"
                                                         Margin="0,0,0,8"
-                                                        FontSize="12"
+                                                        FontSize="11"
                                                         Foreground="{DynamicResource Brush.TextSecondary}"
                                                         Text="{Binding Description}"
                                                         TextTrimming="CharacterEllipsis"
-                                                        Visibility="{Binding HasDescription, Converter={StaticResource BoolToVis}}" />
+                                                        Visibility="Collapsed" />
 
                                                     <!--  Progress Bar  -->
                                                     <Grid Grid.Row="3" Margin="0,10,10,10">
                                                         <Grid Margin="0,0,0,12">
                                                             <TextBlock
-                                                                FontSize="10"
+                                                                FontSize="8"
                                                                 Foreground="{DynamicResource Brush.TextMuted}"
                                                                 Text="Checklist Progress" />
                                                             <TextBlock
                                                                 HorizontalAlignment="Right"
-                                                                FontSize="10"
+                                                                FontSize="8"
                                                                 FontWeight="Bold"
                                                                 Foreground="{DynamicResource Brush.Success}"
                                                                 Text="{Binding Progress, StringFormat='{}{0}%'}" />

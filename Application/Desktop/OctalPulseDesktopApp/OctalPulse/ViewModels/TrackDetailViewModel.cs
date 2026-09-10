@@ -14,7 +14,6 @@ namespace OctalPulse.ViewModels;
 public partial class TrackDetailViewModel : ObservableObject, INavigationAware
 {
     private readonly ITaskService _taskService;
-    private readonly ILocalCacheService _localCache;
     private readonly ISignalRRealtimeService _signalRService;
     private readonly INavigationService _navigationService;
     private readonly IDialogService _dialogService;
@@ -59,14 +58,12 @@ public partial class TrackDetailViewModel : ObservableObject, INavigationAware
 
     public TrackDetailViewModel(
         ITaskService taskService,
-        ILocalCacheService localCache,
         ISignalRRealtimeService signalRService,
         INavigationService navigationService,
         IDialogService dialogService,
         IUserSession userSession)
     {
         _taskService = taskService;
-        _localCache = localCache;
         _signalRService = signalRService;
         _navigationService = navigationService;
         _dialogService = dialogService;
@@ -123,51 +120,10 @@ public partial class TrackDetailViewModel : ObservableObject, INavigationAware
             {
                 MajorTasks.Add(t);
             }
-
-            // Cache locally
-            await _localCache.SaveMajorTasksAsync(TrackId, res.MajorTasks.Select(t => new CachedMajorTask
-            {
-                Id = t.Id,
-                TrackId = TrackId,
-                Title = t.Title,
-                Description = t.Description,
-                Details = t.Details,
-                Link = t.Link,
-                State = t.State,
-                Priority = t.Priority,
-                DueDate = t.DueDate,
-                Order = t.Order,
-                AssignedUserId = t.AssignedUserId,
-                Progress = t.Progress,
-                CreatedByUserId = t.CreatedByUserId,
-                CreatedDate = t.CreatedDate
-            }));
         }
         catch (Exception ex)
         {
             ErrorMessage = ex.Message;
-            // SQLite cache
-            var cached = await _localCache.GetCachedMajorTasksAsync(TrackId);
-            MajorTasks.Clear();
-            foreach (var c in cached)
-            {
-                MajorTasks.Add(new MajorTaskItem(
-                    c.Id,
-                    c.TrackId,
-                    c.Title,
-                    c.Description,
-                    c.Details,
-                    c.Link,
-                    c.State,
-                    c.Priority,
-                    c.DueDate,
-                    c.Order,
-                    c.AssignedUserId,
-                    c.Progress,
-                    c.CreatedByUserId,
-                    null,
-                    c.CreatedDate));
-            }
         }
         finally
         {

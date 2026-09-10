@@ -12,6 +12,8 @@
         <converters:NullToVisibilityConverter x:Key="NullToVis" />
         <converters:StatusToBrushConverter x:Key="StatusToBrush" />
         <converters:DateFormattingConverter x:Key="DateFormatter" />
+        <converters:RelativeUrlToImageSourceConverter x:Key="RelativeUrlToImage" />
+        <converters:StringToInitialConverter x:Key="StringToInitial" />
     </UserControl.Resources>
 
     <Grid>
@@ -152,6 +154,7 @@
                                             <RowDefinition Height="*" />
                                             <RowDefinition Height="Auto" />
                                             <RowDefinition Height="Auto" />
+                                            <RowDefinition Height="Auto" />
                                         </Grid.RowDefinitions>
 
                                         <!-- Track Name -->
@@ -160,8 +163,42 @@
                                         <!-- Track Description -->
                                         <TextBlock Grid.Row="1" Text="{Binding Description, FallbackValue='No description provided.'}" FontSize="13" Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,0,0,16" />
 
+                                        <!-- Track Members (avatars) -->
+                                        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,14"
+                                                    Visibility="{Binding Members.Count, Converter={StaticResource BoolToVis}}">
+                                            <ItemsControl ItemsSource="{Binding Members}">
+                                                <ItemsControl.ItemsPanel>
+                                                    <ItemsPanelTemplate>
+                                                        <StackPanel Orientation="Horizontal" />
+                                                    </ItemsPanelTemplate>
+                                                </ItemsControl.ItemsPanel>
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate>
+                                                        <Border Width="26" Height="26" CornerRadius="13" Background="{DynamicResource Brush.Primary}"
+                                                                Margin="0,0,-8,0" BorderBrush="{DynamicResource Brush.CardBackground}" BorderThickness="2"
+                                                                ToolTip="{Binding Name}">
+                                                            <Grid>
+                                                                <Image Source="{Binding ProfilePictureUrl, Converter={StaticResource RelativeUrlToImage}}"
+                                                                       Stretch="UniformToFill"
+                                                                       Visibility="{Binding ProfilePictureUrl, Converter={StaticResource NullToVis}}" />
+                                                                <TextBlock Text="{Binding Name, Converter={StaticResource StringToInitial}}"
+                                                                           FontSize="10" FontWeight="Bold" Foreground="White"
+                                                                           HorizontalAlignment="Center" VerticalAlignment="Center"
+                                                                           Visibility="{Binding ProfilePictureUrl, Converter={StaticResource NullToVis}, ConverterParameter=invert}" />
+                                                            </Grid>
+                                                        </Border>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+
+                                            <StackPanel Orientation="Horizontal" Margin="12,0,0,0" VerticalAlignment="Center">
+                                                <TextBlock Text="{Binding Members.Count}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource Brush.TextSecondary}" />
+                                                <TextBlock Text=" member(s)" FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" />
+                                            </StackPanel>
+                                        </StackPanel>
+
                                         <!-- Track Progress -->
-                                        <StackPanel Grid.Row="2" Margin="0,0,0,16">
+                                        <StackPanel Grid.Row="3" Margin="0,0,0,16">
                                             <Grid Margin="0,0,0,4">
                                                 <TextBlock Text="Progress from Major Tasks" FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" />
                                                 <TextBlock Text="{Binding Progress, StringFormat='{}{0}%'}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource Brush.Primary}" HorizontalAlignment="Right" />
@@ -170,7 +207,7 @@
                                         </StackPanel>
 
                                         <!-- Enter Track Workspace -->
-                                        <Button Grid.Row="3" Style="{StaticResource Button.Secondary}" Content="Open Track Workspace →" 
+                                        <Button Grid.Row="4" Style="{StaticResource Button.Secondary}" Content="Open Track Workspace →" 
                                                 Command="{Binding DataContext.OpenTrackCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
                                                 CommandParameter="{Binding}" HorizontalAlignment="Right" Height="34" Padding="14,0" />
                                     </Grid>

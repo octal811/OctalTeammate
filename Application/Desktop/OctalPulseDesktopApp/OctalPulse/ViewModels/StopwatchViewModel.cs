@@ -42,6 +42,9 @@ public partial class StopwatchViewModel : ObservableObject, INavigationAware
     [ObservableProperty] private string _newMinorTarget = string.Empty;
     [ObservableProperty] private string _newMinorNotes = string.Empty;
     [ObservableProperty] private string _newMinorLink = string.Empty;
+    [ObservableProperty] private MinorTaskJobType? _newMinorJobType;
+
+    public MinorTaskJobType[] AvailableJobTypes { get; } = Enum.GetValues<MinorTaskJobType>();
 
     public StopwatchViewModel(
         IProjectService projectService,
@@ -159,6 +162,7 @@ public partial class StopwatchViewModel : ObservableObject, INavigationAware
                     string.IsNullOrWhiteSpace(NewMinorDescription) ? null : NewMinorDescription.Trim(),
                     string.IsNullOrWhiteSpace(NewMinorTarget) ? null : NewMinorTarget.Trim(),
                     MinorTaskState.Todo,
+                    NewMinorJobType,
                     string.IsNullOrWhiteSpace(NewMinorNotes) ? null : NewMinorNotes.Trim(),
                     string.IsNullOrWhiteSpace(NewMinorLink) ? null : NewMinorLink.Trim(),
                     1,
@@ -216,6 +220,7 @@ public partial class StopwatchViewModel : ObservableObject, INavigationAware
         NewMinorTarget = string.Empty;
         NewMinorNotes = string.Empty;
         NewMinorLink = string.Empty;
+        NewMinorJobType = null;
     }
 
     private async Task LoadProjectsAsync()

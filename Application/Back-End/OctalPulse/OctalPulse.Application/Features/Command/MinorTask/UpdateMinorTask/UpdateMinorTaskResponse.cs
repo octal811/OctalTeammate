@@ -9,6 +9,7 @@ public record UpdateMinorTaskResponse(
     string? Description,
     string? Target,
     MinorTaskState State,
+    MinorTaskJobType? JobType,
     string? Notes,
     string? Link,
     int Order,

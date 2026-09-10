@@ -1,3 +1,5 @@
+using System.Linq.Expressions;
+using Microsoft.EntityFrameworkCore;
 using OctalPulse.Application.Interface.Repositories;
 using OctalPulse.Domain.Entities;
 using OctalPulse.Infrastructure.Persistence;
@@ -8,5 +10,16 @@ public class MinorTaskRepository : BaseRepository<MinorTask>, IMinorTaskReposito
 {
     public MinorTaskRepository(ApplicationDbContext context) : base(context)
     {
+    }
+
+    public async Task<IReadOnlyList<MinorTask>> FindWithCreatedByUserAsync(
+        Expression<Func<MinorTask, bool>> predicate,
+        CancellationToken cancellationToken = default)
+    {
+        return await _context.MinorTasks
+            .AsNoTracking()
+            .Include(m => m.CreatedByUser)
+            .Where(predicate)
+            .ToListAsync(cancellationToken);
     }
 }

@@ -29,7 +29,7 @@ public class GetMinorTasksByMajorTaskQueryHandler : IRequestHandler<GetMinorTask
         if (!isMember)
             throw new ForbiddenException("Only approved track members can view minor tasks in this track.");
 
-        var tasks = (await _unitOfWork.MinorTasks.FindAsync(
+        var tasks = (await _unitOfWork.MinorTasks.FindWithCreatedByUserAsync(
             m => m.MajorTaskId == request.MajorTaskId,
             cancellationToken)).ToList();
 
@@ -43,12 +43,15 @@ public class GetMinorTasksByMajorTaskQueryHandler : IRequestHandler<GetMinorTask
                 m.Description,
                 m.Target,
                 m.State,
+                m.JobType,
                 m.Notes,
                 m.Link,
                 m.Order,
                 m.WorkTime is null ? null : (long)m.WorkTime.Value.TotalSeconds,
                 m.AssignedUserId,
                 m.CreatedByUserId,
+                m.CreatedByUser?.Name,
+                m.CreatedByUser?.Email,
                 m.IsDeleted,
                 m.CreatedDate))
             .ToList();

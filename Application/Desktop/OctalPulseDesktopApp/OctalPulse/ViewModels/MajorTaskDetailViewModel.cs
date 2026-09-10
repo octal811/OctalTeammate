@@ -15,7 +15,6 @@ namespace OctalPulse.ViewModels;
 public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAware
 {
     private readonly ITaskService _taskService;
-    private readonly ILocalCacheService _localCache;
     private readonly ISignalRRealtimeService _signalRService;
     private readonly INavigationService _navigationService;
     private readonly IDialogService _dialogService;
@@ -61,18 +60,21 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
     [ObservableProperty]
     private string _newMinorLink = string.Empty;
 
+    [ObservableProperty]
+    private MinorTaskJobType? _newMinorJobType;
+
+    public MinorTaskJobType[] AvailableJobTypes { get; } = Enum.GetValues<MinorTaskJobType>();
+
     public ObservableCollection<MinorTaskRowViewModel> MinorTaskRows { get; } = new();
 
     public MajorTaskDetailViewModel(
         ITaskService taskService,
-        ILocalCacheService localCache,
         ISignalRRealtimeService signalRService,
         INavigationService navigationService,
         IDialogService dialogService,
         IUserSession userSession)
     {
         _taskService = taskService;
-        _localCache = localCache;
         _signalRService = signalRService;
         _navigationService = navigationService;
         _dialogService = dialogService;
@@ -158,55 +160,10 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
             {
                 ParsedLink = ExternalWorkLink.FromUrl(TaskLink);
             }
-
-            // Cache in SQLite
-            await _localCache.SaveMinorTasksAsync(MajorTaskId, res.MinorTasks.Select(m => new CachedMinorTask
-            {
-                Id = m.Id,
-                MajorTaskId = MajorTaskId,
-                Title = m.Title,
-                Description = m.Description,
-                Target = m.Target,
-                State = m.State,
-                Notes = m.Notes,
-                Link = m.Link,
-                Order = m.Order,
-                WorkTimeSeconds = m.WorkTimeSeconds,
-                AssignedUserId = m.AssignedUserId,
-                CreatedByUserId = m.CreatedByUserId,
-                CreatedDate = m.CreatedDate
-            }));
         }
         catch (Exception ex)
         {
             _dialogService.ShowToast("Load Error", $"Could not load sub-tasks: {ex.Message}", ToastType.Warning);
-
-            // SQLite cache
-            var cached = await _localCache.GetCachedMinorTasksAsync(MajorTaskId);
-            MinorTaskRows.Clear();
-            var doneCount = 0;
-            foreach (var c in cached)
-            {
-                var item = new MinorTaskItem(
-                    c.Id,
-                    c.MajorTaskId,
-                    c.Title,
-                    c.Description,
-                    c.Target,
-                    c.State,
-                    c.Notes,
-                    c.Link,
-                    c.Order,
-                    c.WorkTimeSeconds,
-                    c.AssignedUserId,
-                    c.CreatedByUserId,
-                    false,
-                    c.CreatedDate);
-                MinorTaskRows.Add(new MinorTaskRowViewModel(item, item.CreatedByUserId == _userSession.UserId));
-
-                if (c.State == MinorTaskState.Done) doneCount++;
-            }
-            ProgressPercentage = cached.Count > 0 ? (doneCount * 100) / cached.Count : 0;
         }
         finally
         {
@@ -266,6 +223,7 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
                 string.IsNullOrWhiteSpace(NewMinorDescription) ? null : NewMinorDescription.Trim(),
                 string.IsNullOrWhiteSpace(NewMinorTarget) ? null : NewMinorTarget.Trim(),
                 MinorTaskState.Todo,
+                NewMinorJobType,
                 string.IsNullOrWhiteSpace(NewMinorNotes) ? null : NewMinorNotes.Trim(),
                 string.IsNullOrWhiteSpace(NewMinorLink) ? null : NewMinorLink.Trim(),
                 MinorTaskRows.Count + 1,
@@ -276,6 +234,7 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
             NewMinorDescription = string.Empty;
             NewMinorNotes = string.Empty;
             NewMinorLink = string.Empty;
+            NewMinorJobType = null;
 
             _dialogService.ShowToast("Task Added", "Sub-task added to checklist.", ToastType.Success);
             IsAddingMinor = false;

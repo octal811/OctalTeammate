@@ -10,11 +10,16 @@ public class UpdateMinorTaskCommandHandler : IRequestHandler<UpdateMinorTaskComm
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IRealtimeNotifier _realtimeNotifier;
+    private readonly IBadgeService _badgeService;
 
-    public UpdateMinorTaskCommandHandler(IUnitOfWork unitOfWork, IRealtimeNotifier realtimeNotifier)
+    public UpdateMinorTaskCommandHandler(
+        IUnitOfWork unitOfWork,
+        IRealtimeNotifier realtimeNotifier,
+        IBadgeService badgeService)
     {
         _unitOfWork = unitOfWork;
         _realtimeNotifier = realtimeNotifier;
+        _badgeService = badgeService;
     }
 
     public async Task<UpdateMinorTaskResponse> Handle(
@@ -34,17 +39,28 @@ public class UpdateMinorTaskCommandHandler : IRequestHandler<UpdateMinorTaskComm
         if (task.CreatedByUserId != request.UserId)
             throw new ForbiddenException("Only the creator of this minor task can update it.");
 
+        var previousState = task.State;
+
         task.Title = request.Title;
         task.Description = request.Description;
         task.Target = request.Target;
         task.State = request.State;
+        task.JobType = request.JobType;
         task.Notes = request.Notes;
         task.Link = request.Link;
         task.Order = request.Order;
         task.AssignedUserId = request.AssignedUserId;
+        task.CompletedDate = request.State == MinorTaskState.Done
+            ? (previousState == MinorTaskState.Done ? task.CompletedDate : DateTime.UtcNow)
+            : null;
         task.ModifiedDate = DateTime.UtcNow;
 
+        var justCompletedSolveBug = task.JobType == MinorTaskJobType.SolveBug
+            && task.State == MinorTaskState.Done
+            && previousState != MinorTaskState.Done;
+
         _unitOfWork.MinorTasks.Update(task);
+        await _badgeService.EvaluateBugHunterAsync(request.UserId, justCompletedSolveBug, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         await _realtimeNotifier.MinorTaskChangedAsync(majorTask.TrackId, task.Id, cancellationToken);
@@ -56,6 +72,7 @@ public class UpdateMinorTaskCommandHandler : IRequestHandler<UpdateMinorTaskComm
             task.Description,
             task.Target,
             task.State,
+            task.JobType,
             task.Notes,
             task.Link,
             task.Order,

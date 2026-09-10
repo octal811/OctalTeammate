@@ -8,4 +8,10 @@ public record TrackSummaryItem(
     Guid Id,
     string Name,
     string? Description,
-    int Progress);
+    int Progress,
+    IReadOnlyList<TrackMemberItem> Members);
+
+public record TrackMemberItem(
+    Guid UserId,
+    string Name,
+    string? ProfilePictureUrl);

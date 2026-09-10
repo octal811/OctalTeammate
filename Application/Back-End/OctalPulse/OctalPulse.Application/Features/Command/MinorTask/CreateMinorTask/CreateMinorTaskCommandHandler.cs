@@ -37,11 +37,13 @@ public class CreateMinorTaskCommandHandler : IRequestHandler<CreateMinorTaskComm
             Description = request.Description,
             Target = request.Target,
             State = request.State,
+            JobType = request.JobType,
             Notes = request.Notes,
             Link = request.Link,
             Order = request.Order,
             AssignedUserId = request.AssignedUserId,
             CreatedByUserId = request.UserId,
+            CompletedDate = request.State == MinorTaskState.Done ? now : null,
             IsDeleted = false,
             CreatedDate = now
         };
@@ -58,6 +60,7 @@ public class CreateMinorTaskCommandHandler : IRequestHandler<CreateMinorTaskComm
             task.Description,
             task.Target,
             task.State,
+            task.JobType,
             task.Notes,
             task.Link,
             task.Order,

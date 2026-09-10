@@ -33,7 +33,7 @@ public class GetTracksByProjectQueryHandler : IRequestHandler<GetTracksByProject
         if (!isMember)
             throw new ForbiddenException("Only approved project members can view tracks in this project.");
 
-        var tracks = (await _unitOfWork.Tracks.FindAsync(
+        var tracks = (await _unitOfWork.Tracks.FindWithMembersAsync(
             t => t.ProjectId == request.ProjectId,
             cancellationToken)).ToList();
 
@@ -47,7 +47,14 @@ public class GetTracksByProjectQueryHandler : IRequestHandler<GetTracksByProject
                 t.Id,
                 t.Name,
                 t.Description,
-                progressMap.GetValueOrDefault(t.Id)))
+                progressMap.GetValueOrDefault(t.Id),
+                t.Members
+                    .Where(m => m.Status == Domain.Enums.MembershipStatus.Approved)
+                    .Select(m => new TrackMemberItem(
+                        m.UserId,
+                        m.User.Name,
+                        m.User.ProfilePictureUrl))
+                    .ToList()))
             .ToList();
 
         return new GetTracksByProjectResponse(items);

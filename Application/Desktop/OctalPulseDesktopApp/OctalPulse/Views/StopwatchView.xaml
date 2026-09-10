@@ -210,6 +210,17 @@
                                 Margin="0,0,0,4"
                                 FontSize="12"
                                 Foreground="{DynamicResource Brush.TextMuted}"
+                                Text="Job Type" />
+                            <ComboBox
+                                Margin="0,0,0,12"
+                                ItemsSource="{Binding AvailableJobTypes}"
+                                SelectedItem="{Binding NewMinorJobType}"
+                                Style="{StaticResource ComboBox.Modern}" />
+
+                            <TextBlock
+                                Margin="0,0,0,4"
+                                FontSize="12"
+                                Foreground="{DynamicResource Brush.TextMuted}"
                                 Text="Description" />
                             <TextBox
                                 Margin="0,0,0,12"

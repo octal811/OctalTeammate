@@ -11,15 +11,18 @@ public class UpdateMajorTaskCommandHandler : IRequestHandler<UpdateMajorTaskComm
     private readonly IUnitOfWork _unitOfWork;
     private readonly IRealtimeNotifier _realtimeNotifier;
     private readonly IProgressCalculator _progressCalculator;
+    private readonly IBadgeService _badgeService;
 
     public UpdateMajorTaskCommandHandler(
         IUnitOfWork unitOfWork,
         IRealtimeNotifier realtimeNotifier,
-        IProgressCalculator progressCalculator)
+        IProgressCalculator progressCalculator,
+        IBadgeService badgeService)
     {
         _unitOfWork = unitOfWork;
         _realtimeNotifier = realtimeNotifier;
         _progressCalculator = progressCalculator;
+        _badgeService = badgeService;
     }
 
     public async Task<UpdateMajorTaskResponse> Handle(
@@ -32,6 +35,8 @@ public class UpdateMajorTaskCommandHandler : IRequestHandler<UpdateMajorTaskComm
 
         await EnsureApprovedTrackMemberAsync(task.TrackId, request.UserId, cancellationToken);
 
+        var previousState = task.State;
+
         task.Title = request.Title;
         task.Description = request.Description;
         task.Details = request.Details;
@@ -41,9 +46,16 @@ public class UpdateMajorTaskCommandHandler : IRequestHandler<UpdateMajorTaskComm
         task.DueDate = request.DueDate;
         task.Order = request.Order;
         task.AssignedUserId = request.AssignedUserId;
+        task.CompletedDate = request.State == MajorTaskState.Done
+            ? (previousState == MajorTaskState.Done ? task.CompletedDate : DateTime.UtcNow)
+            : null;
         task.ModifiedDate = DateTime.UtcNow;
 
         _unitOfWork.MajorTasks.Update(task);
+
+        if (request.State == MajorTaskState.Done && previousState != MajorTaskState.Done)
+            await _badgeService.EvaluateHeavyWorkAsync(task.Id, cancellationToken);
+
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         await _realtimeNotifier.MajorTaskChangedAsync(task.TrackId, task.Id, cancellationToken);

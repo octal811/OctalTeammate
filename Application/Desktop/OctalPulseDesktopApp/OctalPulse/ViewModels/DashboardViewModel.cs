@@ -13,7 +13,6 @@ public partial class DashboardViewModel : ObservableObject, INavigationAware
 {
     private readonly IProjectService _projectService;
     private readonly IEventService _eventService;
-    private readonly ILocalCacheService _localCache;
     private readonly ISignalRRealtimeService _signalRService;
     private readonly INavigationService _navigationService;
     private readonly IDialogService _dialogService;
@@ -37,7 +36,6 @@ public partial class DashboardViewModel : ObservableObject, INavigationAware
     public DashboardViewModel(
         IProjectService projectService,
         IEventService eventService,
-        ILocalCacheService localCache,
         ISignalRRealtimeService signalRService,
         INavigationService navigationService,
         IDialogService dialogService,
@@ -45,7 +43,6 @@ public partial class DashboardViewModel : ObservableObject, INavigationAware
     {
         _projectService = projectService;
         _eventService = eventService;
-        _localCache = localCache;
         _signalRService = signalRService;
         _navigationService = navigationService;
         _dialogService = dialogService;
@@ -98,16 +95,6 @@ public partial class DashboardViewModel : ObservableObject, INavigationAware
             MyProjectsCount = pagedProjects.TotalCount;
             AverageProgress = pagedProjects.Items.Count > 0 ? totalProgress / pagedProjects.Items.Count : 0;
 
-            // Cache locally in SQLite
-            await _localCache.SaveProjectsAsync(pagedProjects.Items.Select(p => new CachedProject
-            {
-                Id = p.Id,
-                Title = p.Title,
-                Description = p.Description,
-                Progress = p.Progress,
-                Status = p.Status
-            }));
-
             // Load upcoming events for the first active project if available
             UpcomingEvents.Clear();
             if (pagedProjects.Items.Count > 0)
@@ -124,14 +111,6 @@ public partial class DashboardViewModel : ObservableObject, INavigationAware
         }
         catch (Exception)
         {
-            // Fallback to SQLite cache for offline experience
-            var cached = await _localCache.GetCachedProjectsAsync();
-            RecentProjects.Clear();
-            foreach (var c in cached)
-            {
-                RecentProjects.Add(new ProjectSummaryItem(c.Id, c.Title, c.Description, c.Progress, c.Status));
-            }
-            MyProjectsCount = cached.Count;
         }
         finally
         {

@@ -33,6 +33,10 @@ public class MinorTaskConfiguration : IEntityTypeConfiguration<MinorTask>
             .HasMaxLength(20)
             .IsRequired();
 
+        builder.Property(mn => mn.JobType)
+            .HasConversion<string>()
+            .HasMaxLength(30);
+
         builder.Property(mn => mn.WorkTime)
             .HasConversion(
                 v => v.HasValue ? (long)v.Value.TotalSeconds : (long?)null,

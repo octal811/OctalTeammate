@@ -13,6 +13,7 @@ public class MinorTask : AuditableEntity
     public string? Description { get; set; }
     public string? Target { get; set; }
     public MinorTaskState State { get; set; }
+    public MinorTaskJobType? JobType { get; set; }
     public string? Notes { get; set; }
     public string? Link { get; set; }
     public int Order { get; set; }

@@ -119,6 +119,14 @@
                                 </StackPanel>
                             </Grid>
 
+                            <!-- Field 2: Job Type -->
+                            <StackPanel Margin="0,0,0,14">
+                                <TextBlock Text="Job Type (Optional)" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                                <ComboBox ItemsSource="{Binding AvailableJobTypes}"
+                                          SelectedItem="{Binding NewMinorJobType}"
+                                          Style="{StaticResource ComboBox.Modern}" />
+                            </StackPanel>
+
                             <!-- Field 3: Link -->
                             <StackPanel Margin="0,0,0,14">
                                 <TextBlock Text="External Work Link (Optional)" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
@@ -219,6 +227,20 @@
                                             <TextBlock Text="{Binding WorkTimeDisplay}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Primary}" />
                                         </StackPanel>
 
+                                        <!-- Created By -->
+                                        <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="8" Padding="8,6" Margin="0,0,0,8"
+                                                Visibility="{Binding HasCreator, Converter={StaticResource BoolToVis}}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Border Width="24" Height="24" CornerRadius="12" Background="{DynamicResource Brush.Primary}" Margin="0,0,8,0" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding CreatorInitials}" FontSize="9.5" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                </Border>
+                                                <StackPanel VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding CreatorName}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" MaxWidth="280" TextTrimming="CharacterEllipsis" />
+                                                    <TextBlock Text="{Binding CreatorEmail}" FontSize="10.5" Foreground="{DynamicResource Brush.TextMuted}" MaxWidth="280" TextTrimming="CharacterEllipsis" />
+                                                </StackPanel>
+                                            </StackPanel>
+                                        </Border>
+
                                         <!-- Target / Acceptance Criteria -->
                                         <TextBlock Text="{Binding Item.Target}" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,0,0,8" TextWrapping="Wrap"
                                                    Visibility="{Binding Item.Target, Converter={StaticResource NullToVis}}" />
@@ -227,9 +249,33 @@
                                         <TextBlock Text="{Binding Item.Description}" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,0,0,8" TextWrapping="Wrap"
                                                    Visibility="{Binding Item.Description, Converter={StaticResource NullToVis}}" />
 
-                                        <!-- Notes -->
+                                        <!-- Notes Toggle Button -->
+                                        <Button Style="{StaticResource Button.Ghost}"
+                                                Cursor="Hand"
+                                                HorizontalAlignment="Left"
+                                                Margin="0,0,0,6"
+                                                Padding="0,2"
+                                                Command="{Binding ToggleNotesCommand}"
+                                                Visibility="{Binding HasNotes, Converter={StaticResource BoolToVis}}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <Path Data="{StaticResource Icon.ChevronDown}" Fill="{DynamicResource Brush.TextMuted}" Width="11" Height="11" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center">
+                                                    <Path.Style>
+                                                        <Style TargetType="Path">
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding NotesExpanded}" Value="True">
+                                                                    <Setter Property="RenderTransform" Value="1,0,0,-1,0,0" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </Path.Style>
+                                                </Path>
+                                                <TextBlock Text="{Binding NotesToggleLabel}" FontSize="11.5" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextMuted}" VerticalAlignment="Center" />
+                                            </StackPanel>
+                                        </Button>
+
+                                        <!-- Notes Content (Collapsible) -->
                                         <TextBlock Text="{Binding Item.Notes}" FontSize="12" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,0,0,8" TextWrapping="Wrap"
-                                                   Visibility="{Binding Item.Notes, Converter={StaticResource NullToVis}}" />
+                                                   Visibility="{Binding NotesExpanded, Converter={StaticResource BoolToVis}}" />
 
                                         <!-- Link Row (Clickable) -->
                                         <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="8" Padding="10,6"

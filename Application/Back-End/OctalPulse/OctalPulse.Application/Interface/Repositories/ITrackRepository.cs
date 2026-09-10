@@ -13,4 +13,7 @@ public interface ITrackRepository : IGenericRepository<Track>
     Task<IReadOnlyList<Track>> GetByProjectIdsWithMajorTasksAsync(
         IEnumerable<Guid> projectIds,
         CancellationToken cancellationToken = default);
+    Task<IReadOnlyList<Track>> FindWithMembersAsync(
+        System.Linq.Expressions.Expression<Func<Track, bool>> predicate,
+        CancellationToken cancellationToken = default);
 }

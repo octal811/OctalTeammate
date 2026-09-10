@@ -15,7 +15,6 @@ public partial class ProjectDetailViewModel : ObservableObject, INavigationAware
     private readonly IProjectService _projectService;
     private readonly ITrackService _trackService;
     private readonly IEventService _eventService;
-    private readonly ILocalCacheService _localCache;
     private readonly ISignalRRealtimeService _signalRService;
     private readonly INavigationService _navigationService;
     private readonly IDialogService _dialogService;
@@ -93,7 +92,6 @@ public partial class ProjectDetailViewModel : ObservableObject, INavigationAware
         IProjectService projectService,
         ITrackService trackService,
         IEventService eventService,
-        ILocalCacheService localCache,
         ISignalRRealtimeService signalRService,
         INavigationService navigationService,
         IDialogService dialogService,
@@ -102,7 +100,6 @@ public partial class ProjectDetailViewModel : ObservableObject, INavigationAware
         _projectService = projectService;
         _trackService = trackService;
         _eventService = eventService;
-        _localCache = localCache;
         _signalRService = signalRService;
         _navigationService = navigationService;
         _dialogService = dialogService;
@@ -181,22 +178,6 @@ public partial class ProjectDetailViewModel : ObservableObject, INavigationAware
         catch (Exception ex)
         {
             ErrorMessage = ex.Message;
-            // SQLite cache fallback
-            var cached = await _localCache.GetCachedProjectByIdAsync(ProjectId);
-            if (cached != null)
-            {
-                Project = new GetProjectByIdResponse(
-                    cached.Id,
-                    cached.Title,
-                    cached.Description,
-                    cached.Progress,
-                    cached.Status,
-                    cached.CreatedDate,
-                    cached.ModifiedDate,
-                    new ProjectCreator(cached.CreatorUserId, cached.CreatorName, cached.CreatorEmail),
-                    cached.MembersCount,
-                    new List<ProjectMemberItem>());
-            }
         }
         finally
         {
@@ -206,76 +187,22 @@ public partial class ProjectDetailViewModel : ObservableObject, INavigationAware
 
     private async Task LoadTracksAsync()
     {
-        try
+        var res = await _projectService.GetTracksByProjectAsync(ProjectId);
+        Tracks.Clear();
+        foreach (var t in res.Tracks)
         {
-            var res = await _projectService.GetTracksByProjectAsync(ProjectId);
-            Tracks.Clear();
-            foreach (var t in res.Tracks)
-            {
-                Tracks.Add(t);
-            }
-
-            // Cache in SQLite
-            await _localCache.SaveTracksAsync(ProjectId, res.Tracks.Select(t => new CachedTrack
-            {
-                Id = t.Id,
-                ProjectId = ProjectId,
-                Name = t.Name,
-                Description = t.Description,
-                Progress = t.Progress
-            }));
-        }
-        catch
-        {
-            // SQLite cache
-            var cached = await _localCache.GetCachedTracksAsync(ProjectId);
-            Tracks.Clear();
-            foreach (var c in cached)
-            {
-                Tracks.Add(new TrackSummaryItem(c.Id, c.Name, c.Description, c.Progress));
-            }
+            Tracks.Add(t);
         }
     }
 
     private async Task LoadEventsAsync()
     {
-        try
+        var now = DateTime.UtcNow;
+        var res = await _eventService.GetEventsByMonthAsync(ProjectId, now.Year, now.Month);
+        Events.Clear();
+        foreach (var ev in res.Events)
         {
-            var now = DateTime.UtcNow;
-            var res = await _eventService.GetEventsByMonthAsync(ProjectId, now.Year, now.Month);
-            Events.Clear();
-            foreach (var ev in res.Events)
-            {
-                Events.Add(ev);
-            }
-        }
-        catch
-        {
-            // SQLite cache
-            var now = DateTime.UtcNow;
-            var cached = await _localCache.GetCachedEventsAsync(ProjectId, now.Year, now.Month);
-            Events.Clear();
-            foreach (var c in cached)
-            {
-                Events.Add(new EventItem(
-                    c.Id,
-                    c.ProjectId,
-                    c.Title,
-                    c.Description,
-                    c.Type,
-                    c.StartDate,
-                    c.EndDate,
-                    c.StartTime,
-                    c.EndTime,
-                    c.IsAllDay,
-                    c.TrackId,
-                    c.MajorTaskId,
-                    c.CreatedByUserId,
-                    null,
-                    false,
-                    c.CreatedDate,
-                    c.ModifiedDate));
-            }
+            Events.Add(ev);
         }
     }
 

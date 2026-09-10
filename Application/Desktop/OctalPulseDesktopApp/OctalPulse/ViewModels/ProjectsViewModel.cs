@@ -12,7 +12,6 @@ namespace OctalPulse.ViewModels;
 public partial class ProjectsViewModel : ObservableObject, INavigationAware
 {
     private readonly IProjectService _projectService;
-    private readonly ILocalCacheService _localCache;
     private readonly ISignalRRealtimeService _signalRService;
     private readonly INavigationService _navigationService;
     private readonly IDialogService _dialogService;
@@ -60,13 +59,11 @@ public partial class ProjectsViewModel : ObservableObject, INavigationAware
 
     public ProjectsViewModel(
         IProjectService projectService,
-        ILocalCacheService localCache,
         ISignalRRealtimeService signalRService,
         INavigationService navigationService,
         IDialogService dialogService)
     {
         _projectService = projectService;
-        _localCache = localCache;
         _signalRService = signalRService;
         _navigationService = navigationService;
         _dialogService = dialogService;
@@ -102,10 +99,6 @@ public partial class ProjectsViewModel : ObservableObject, INavigationAware
         catch (Exception ex)
         {
             ErrorMessage = ex.Message;
-            // SQLite offline fallback
-            var cached = await _localCache.GetCachedProjectsAsync();
-            _allProjects = cached.Select(c => new ProjectSummaryItem(c.Id, c.Title, c.Description, c.Progress, c.Status)).ToList();
-            ApplyFilter();
         }
         finally
         {
