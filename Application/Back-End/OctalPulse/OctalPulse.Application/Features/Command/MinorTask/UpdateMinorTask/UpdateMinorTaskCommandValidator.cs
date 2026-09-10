@@ -35,5 +35,9 @@ public class UpdateMinorTaskCommandValidator : AbstractValidator<UpdateMinorTask
         RuleFor(x => x.JobType)
             .IsInEnum()
             .When(x => x.JobType.HasValue);
+
+        RuleFor(x => x.WorkTimeSeconds)
+            .GreaterThanOrEqualTo(0)
+            .When(x => x.WorkTimeSeconds.HasValue);
     }
 }

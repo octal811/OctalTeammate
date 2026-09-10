@@ -30,6 +30,7 @@ public class MajorTaskCardModel : ObservableObject
     public int Progress { get; set; }
     public Guid? CreatedByUserId { get; set; }
     public DateTime CreatedDate { get; set; }
+    public bool IsOwner { get; set; }
 
     public string ProjectTitle { get; set; } = string.Empty;
     public string TrackTitle { get; set; } = string.Empty;
@@ -162,6 +163,7 @@ public partial class TasksViewModel : ObservableObject, INavigationAware
                             AssignedUserId = m.AssignedUserId,
                             Progress = m.Progress,
                             CreatedByUserId = m.CreatedByUserId,
+                            IsOwner = _userSession.UserId.HasValue && m.CreatedByUserId == _userSession.UserId,
                             CreatedDate = m.CreatedDate,
                             ProjectTitle = p.Title,
                             TrackTitle = t.Name

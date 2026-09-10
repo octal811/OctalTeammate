@@ -56,8 +56,36 @@ public partial class TrackDetailViewModel : ObservableObject, INavigationAware
     [ObservableProperty]
     private string _newTaskLink = string.Empty;
 
-    public ObservableCollection<MajorTaskItem> MajorTasks { get; } = new();
+    // Edit Major Task Modal
+    [ObservableProperty]
+    private bool _isEditMajorTaskModalOpen;
+
+    [ObservableProperty]
+    private string _editTaskTitle = string.Empty;
+
+    [ObservableProperty]
+    private string _editTaskDescription = string.Empty;
+
+    [ObservableProperty]
+    private string _editTaskDetails = string.Empty;
+
+    [ObservableProperty]
+    private Priority _editTaskPriority = Priority.Medium;
+
+    [ObservableProperty]
+    private MajorTaskState _editTaskState = MajorTaskState.Todo;
+
+    [ObservableProperty]
+    private DateTime? _editTaskDueDate;
+
+    [ObservableProperty]
+    private string _editTaskLink = string.Empty;
+
+    private MajorTaskItem? _editingMajorTaskItem;
+
+    public ObservableCollection<MajorTaskRowViewModel> MajorTasks { get; } = new();
     public IReadOnlyList<Priority> AvailablePriorities { get; } = Enum.GetValues<Priority>();
+    public IReadOnlyList<MajorTaskState> AvailableTaskStates { get; } = Enum.GetValues<MajorTaskState>();
 
     public TrackDetailViewModel(
         ITaskService taskService,
@@ -144,7 +172,7 @@ public partial class TrackDetailViewModel : ObservableObject, INavigationAware
             MajorTasks.Clear();
             foreach (var t in res.MajorTasks)
             {
-                MajorTasks.Add(t);
+                MajorTasks.Add(new MajorTaskRowViewModel(t, t.CreatedByUserId == _userSession.UserId));
             }
         }
         catch (Exception ex)
@@ -214,9 +242,10 @@ public partial class TrackDetailViewModel : ObservableObject, INavigationAware
     }
 
     [RelayCommand]
-    private void OpenMajorTaskDetail(MajorTaskItem task)
+    private void OpenMajorTaskDetail(MajorTaskRowViewModel row)
     {
-        if (task == null) return;
+        if (row == null) return;
+        var task = row.Item;
         _navigationService.NavigateTo<MajorTaskDetailViewModel>(new MajorTaskNavigationPayload(
             task.Id,
             task.Title,
@@ -227,9 +256,76 @@ public partial class TrackDetailViewModel : ObservableObject, INavigationAware
     }
 
     [RelayCommand]
-    private async Task DeleteMajorTaskAsync(MajorTaskItem task)
+    private void OpenEditMajorTaskModal(MajorTaskRowViewModel row)
     {
-        if (task == null) return;
+        if (row == null || !row.IsOwner) return;
+
+        var task = row.Item;
+        _editingMajorTaskItem = task;
+        EditTaskTitle = task.Title;
+        EditTaskDescription = task.Description ?? string.Empty;
+        EditTaskDetails = task.Details ?? string.Empty;
+        EditTaskPriority = task.Priority;
+        EditTaskState = task.State;
+        EditTaskDueDate = task.DueDate;
+        EditTaskLink = task.Link ?? string.Empty;
+        IsEditMajorTaskModalOpen = true;
+    }
+
+    [RelayCommand]
+    private void CloseEditMajorTaskModal()
+    {
+        IsEditMajorTaskModalOpen = false;
+        _editingMajorTaskItem = null;
+    }
+
+    [RelayCommand]
+    private async Task SubmitEditMajorTaskAsync()
+    {
+        if (_editingMajorTaskItem == null) return;
+
+        if (string.IsNullOrWhiteSpace(EditTaskTitle))
+        {
+            _dialogService.ShowToast("Validation Error", "Please provide a task title.", ToastType.Warning);
+            return;
+        }
+
+        var task = _editingMajorTaskItem;
+        IsBusy = true;
+        try
+        {
+            var res = await _taskService.UpdateMajorTaskAsync(new UpdateMajorTaskRequest(
+                task.Id,
+                EditTaskTitle.Trim(),
+                string.IsNullOrWhiteSpace(EditTaskDescription) ? null : EditTaskDescription.Trim(),
+                string.IsNullOrWhiteSpace(EditTaskDetails) ? null : EditTaskDetails.Trim(),
+                string.IsNullOrWhiteSpace(EditTaskLink) ? null : EditTaskLink.Trim(),
+                EditTaskState,
+                EditTaskPriority,
+                EditTaskDueDate?.ToUniversalTime(),
+                task.Order,
+                task.AssignedUserId));
+
+            _editingMajorTaskItem = null;
+            IsEditMajorTaskModalOpen = false;
+            _dialogService.ShowToast("Task Updated", "'" + res.Title + "' updated.", ToastType.Success);
+            await LoadTasksAsync();
+        }
+        catch (Exception ex)
+        {
+            _dialogService.ShowToast("Update Error", ex.Message, ToastType.Error);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task DeleteMajorTaskAsync(MajorTaskRowViewModel row)
+    {
+        if (row == null) return;
+        var task = row.Item;
 
         var confirm = await _dialogService.ShowConfirmationAsync(
             "Delete Major Task",

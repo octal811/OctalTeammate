@@ -14,4 +14,5 @@ public record UpdateMinorTaskCommand(
     string? Link,
     int Order,
     Guid? AssignedUserId,
+    long? WorkTimeSeconds,
     Guid UserId) : IRequest<UpdateMinorTaskResponse>;

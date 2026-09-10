@@ -142,10 +142,12 @@ public record UpdateMinorTaskRequest(
     string? Description,
     string? Target,
     MinorTaskState State,
+    MinorTaskJobType? JobType,
     string? Notes,
     string? Link,
     int Order,
-    Guid? AssignedUserId);
+    Guid? AssignedUserId,
+    long? WorkTimeSeconds);
 
 public record UpdateMinorTaskResponse(
     Guid Id,

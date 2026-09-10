@@ -289,7 +289,8 @@ FontSize="8"
                                                             Command="{Binding DataContext.DeleteTaskCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                             CommandParameter="{Binding}"
                                                             Style="{StaticResource Button.Icon}"
-                                                            ToolTip="Delete Card">
+                                                            ToolTip="Delete Card"
+                                                            Visibility="{Binding IsOwner, Converter={StaticResource BoolToVis}}">
                                                             <Path
                                                                 Width="11"
                                                                 Height="11"
@@ -363,7 +364,8 @@ FontSize="8"
                                                             Content="Start →"
                                                             FontSize="11"
                                                             Style="{StaticResource Button.Secondary}"
-                                                            ToolTip="Advance to In Progress" />
+                                                            ToolTip="Advance to In Progress"
+                                                            Visibility="{Binding IsOwner, Converter={StaticResource BoolToVis}}" />
                                                     </Grid>
                                                 </Grid>
                                             </Border>
@@ -496,7 +498,8 @@ FontSize="8"
                                                             Command="{Binding DataContext.DeleteTaskCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                             CommandParameter="{Binding}"
                                                             Style="{StaticResource Button.Icon}"
-                                                            ToolTip="Delete Card">
+                                                            ToolTip="Delete Card"
+                                                            Visibility="{Binding IsOwner, Converter={StaticResource BoolToVis}}">
                                                             <Path
                                                                 Width="11"
                                                                 Height="11"
@@ -561,7 +564,8 @@ FontSize="8"
                                                                 Content="← To Do"
                                                                 FontSize="11"
                                                                 Style="{StaticResource Button.Ghost}"
-                                                                ToolTip="Move back to To Do" />
+                                                                ToolTip="Move back to To Do"
+                                                                Visibility="{Binding IsOwner, Converter={StaticResource BoolToVis}}" />
 
                                                             <Button
                                                                 Height="28"
@@ -582,7 +586,8 @@ FontSize="8"
                                                             Content="Review →"
                                                             FontSize="11"
                                                             Style="{StaticResource Button.Secondary}"
-                                                            ToolTip="Advance to Review" />
+                                                            ToolTip="Advance to Review"
+                                                            Visibility="{Binding IsOwner, Converter={StaticResource BoolToVis}}" />
                                                     </Grid>
                                                 </Grid>
                                             </Border>
@@ -715,7 +720,8 @@ FontSize="8"
                                                             Command="{Binding DataContext.DeleteTaskCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                             CommandParameter="{Binding}"
                                                             Style="{StaticResource Button.Icon}"
-                                                            ToolTip="Delete Card">
+                                                            ToolTip="Delete Card"
+                                                            Visibility="{Binding IsOwner, Converter={StaticResource BoolToVis}}">
                                                             <Path
                                                                 Width="11"
                                                                 Height="11"
@@ -780,7 +786,8 @@ FontSize="8"
                                                                 Content="← Reopen"
                                                                 FontSize="11"
                                                                 Style="{StaticResource Button.Ghost}"
-                                                                ToolTip="Return to In Progress" />
+                                                                ToolTip="Return to In Progress"
+                                                                Visibility="{Binding IsOwner, Converter={StaticResource BoolToVis}}" />
 
                                                             <Button
                                                                 Height="28"
@@ -801,7 +808,8 @@ FontSize="8"
                                                             Content="Complete ✓"
                                                             FontSize="11"
                                                             Style="{StaticResource Button.Primary}"
-                                                            ToolTip="Mark as Completed" />
+                                                            ToolTip="Mark as Completed"
+                                                            Visibility="{Binding IsOwner, Converter={StaticResource BoolToVis}}" />
                                                     </Grid>
                                                 </Grid>
                                             </Border>
@@ -935,7 +943,8 @@ FontSize="8"
                                                             Command="{Binding DataContext.DeleteTaskCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                             CommandParameter="{Binding}"
                                                             Style="{StaticResource Button.Icon}"
-                                                            ToolTip="Delete Card">
+                                                            ToolTip="Delete Card"
+                                                            Visibility="{Binding IsOwner, Converter={StaticResource BoolToVis}}">
                                                             <Path
                                                                 Width="11"
                                                                 Height="11"
@@ -1011,7 +1020,8 @@ FontSize="8"
                                                             Content="← Reopen"
                                                             FontSize="11"
                                                             Style="{StaticResource Button.Ghost}"
-                                                            ToolTip="Move back to In Progress" />
+                                                            ToolTip="Move back to In Progress"
+                                                            Visibility="{Binding IsOwner, Converter={StaticResource BoolToVis}}" />
                                                     </Grid>
                                                 </Grid>
                                             </Border>

@@ -21,6 +21,7 @@ public record TrackSummaryItem(
     string Name,
     string? Description,
     int Progress,
+    Guid? TrackLeadUserId,
     IReadOnlyList<TrackMemberItem> Members);
 
 public record GetTracksByProjectResponse(IReadOnlyList<TrackSummaryItem> Tracks);

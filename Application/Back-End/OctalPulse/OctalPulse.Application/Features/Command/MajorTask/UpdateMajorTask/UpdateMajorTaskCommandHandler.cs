@@ -35,6 +35,9 @@ public class UpdateMajorTaskCommandHandler : IRequestHandler<UpdateMajorTaskComm
 
         await EnsureApprovedTrackMemberAsync(task.TrackId, request.UserId, cancellationToken);
 
+        if (task.CreatedByUserId != request.UserId)
+            throw new ForbiddenException("Only the creator of this major task can update it.");
+
         var previousState = task.State;
 
         task.Title = request.Title;

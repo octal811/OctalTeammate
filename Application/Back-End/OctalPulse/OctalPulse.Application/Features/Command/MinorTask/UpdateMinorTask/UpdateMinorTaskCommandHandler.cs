@@ -50,6 +50,9 @@ public class UpdateMinorTaskCommandHandler : IRequestHandler<UpdateMinorTaskComm
         task.Link = request.Link;
         task.Order = request.Order;
         task.AssignedUserId = request.AssignedUserId;
+
+        if (request.WorkTimeSeconds is long seconds)
+            task.WorkTime = TimeSpan.FromSeconds(Math.Max(0, seconds));
         task.CompletedDate = request.State == MinorTaskState.Done
             ? (previousState == MinorTaskState.Done ? task.CompletedDate : DateTime.UtcNow)
             : null;

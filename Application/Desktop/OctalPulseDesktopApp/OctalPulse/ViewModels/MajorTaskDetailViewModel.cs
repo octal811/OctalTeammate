@@ -70,6 +70,33 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
 
     public MinorTaskJobType[] AvailableJobTypes { get; } = Enum.GetValues<MinorTaskJobType>();
 
+    // Edit Minor Task
+    [ObservableProperty]
+    private bool _isEditingMinor;
+
+    [ObservableProperty]
+    private string _editMinorTitle = string.Empty;
+
+    [ObservableProperty]
+    private string _editMinorTarget = string.Empty;
+
+    [ObservableProperty]
+    private string _editMinorDescription = string.Empty;
+
+    [ObservableProperty]
+    private string _editMinorNotes = string.Empty;
+
+    [ObservableProperty]
+    private string _editMinorLink = string.Empty;
+
+    [ObservableProperty]
+    private MinorTaskJobType? _editMinorJobType;
+
+    [ObservableProperty]
+    private string _editMinorWorkTimeInput = "00:00";
+
+    private MinorTaskItem? _editingMinorItem;
+
     public ObservableCollection<MinorTaskRowViewModel> MinorTaskRows { get; } = new();
 
     public MajorTaskDetailViewModel(
@@ -222,10 +249,12 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
                 task.Description,
                 task.Target,
                 newState,
+                task.JobType,
                 task.Notes,
                 task.Link,
                 task.Order,
-                task.AssignedUserId));
+                task.AssignedUserId,
+                null));
 
             await LoadMinorTasksAsync();
         }
@@ -310,6 +339,93 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
     private void ToggleAddMinor()
     {
         IsAddingMinor = !IsAddingMinor;
+    }
+
+    [RelayCommand]
+    private void OpenEditMinorTask(MinorTaskRowViewModel row)
+    {
+        if (row == null || !row.IsOwner) return;
+
+        var task = row.Item;
+        _editingMinorItem = task;
+        EditMinorTitle = task.Title;
+        EditMinorTarget = task.Target ?? string.Empty;
+        EditMinorDescription = task.Description ?? string.Empty;
+        EditMinorNotes = task.Notes ?? string.Empty;
+        EditMinorLink = task.Link ?? string.Empty;
+        EditMinorJobType = task.JobType;
+        EditMinorWorkTimeInput = FormatWorkTimeInput(task.WorkTimeSeconds);
+        IsEditingMinor = true;
+    }
+
+    [RelayCommand]
+    private void CloseEditMinorTask()
+    {
+        IsEditingMinor = false;
+        _editingMinorItem = null;
+    }
+
+    [RelayCommand]
+    private async Task SubmitEditMinorTaskAsync()
+    {
+        if (_editingMinorItem == null) return;
+
+        if (string.IsNullOrWhiteSpace(EditMinorTitle))
+        {
+            _dialogService.ShowToast("Validation Error", "Please provide a task title.", ToastType.Warning);
+            return;
+        }
+
+        long? workSeconds = null;
+        var workInput = EditMinorWorkTimeInput.Trim();
+        if (!string.IsNullOrWhiteSpace(workInput))
+        {
+            var parsed = ParseTimeInput(workInput);
+            if (parsed <= 0)
+            {
+                _dialogService.ShowToast("Invalid Value", "Work time must be in HH:MM format.", ToastType.Warning);
+                return;
+            }
+            workSeconds = parsed;
+        }
+
+        var task = _editingMinorItem;
+        IsBusy = true;
+        try
+        {
+            await _taskService.UpdateMinorTaskAsync(new UpdateMinorTaskRequest(
+                task.Id,
+                EditMinorTitle.Trim(),
+                string.IsNullOrWhiteSpace(EditMinorDescription) ? null : EditMinorDescription.Trim(),
+                string.IsNullOrWhiteSpace(EditMinorTarget) ? null : EditMinorTarget.Trim(),
+                task.State,
+                EditMinorJobType,
+                string.IsNullOrWhiteSpace(EditMinorNotes) ? null : EditMinorNotes.Trim(),
+                string.IsNullOrWhiteSpace(EditMinorLink) ? null : EditMinorLink.Trim(),
+                task.Order,
+                task.AssignedUserId,
+                workSeconds));
+
+            _editingMinorItem = null;
+            IsEditingMinor = false;
+            _dialogService.ShowToast("Task Updated", "Sub-task updated.", ToastType.Success);
+            await LoadMinorTasksAsync();
+        }
+        catch (Exception ex)
+        {
+            _dialogService.ShowToast("Update Error", ex.Message, ToastType.Error);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    private static string FormatWorkTimeInput(long? seconds)
+    {
+        if (seconds is not long s || s <= 0) return "00:00";
+        var totalMinutes = (long)Math.Round(s / 60d);
+        return $"{totalMinutes / 60:00}:{totalMinutes % 60:00}";
     }
 
     [RelayCommand]

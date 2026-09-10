@@ -2,7 +2,6 @@ using MediatR;
 using OctalPulse.Application.Exceptions;
 using OctalPulse.Application.Interface.Repositories;
 using OctalPulse.Application.Interface.Services;
-using OctalPulse.Domain.Enums;
 
 namespace OctalPulse.Application.Features.Command.Track.UpdateTrack;
 
@@ -28,12 +27,8 @@ public class UpdateTrackCommandHandler : IRequestHandler<UpdateTrackCommand, Upd
         if (track is null)
             throw new NotFoundException("Track not found.");
 
-        var isMember = await _unitOfWork.TrackMembers.AnyAsync(
-            m => m.TrackId == track.Id && m.UserId == request.UserId && m.Status == MembershipStatus.Approved,
-            cancellationToken);
-
-        if (!isMember)
-            throw new ForbiddenException("Only approved track members can update this track.");
+        if (track.TrackLeadUserId != request.UserId)
+            throw new ForbiddenException("Only the track creator can update this track.");
 
         track.Name = request.Name;
         track.Description = request.Description;

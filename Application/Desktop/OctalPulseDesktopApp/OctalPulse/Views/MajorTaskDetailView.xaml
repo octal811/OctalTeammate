@@ -13,7 +13,8 @@
         <converters:StateToBoolConverter x:Key="StateToBool" />
     </UserControl.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="32">
+    <Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="32">
         <StackPanel>
             <!-- Back Navigation -->
             <Button Style="{StaticResource Button.Ghost}" Content="← Back to Track" Command="{Binding GoBackCommand}" HorizontalAlignment="Left" Margin="0,0,0,16" Padding="0" />
@@ -211,10 +212,19 @@
                                                     <Path Data="{StaticResource Icon.Stopwatch}" Fill="{DynamicResource Brush.TextSecondary}" Width="14" Height="14" Stretch="Uniform" />
                                                 </Button>
 
-                                                <!-- Delete Item Button -->
+                                                <!-- Edit Item Button (owner only) -->
+                                                <Button Style="{StaticResource Button.Icon}"
+                                                        Command="{Binding DataContext.OpenEditMinorTaskCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                        CommandParameter="{Binding}" ToolTip="Edit task"
+                                                        Visibility="{Binding IsOwner, Converter={StaticResource BoolToVis}}">
+                                                    <Path Data="{StaticResource Icon.Edit}" Fill="{DynamicResource Brush.TextSecondary}" Width="14" Height="14" Stretch="Uniform" />
+                                                </Button>
+
+                                                <!-- Delete Item Button (owner only) -->
                                                 <Button Style="{StaticResource Button.Icon}"
                                                         Command="{Binding DataContext.DeleteMinorTaskCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                        CommandParameter="{Binding}" ToolTip="Delete Item">
+                                                        CommandParameter="{Binding}" ToolTip="Delete Item"
+                                                        Visibility="{Binding IsOwner, Converter={StaticResource BoolToVis}}">
                                                     <Path Data="{StaticResource Icon.Trash}" Fill="{DynamicResource Brush.Danger}" Width="14" Height="14" Stretch="Uniform" />
                                                 </Button>
                                             </StackPanel>
@@ -298,5 +308,48 @@
                 </StackPanel>
             </Border>
         </StackPanel>
-    </ScrollViewer>
+        </ScrollViewer>
+
+        <!-- Modal: Edit Minor Task -->
+        <Grid Background="#7F000000" Visibility="{Binding IsEditingMinor, Converter={StaticResource BoolToVis}}">
+            <Border Style="{StaticResource Border.Card}" Width="540" MaxHeight="700" VerticalAlignment="Center" HorizontalAlignment="Center" Padding="32" Margin="20">
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="0,0,8,0">
+                    <StackPanel>
+                        <Grid Margin="0,0,0,20">
+                            <TextBlock Text="Edit Minor Task" Style="{StaticResource Text.Heading2}" />
+                            <Button Style="{StaticResource Button.Icon}" Command="{Binding CloseEditMinorTaskCommand}" HorizontalAlignment="Right">
+                                <Path Data="{StaticResource Icon.Close}" Fill="{DynamicResource Brush.TextMuted}" Width="12" Height="12" Stretch="Uniform" />
+                            </Button>
+                        </Grid>
+
+                        <TextBlock Text="Title *" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <TextBox Text="{Binding EditMinorTitle, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Margin="0,0,0,16" />
+
+                        <TextBlock Text="Target / Acceptance Criteria" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <TextBox Text="{Binding EditMinorTarget, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Margin="0,0,0,16" />
+
+                        <TextBlock Text="Job Type" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <ComboBox ItemsSource="{Binding AvailableJobTypes}" SelectedItem="{Binding EditMinorJobType}" Style="{StaticResource ComboBox.Modern}" Margin="0,0,0,16" />
+
+                        <TextBlock Text="Work Time Total (HH:MM, e.g. 01:30)" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <TextBox Text="{Binding EditMinorWorkTimeInput, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Margin="0,0,0,16" />
+
+                        <TextBlock Text="External Work Link" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <TextBox Text="{Binding EditMinorLink, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Margin="0,0,0,16" />
+
+                        <TextBlock Text="Description" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <TextBox Text="{Binding EditMinorDescription, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Multiline}" Height="90" Margin="0,0,0,16" />
+
+                        <TextBlock Text="Notes" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <TextBox Text="{Binding EditMinorNotes, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Multiline}" Height="60" Margin="0,0,0,24" />
+
+                        <Grid>
+                            <Button Style="{StaticResource Button.Ghost}" Content="Cancel" Command="{Binding CloseEditMinorTaskCommand}" HorizontalAlignment="Left" />
+                            <Button Style="{StaticResource Button.Primary}" Content="Save Changes" Command="{Binding SubmitEditMinorTaskCommand}" HorizontalAlignment="Right" Padding="20,0" />
+                        </Grid>
+                    </StackPanel>
+                </ScrollViewer>
+            </Border>
+        </Grid>
+    </Grid>
 </UserControl>

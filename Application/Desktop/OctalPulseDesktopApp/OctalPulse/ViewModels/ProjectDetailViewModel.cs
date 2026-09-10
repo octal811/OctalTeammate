@@ -66,6 +66,18 @@ public partial class ProjectDetailViewModel : ObservableObject, INavigationAware
     [ObservableProperty]
     private string _newTrackDescription = string.Empty;
 
+    // Edit Track Modal
+    [ObservableProperty]
+    private bool _isEditTrackModalOpen;
+
+    [ObservableProperty]
+    private string _editTrackName = string.Empty;
+
+    [ObservableProperty]
+    private string _editTrackDescription = string.Empty;
+
+    private TrackSummaryItem? _editingTrackItem;
+
     // Create Event Modal
     [ObservableProperty]
     private bool _isCreateEventModalOpen;
@@ -82,7 +94,7 @@ public partial class ProjectDetailViewModel : ObservableObject, INavigationAware
     [ObservableProperty]
     private DateTime _newEventDate = DateTime.Today.AddDays(1);
 
-    public ObservableCollection<TrackSummaryItem> Tracks { get; } = new();
+    public ObservableCollection<TrackRowViewModel> Tracks { get; } = new();
     public ObservableCollection<ProjectMemberItem> Members { get; } = new();
     public ObservableCollection<EventItem> Events { get; } = new();
 
@@ -193,7 +205,7 @@ public partial class ProjectDetailViewModel : ObservableObject, INavigationAware
         Tracks.Clear();
         foreach (var t in res.Tracks)
         {
-            Tracks.Add(t);
+            Tracks.Add(new TrackRowViewModel(t, t.TrackLeadUserId == _userSession.UserId));
         }
     }
 
@@ -252,6 +264,91 @@ public partial class ProjectDetailViewModel : ObservableObject, INavigationAware
         catch (Exception ex)
         {
             _dialogService.ShowToast("Create Track Error", ex.Message, ToastType.Error);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private void OpenEditTrackModal(TrackRowViewModel row)
+    {
+        if (row == null || !row.IsOwner) return;
+
+        _editingTrackItem = row.Item;
+        EditTrackName = row.Item.Name;
+        EditTrackDescription = row.Item.Description ?? string.Empty;
+        IsEditTrackModalOpen = true;
+    }
+
+    [RelayCommand]
+    private void CloseEditTrackModal()
+    {
+        IsEditTrackModalOpen = false;
+        _editingTrackItem = null;
+    }
+
+    [RelayCommand]
+    private async Task SubmitEditTrackAsync()
+    {
+        if (_editingTrackItem == null) return;
+
+        if (string.IsNullOrWhiteSpace(EditTrackName))
+        {
+            _dialogService.ShowToast("Validation Error", "Please provide a track name.", ToastType.Warning);
+            return;
+        }
+
+        IsBusy = true;
+        try
+        {
+            var track = _editingTrackItem;
+            await _trackService.UpdateTrackAsync(new UpdateTrackRequest(
+                track.Id,
+                ProjectId,
+                EditTrackName.Trim(),
+                string.IsNullOrWhiteSpace(EditTrackDescription) ? null : EditTrackDescription.Trim()));
+
+            _editingTrackItem = null;
+            IsEditTrackModalOpen = false;
+            _dialogService.ShowToast("Track Updated", "Track details updated.", ToastType.Success);
+            await LoadTracksAsync();
+        }
+        catch (Exception ex)
+        {
+            _dialogService.ShowToast("Update Track Error", ex.Message, ToastType.Error);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task DeleteTrackAsync(TrackRowViewModel row)
+    {
+        if (row == null || !row.IsOwner) return;
+        var track = row.Item;
+
+        var confirm = await _dialogService.ShowConfirmationAsync(
+            "Delete Track",
+            $"Are you sure you want to delete '{track.Name}'? This will delete all major tasks under it.",
+            "Delete",
+            "Cancel");
+
+        if (!confirm) return;
+
+        IsBusy = true;
+        try
+        {
+            await _trackService.DeleteTrackAsync(track.Id);
+            _dialogService.ShowToast("Track Deleted", "The track has been deleted.", ToastType.Info);
+            await LoadTracksAsync();
+        }
+        catch (Exception ex)
+        {
+            _dialogService.ShowToast("Delete Track Error", ex.Message, ToastType.Error);
         }
         finally
         {
@@ -404,12 +501,12 @@ public partial class ProjectDetailViewModel : ObservableObject, INavigationAware
     }
 
     [RelayCommand]
-    private void OpenTrack(TrackSummaryItem track)
+    private void OpenTrack(TrackRowViewModel row)
     {
-        if (track == null || Project == null) return;
+        if (row == null || Project == null) return;
         _navigationService.NavigateTo<TrackDetailViewModel>(new TrackNavigationPayload(
-            track.Id,
-            track.Name,
+            row.Item.Id,
+            row.Item.Name,
             ProjectId,
             Project.Title));
     }

@@ -48,6 +48,7 @@ public class GetTracksByProjectQueryHandler : IRequestHandler<GetTracksByProject
                 t.Name,
                 t.Description,
                 progressMap.GetValueOrDefault(t.Id),
+                t.TrackLeadUserId,
                 t.Members
                     .Where(m => m.Status == Domain.Enums.MembershipStatus.Approved)
                     .Select(m => new TrackMemberItem(

@@ -25,6 +25,9 @@ public class DeleteMajorTaskCommandHandler : IRequestHandler<DeleteMajorTaskComm
 
         await EnsureApprovedTrackMemberAsync(task.TrackId, request.UserId, cancellationToken);
 
+        if (task.CreatedByUserId != request.UserId)
+            throw new ForbiddenException("Only the creator of this major task can delete it.");
+
         if (!task.IsDeleted)
         {
             var now = DateTime.UtcNow;
