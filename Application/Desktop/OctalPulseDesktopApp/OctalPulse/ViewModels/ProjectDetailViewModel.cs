@@ -166,6 +166,8 @@ public partial class ProjectDetailViewModel : ObservableObject, INavigationAware
             CurrentStatus = Project.Status;
             IsCreator = _userSession.UserId.HasValue && Project.Creator.UserId == _userSession.UserId.Value;
 
+            UpdateBreadcrumbs();
+
             Members.Clear();
             foreach (var m in Project.Members)
             {
@@ -404,8 +406,20 @@ public partial class ProjectDetailViewModel : ObservableObject, INavigationAware
     [RelayCommand]
     private void OpenTrack(TrackSummaryItem track)
     {
-        if (track == null) return;
-        _navigationService.NavigateTo<TrackDetailViewModel>(track.Id);
+        if (track == null || Project == null) return;
+        _navigationService.NavigateTo<TrackDetailViewModel>(new TrackNavigationPayload(
+            track.Id,
+            track.Name,
+            ProjectId,
+            Project.Title));
+    }
+
+    private void UpdateBreadcrumbs()
+    {
+        if (Project == null) return;
+        _navigationService.SetBreadcrumbs(
+            new BreadcrumbItem("Projects", () => _navigationService.NavigateTo<ProjectsViewModel>()),
+            new BreadcrumbItem(Project.Title, () => _navigationService.NavigateTo<ProjectDetailViewModel>(Project.Id)));
     }
 
     [RelayCommand]

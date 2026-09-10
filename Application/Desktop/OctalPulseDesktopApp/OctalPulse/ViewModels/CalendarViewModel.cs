@@ -27,6 +27,7 @@ public partial class CalendarViewModel : ObservableObject, INavigationAware
     private readonly ISignalRRealtimeService _signalRService;
     private readonly IDialogService _dialogService;
     private readonly IUserSession _userSession;
+    private readonly INavigationService _navigationService;
 
     [ObservableProperty]
     private DateTime _currentMonthDate = new(DateTime.Today.Year, DateTime.Today.Month, 1);
@@ -59,9 +60,6 @@ public partial class CalendarViewModel : ObservableObject, INavigationAware
     [ObservableProperty]
     private DateTime _newEventDate = DateTime.Today;
 
-    [ObservableProperty]
-    private bool _newEventIsAllDay;
-
     public ObservableCollection<ProjectSummaryItem> AvailableProjects { get; } = new();
     public ObservableCollection<CalendarDayItem> Days { get; } = new();
     public ObservableCollection<EventItem> SelectedDayEvents { get; } = new();
@@ -72,13 +70,15 @@ public partial class CalendarViewModel : ObservableObject, INavigationAware
         IProjectService projectService,
         ISignalRRealtimeService signalRService,
         IDialogService dialogService,
-        IUserSession userSession)
+        IUserSession userSession,
+        INavigationService navigationService)
     {
         _eventService = eventService;
         _projectService = projectService;
         _signalRService = signalRService;
         _dialogService = dialogService;
         _userSession = userSession;
+        _navigationService = navigationService;
 
         _signalRService.EventChanged += OnEventChanged;
     }
@@ -132,10 +132,24 @@ public partial class CalendarViewModel : ObservableObject, INavigationAware
 
     partial void OnSelectedProjectChanged(ProjectSummaryItem? value)
     {
+        UpdateBreadcrumbs(value);
         if (value != null)
         {
             _ = LoadMonthEventsAsync();
         }
+    }
+
+    private void UpdateBreadcrumbs(ProjectSummaryItem? project)
+    {
+        if (project == null)
+        {
+            _navigationService.SetBreadcrumbs(new BreadcrumbItem("Calendar"));
+            return;
+        }
+
+        _navigationService.SetBreadcrumbs(
+            new BreadcrumbItem("Calendar", () => _navigationService.NavigateTo<CalendarViewModel>()),
+            new BreadcrumbItem(project.Title, () => _navigationService.NavigateTo<ProjectDetailViewModel>(project.Id)));
     }
 
     private void BuildCalendarGrid()
@@ -279,7 +293,6 @@ public partial class CalendarViewModel : ObservableObject, INavigationAware
         NewEventDescription = string.Empty;
         NewEventType = EventType.Meeting;
         NewEventDate = SelectedDay?.Date ?? DateTime.Today;
-        NewEventIsAllDay = false;
         IsCreateEventModalOpen = true;
     }
 
@@ -310,7 +323,7 @@ public partial class CalendarViewModel : ObservableObject, INavigationAware
                 NewEventDate.Date.AddHours(1),
                 null,
                 null,
-                NewEventIsAllDay,
+                false,
                 null,
                 null));
 

@@ -1,3 +1,4 @@
+using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using Microsoft.Extensions.DependencyInjection;
 using OctalPulse.Application.Abstractions;
@@ -15,6 +16,8 @@ public partial class WpfNavigationService : ObservableObject, INavigationService
 
     public bool CanGoBack => _history.Count > 1;
 
+    public ObservableCollection<BreadcrumbItem> Breadcrumbs { get; } = new();
+
     public WpfNavigationService(IServiceProvider serviceProvider)
     {
         _serviceProvider = serviceProvider;
@@ -25,9 +28,22 @@ public partial class WpfNavigationService : ObservableObject, INavigationService
         NavigateTo<TViewModel>(null!);
     }
 
+    public void SetBreadcrumbs(params BreadcrumbItem[] items)
+    {
+        Breadcrumbs.Clear();
+        for (var i = 0; i < items.Length; i++)
+        {
+            items[i].IsFirst = i == 0;
+            items[i].IsCurrent = i == items.Length - 1;
+            Breadcrumbs.Add(items[i]);
+        }
+    }
+
     public void NavigateTo<TViewModel>(object parameter) where TViewModel : class
     {
         var targetType = typeof(TViewModel);
+
+        SetBreadcrumbs(DefaultBreadcrumb(targetType));
 
         if (IsInnerShellView(targetType))
         {
@@ -111,6 +127,27 @@ public partial class WpfNavigationService : ObservableObject, INavigationService
                type == typeof(StopwatchViewModel) ||
                type == typeof(ProfileViewModel) ||
                type == typeof(MediaViewModel);
+    }
+
+    private static BreadcrumbItem DefaultBreadcrumb(Type viewModelType)
+    {
+        var label = viewModelType.Name switch
+        {
+            nameof(DashboardViewModel) => "Dashboard",
+            nameof(ProjectsViewModel) => "Projects",
+            nameof(ProjectDetailViewModel) => "Projects",
+            nameof(TrackDetailViewModel) => "Projects",
+            nameof(CalendarViewModel) => "Calendar",
+            nameof(TasksViewModel) => "Tasks Center",
+            nameof(MajorTaskDetailViewModel) => "Tasks Center",
+            nameof(SettingsViewModel) => "Settings & GitHub",
+            nameof(StopwatchViewModel) => "Stopwatch",
+            nameof(ProfileViewModel) => "Profile",
+            nameof(MediaViewModel) => "Media",
+            _ => viewModelType.Name.Replace("ViewModel", string.Empty, StringComparison.Ordinal)
+        };
+
+        return new BreadcrumbItem(label);
     }
 }
 

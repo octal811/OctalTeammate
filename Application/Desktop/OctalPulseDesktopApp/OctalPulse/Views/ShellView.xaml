@@ -512,7 +512,55 @@
                                 StrokeStartLineCap="Round"
                                 StrokeThickness="2" />
                         </Button>
-                        <TextBlock Style="{StaticResource Text.Heading3}" Text="{Binding CurrentRoute}" />
+                        <!--  Breadcrumb Trail  -->
+                        <ItemsControl
+                            VerticalAlignment="Center"
+                            ItemsSource="{Binding Navigation.Breadcrumbs}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                        <!--  Separator (chevron between crumbs)  -->
+                                        <TextBlock
+                                            Margin="6,0"
+                                            VerticalAlignment="Center"
+                                            FontSize="16"
+                                            Foreground="{DynamicResource Brush.TextMuted}"
+                                            Text="›"
+                                            Visibility="{Binding IsFirst, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
+
+                                        <!--  Navigable ancestor crumb  -->
+                                        <Button
+                                            Padding="6,4"
+                                            VerticalAlignment="Center"
+                                            Command="{Binding NavigateCommand}"
+                                            Content="{Binding Label}"
+                                            Cursor="Hand"
+                                            FontSize="13"
+                                            FontWeight="SemiBold"
+                                            Foreground="{DynamicResource Brush.TextSecondary}"
+                                            Style="{StaticResource Button.Ghost}"
+                                            ToolTip="Navigate here"
+                                            Visibility="{Binding IsCurrent, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
+
+                                        <!--  Current page crumb  -->
+                                        <TextBlock
+                                            MaxWidth="260"
+                                            VerticalAlignment="Center"
+                                            FontSize="14"
+                                            FontWeight="Bold"
+                                            Foreground="{DynamicResource Brush.TextPrimary}"
+                                            Text="{Binding Label}"
+                                            TextTrimming="CharacterEllipsis"
+                                            Visibility="{Binding IsCurrent, Converter={StaticResource BoolToVis}}" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
                     </StackPanel>
 
                     <!--  Header Controls & Indicators  -->

@@ -25,6 +25,9 @@ public partial class TrackDetailViewModel : ObservableObject, INavigationAware
     [ObservableProperty]
     private string _trackName = "Track Tasks";
 
+    private Guid _projectId;
+    private string _projectName = "Projects";
+
     [ObservableProperty]
     private bool _isBusy;
 
@@ -75,12 +78,35 @@ public partial class TrackDetailViewModel : ObservableObject, INavigationAware
 
     public void OnNavigatedTo(object? parameter)
     {
-        if (parameter is Guid id)
+        switch (parameter)
         {
-            TrackId = id;
-            _ = _signalRService.JoinTrackAsync(id);
-            _ = LoadTasksAsync();
+            case TrackNavigationPayload payload:
+                TrackId = payload.TrackId;
+                TrackName = payload.TrackName;
+                _projectId = payload.ProjectId;
+                _projectName = payload.ProjectName;
+                break;
+
+            case Guid id:
+                TrackId = id;
+                TrackName = "Track Tasks";
+                break;
+
+            default:
+                return;
         }
+
+        UpdateBreadcrumbs();
+        _ = _signalRService.JoinTrackAsync(TrackId);
+        _ = LoadTasksAsync();
+    }
+
+    private void UpdateBreadcrumbs()
+    {
+        _navigationService.SetBreadcrumbs(
+            new BreadcrumbItem("Projects", () => _navigationService.NavigateTo<ProjectsViewModel>()),
+            new BreadcrumbItem(_projectName, () => _navigationService.NavigateTo<ProjectDetailViewModel>(_projectId)),
+            new BreadcrumbItem(TrackName));
     }
 
     private void OnMajorTaskChanged(Guid taskId, Guid trackId)
@@ -191,7 +217,13 @@ public partial class TrackDetailViewModel : ObservableObject, INavigationAware
     private void OpenMajorTaskDetail(MajorTaskItem task)
     {
         if (task == null) return;
-        _navigationService.NavigateTo<MajorTaskDetailViewModel>(task);
+        _navigationService.NavigateTo<MajorTaskDetailViewModel>(new MajorTaskNavigationPayload(
+            task.Id,
+            task.Title,
+            task.TrackId,
+            TrackName,
+            _projectId,
+            _projectName));
     }
 
     [RelayCommand]

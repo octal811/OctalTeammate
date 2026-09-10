@@ -197,8 +197,6 @@
                         <TextBlock Text="Event Date" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
                         <DatePicker SelectedDate="{Binding NewEventDate}" Height="40" Margin="0,0,0,16" />
 
-                        <CheckBox Content="All Day Event" IsChecked="{Binding NewEventIsAllDay}" Margin="0,0,0,16" Foreground="{DynamicResource Brush.TextSecondary}" />
-
                         <TextBlock Text="Description (Optional)" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
                         <TextBox Text="{Binding NewEventDescription, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Multiline}" Height="110" Margin="0,0,0,24" />
 

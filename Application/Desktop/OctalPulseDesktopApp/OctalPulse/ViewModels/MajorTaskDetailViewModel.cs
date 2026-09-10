@@ -23,6 +23,11 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
     [ObservableProperty]
     private Guid _majorTaskId;
 
+    private Guid _trackId;
+    private string _trackName = "Track Tasks";
+    private Guid _projectId;
+    private string _projectName = "Projects";
+
     [ObservableProperty]
     private string _taskTitle = "Task Details";
 
@@ -95,6 +100,17 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
                 ApplyTask(card);
                 break;
 
+            case MajorTaskNavigationPayload payload:
+                MajorTaskId = payload.MajorTaskId;
+                TaskTitle = payload.MajorTaskTitle;
+                _trackId = payload.TrackId;
+                _trackName = payload.TrackName;
+                _projectId = payload.ProjectId;
+                _projectName = payload.ProjectName;
+                UpdateBreadcrumbs();
+                _ = LoadMinorTasksAsync();
+                break;
+
             case Guid id:
                 MajorTaskId = id;
                 _ = LoadMinorTasksAsync();
@@ -111,6 +127,10 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
         ProgressPercentage = task.Progress;
         ParsedLink = !string.IsNullOrWhiteSpace(task.Link) ? ExternalWorkLink.FromUrl(task.Link) : null;
 
+        _navigationService.SetBreadcrumbs(
+            new BreadcrumbItem("Tasks Center", () => _navigationService.NavigateTo<TasksViewModel>()),
+            new BreadcrumbItem(TaskTitle));
+
         _ = LoadMinorTasksAsync();
     }
 
@@ -123,7 +143,21 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
         ProgressPercentage = card.Progress;
         ParsedLink = !string.IsNullOrWhiteSpace(card.Link) ? ExternalWorkLink.FromUrl(card.Link) : null;
 
+        _navigationService.SetBreadcrumbs(
+            new BreadcrumbItem("Tasks Center", () => _navigationService.NavigateTo<TasksViewModel>()),
+            new BreadcrumbItem(card.Title));
+
         _ = LoadMinorTasksAsync();
+    }
+
+    private void UpdateBreadcrumbs()
+    {
+        _navigationService.SetBreadcrumbs(
+            new BreadcrumbItem("Projects", () => _navigationService.NavigateTo<ProjectsViewModel>()),
+            new BreadcrumbItem(_projectName, () => _navigationService.NavigateTo<ProjectDetailViewModel>(_projectId)),
+            new BreadcrumbItem(_trackName, () => _navigationService.NavigateTo<TrackDetailViewModel>(
+                new TrackNavigationPayload(_trackId, _trackName, _projectId, _projectName))),
+            new BreadcrumbItem(TaskTitle));
     }
 
     private void OnMinorTaskChanged(Guid minorTaskId, Guid trackId)
