@@ -65,6 +65,15 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
 
     public ObservableCollection<ProfilePostItem> Posts { get; } = new();
 
+    [ObservableProperty]
+    private int _unlockedBadgeCount;
+
+    [ObservableProperty]
+    private string _unlockedBadgeSummary = "0 unlocked";
+
+    [ObservableProperty]
+    private bool _badgesLoadFailed;
+
     public ProfileViewModel(
         IAuthService authService,
         IUserSession userSession,
@@ -187,32 +196,55 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
         {
             var res = await _badgeService.GetMyBadgesAsync();
             Badges.Clear();
-            if (res?.Badges == null) return;
+            BadgesLoadFailed = false;
+
+            if (res?.Badges == null)
+            {
+                UnlockedBadgeCount = 0;
+                UnlockedBadgeSummary = "0 unlocked";
+                return;
+            }
 
             foreach (var b in res.Badges)
             {
-                var (iconKey, brush) = GetBadgeVisuals(b.Type);
+                var isUnlocked = !string.IsNullOrEmpty(b.CurrentLevel);
+                var level = b.CurrentLevel ?? "Locked";
+                var accent = FreezeBrush(GetBadgeLevelBrush(b.CurrentLevel));
                 var hasShine = b.CurrentLevel is "Gold" or "Platinum" or "Diamond" or "Legend";
                 var isLegend = b.CurrentLevel == "Legend";
-                var description = b.CurrentLevel != null
-                    ? $"Unlocked!"
-                    : $"Progress toward {GetNextLabel(b.Type, b.NextTarget)}";
+                var progressLabel = FormatProgressLabel(b.Type, b.CurrentValue, b.NextTarget, isUnlocked && b.ProgressPercent >= 100);
+                var progressPercent = Math.Clamp(b.ProgressPercent, 0, 100);
+                var status = isUnlocked
+                    ? (b.AwardedDate.HasValue
+                        ? $"Earned {b.AwardedDate.Value.ToLocalTime():MMM dd, yyyy}"
+                        : "Unlocked from your work")
+                    : $"Next: {FormatMetric(b.Type, b.NextTarget)}";
 
                 Badges.Add(new ProfileBadgeItem(
+                    Type: b.Type,
                     Title: GetBadgeTitle(b.Type),
-                    Description: description,
-                    Level: b.CurrentLevel ?? "Locked",
-                    ProgressPercent: b.ProgressPercent,
-                    IsUnlocked: b.CurrentLevel != null,
-                    IconKey: iconKey,
-                    AccentBrush: brush,
+                    Description: GetBadgeDescription(b.Type),
+                    StatusText: status,
+                    ProgressLabel: progressLabel,
+                    ProgressPercentText: $"{progressPercent}%",
+                    Level: level,
+                    ProgressPercent: progressPercent,
+                    IsUnlocked: isUnlocked,
+                    IconGeometry: ResolveIconGeometry(GetBadgeIconKey(b.Type)),
+                    AccentBrush: accent,
                     HasShine: hasShine,
                     IsLegend: isLegend));
             }
+
+            UnlockedBadgeCount = Badges.Count(x => x.IsUnlocked);
+            UnlockedBadgeSummary = $"{UnlockedBadgeCount}/{Badges.Count} unlocked";
         }
         catch
         {
             Badges.Clear();
+            UnlockedBadgeCount = 0;
+            UnlockedBadgeSummary = "0 unlocked";
+            BadgesLoadFailed = true;
         }
     }
 
@@ -224,31 +256,78 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
         _ => type
     };
 
-    private static string GetNextLabel(string type, long nextTarget) => type switch
+    private static string GetBadgeDescription(string type) => type switch
     {
-        "CriticalFocus" => nextTarget >= 3600
-            ? $"{nextTarget / 3600}h focus"
-            : $"{nextTarget / 60} min focus",
-        "HeavyWork" => $"{nextTarget}% contribution",
-        "BugHunter" => $"{nextTarget} bugs solved",
-        _ => ""
+        "CriticalFocus" => "Best single-day focused work time tracked on tasks.",
+        "HeavyWork" => "Highest share of minor tasks you finished on a completed major.",
+        "BugHunter" => "Bugs you solved by completing Solve Bug tasks.",
+        _ => "Achievement earned from your team activity."
     };
 
-    private static (string IconKey, Brush Brush) GetBadgeVisuals(string type) => type switch
+    private static string GetBadgeIconKey(string type) => type switch
     {
-        "CriticalFocus" => ("Icon.Stopwatch", new SolidColorBrush(Color.FromRgb(0xCD, 0x7F, 0x32))),
-        "HeavyWork" => ("Icon.Award", new SolidColorBrush(Color.FromRgb(0xE5, 0xE4, 0xE2))),
-        "BugHunter" => ("Icon.Shield", new SolidColorBrush(Color.FromRgb(0x4F, 0xD6, 0xF7))),
-        _ => ("Icon.Sparkles", new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8)))
+        "CriticalFocus" => "Icon.Stopwatch",
+        "HeavyWork" => "Icon.Award",
+        "BugHunter" => "Icon.Shield",
+        _ => "Icon.Trophy"
     };
+
+    private static string FormatProgressLabel(string type, long current, long next, bool maxed) =>
+        maxed
+            ? $"{FormatMetric(type, current)} · Max level"
+            : $"{FormatMetric(type, current)} / {FormatMetric(type, next)}";
+
+    private static string FormatMetric(string type, long value) => type switch
+    {
+        "CriticalFocus" => FormatFocusDuration(value),
+        "HeavyWork" => $"{value}%",
+        "BugHunter" => value == 1 ? "1 bug" : $"{value} bugs",
+        _ => value.ToString()
+    };
+
+    private static string FormatFocusDuration(long seconds)
+    {
+        if (seconds <= 0) return "0 min";
+        if (seconds < 3600)
+        {
+            var minutes = Math.Max(1, (int)Math.Round(seconds / 60.0));
+            return $"{minutes} min";
+        }
+
+        var hours = seconds / 3600.0;
+        return hours == Math.Floor(hours)
+            ? $"{(int)hours}h"
+            : $"{hours:0.#}h";
+    }
+
+    private static Geometry ResolveIconGeometry(string resourceKey)
+    {
+        if (System.Windows.Application.Current?.TryFindResource(resourceKey) is Geometry geometry)
+        {
+            return geometry;
+        }
+
+        return System.Windows.Application.Current?.TryFindResource("Icon.Trophy") as Geometry
+               ?? Geometry.Empty;
+    }
+
+    private static Brush FreezeBrush(Brush brush)
+    {
+        if (brush.CanFreeze && !brush.IsFrozen)
+        {
+            brush.Freeze();
+        }
+
+        return brush;
+    }
 
     private static Brush GetBadgeLevelBrush(string? level) => level switch
     {
         "Bronze" => new SolidColorBrush(Color.FromRgb(0xCD, 0x7F, 0x32)),
-        "Silver" => new SolidColorBrush(Color.FromRgb(0xA8, 0xA9, 0xAD)),
+        "Silver" => new SolidColorBrush(Color.FromRgb(0x94, 0xA3, 0xB8)),
         "Gold" => new SolidColorBrush(Color.FromRgb(0xF5, 0x9E, 0x0B)),
-        "Platinum" => new SolidColorBrush(Color.FromRgb(0xE5, 0xE4, 0xE2)),
-        "Diamond" => new SolidColorBrush(Color.FromRgb(0x4F, 0xD6, 0xF7)),
+        "Platinum" => new SolidColorBrush(Color.FromRgb(0xCB, 0xD5, 0xE1)),
+        "Diamond" => new SolidColorBrush(Color.FromRgb(0x38, 0xBD, 0xF8)),
         "Legend" => new LinearGradientBrush
         {
             StartPoint = new Point(0, 0),
@@ -256,11 +335,11 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
             GradientStops =
             {
                 new GradientStop(Color.FromRgb(0x25, 0x63, 0xEB), 0),
-                new GradientStop(Color.FromRgb(0xEF, 0x44, 0x44), 0.5),
-                new GradientStop(Color.FromRgb(0xFA, 0xCC, 0x15), 1)
+                new GradientStop(Color.FromRgb(0xA8, 0x55, 0xF7), 0.45),
+                new GradientStop(Color.FromRgb(0xF5, 0x9E, 0x0B), 1)
             }
         },
-        _ => new SolidColorBrush(Color.FromRgb(0x1E, 0x29, 0x3B))
+        _ => new SolidColorBrush(Color.FromRgb(0x64, 0x74, 0x8B))
     };
 
     [RelayCommand]
@@ -424,12 +503,16 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
 }
 
 public record ProfileBadgeItem(
+    string Type,
     string Title,
     string Description,
+    string StatusText,
+    string ProgressLabel,
+    string ProgressPercentText,
     string Level,
     int ProgressPercent,
     bool IsUnlocked,
-    string IconKey,
+    Geometry IconGeometry,
     Brush AccentBrush,
     bool HasShine,
     bool IsLegend);

@@ -429,14 +429,95 @@
                         <StackPanel>
                             <!-- Section Header -->
                             <Grid Margin="0,0,0,16">
-                                <StackPanel>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0">
                                     <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
                                         <Path Data="{StaticResource Icon.Trophy}" Fill="#F59E0B" Width="18" Height="18" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center" />
                                         <TextBlock Text="Achievements &amp; Badges" Style="{StaticResource Text.Heading3}" VerticalAlignment="Center" />
                                     </StackPanel>
-                                    <TextBlock Text="Earn tokens, level up in sprints, and highlight core milestones." Style="{StaticResource Text.Subtitle}" Margin="0,4,0,0" />
+                                    <TextBlock
+                                        Text="Calculated from your tracked work — focus time, solved bugs, and major-task contribution."
+                                        Style="{StaticResource Text.Subtitle}"
+                                        TextWrapping="Wrap"
+                                        Margin="0,4,0,0" />
                                 </StackPanel>
+
+                                <Border
+                                    Grid.Column="1"
+                                    Background="{DynamicResource Brush.SurfaceElevated}"
+                                    BorderBrush="{DynamicResource Brush.Border}"
+                                    BorderThickness="1"
+                                    CornerRadius="10"
+                                    Padding="12,6"
+                                    VerticalAlignment="Top"
+                                    Margin="12,0,0,0"
+                                    Visibility="{Binding Badges.Count, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock
+                                        Text="{Binding UnlockedBadgeSummary}"
+                                        FontSize="12"
+                                        FontWeight="SemiBold"
+                                        Foreground="{DynamicResource Brush.TextPrimary}" />
+                                </Border>
                             </Grid>
+
+                            <!-- Load error -->
+                            <Border
+                                Background="{DynamicResource Brush.SurfaceElevated}"
+                                BorderBrush="{DynamicResource Brush.Border}"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Padding="18"
+                                Margin="0,0,0,8"
+                                Visibility="{Binding BadgesLoadFailed, Converter={StaticResource BoolToVis}}">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path Data="{StaticResource Icon.Celebrate}" Fill="{DynamicResource Brush.Warning}" Width="16" Height="16" Stretch="Uniform" Margin="0,0,10,0" VerticalAlignment="Center" />
+                                    <TextBlock
+                                        Text="Could not load badges from the server. Refresh your profile to try again."
+                                        FontSize="12.5"
+                                        TextWrapping="Wrap"
+                                        Foreground="{DynamicResource Brush.TextSecondary}"
+                                        VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Border>
+
+                            <!-- Empty (no rows yet / not loaded) -->
+                            <Border
+                                Background="{DynamicResource Brush.SurfaceElevated}"
+                                BorderBrush="{DynamicResource Brush.Border}"
+                                BorderThickness="1"
+                                CornerRadius="12"
+                                Padding="22">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Visibility" Value="Collapsed" />
+                                        <Style.Triggers>
+                                            <MultiDataTrigger>
+                                                <MultiDataTrigger.Conditions>
+                                                    <Condition Binding="{Binding Badges.Count}" Value="0" />
+                                                    <Condition Binding="{Binding BadgesLoadFailed}" Value="False" />
+                                                    <Condition Binding="{Binding IsLoading}" Value="False" />
+                                                </MultiDataTrigger.Conditions>
+                                                <Setter Property="Visibility" Value="Visible" />
+                                            </MultiDataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <StackPanel HorizontalAlignment="Center">
+                                    <Path Data="{StaticResource Icon.Trophy}" Fill="{DynamicResource Brush.TextMuted}" Width="28" Height="28" Stretch="Uniform" HorizontalAlignment="Center" Margin="0,0,0,10" />
+                                    <TextBlock Text="No badge progress yet" FontWeight="SemiBold" FontSize="13" Foreground="{DynamicResource Brush.TextPrimary}" HorizontalAlignment="Center" />
+                                    <TextBlock
+                                        Text="Track task time, solve bugs, and finish major tasks to start unlocking levels."
+                                        FontSize="12"
+                                        Foreground="{DynamicResource Brush.TextMuted}"
+                                        TextWrapping="Wrap"
+                                        TextAlignment="Center"
+                                        Margin="0,4,0,0"
+                                        MaxWidth="360" />
+                                </StackPanel>
+                            </Border>
 
                             <!-- Badge Cards Grid -->
                             <ItemsControl ItemsSource="{Binding Badges}">
@@ -448,99 +529,147 @@
                                 <ItemsControl.ItemTemplate>
                                     <DataTemplate>
                                         <Border
-                                            Background="{Binding AccentBrush}"
-                                            BorderBrush="{Binding AccentBrush}"
+                                            Background="{DynamicResource Brush.SurfaceElevated}"
+                                            BorderBrush="{DynamicResource Brush.Border}"
                                             BorderThickness="1"
-                                            CornerRadius="12"
-                                            Padding="16"
-                                            Margin="0,0,10,12"
-                                            ClipToBounds="True">
+                                            CornerRadius="14"
+                                            Padding="0"
+                                            Margin="0,0,12,12"
+                                            ClipToBounds="True"
+                                            MinHeight="148">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Opacity" Value="0.72" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsUnlocked}" Value="True">
+                                                            <Setter Property="Opacity" Value="1" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
                                             <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto" />
-                                                    <ColumnDefinition Width="*" />
-                                                </Grid.ColumnDefinitions>
+                                                <Grid.RowDefinitions>
+                                                    <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="*" />
+                                                    <RowDefinition Height="Auto" />
+                                                </Grid.RowDefinitions>
 
-                                                <!-- Gloss Overlay (Gold+) -->
+                                                <!-- Level accent strip -->
+                                                <Border Grid.RowSpan="3" Width="4" HorizontalAlignment="Left" Background="{Binding AccentBrush}" />
+
+                                                <!-- Shine for higher tiers -->
                                                 <Border
-                                                    Grid.ColumnSpan="2"
-                                                    HorizontalAlignment="Stretch"
-                                                    VerticalAlignment="Stretch"
+                                                    Grid.RowSpan="3"
                                                     IsHitTestVisible="False"
-                                                    Opacity="0.25"
+                                                    Opacity="0.12"
+                                                    Margin="4,0,0,0"
                                                     Visibility="{Binding HasShine, Converter={StaticResource BoolToVis}}">
                                                     <Border.Background>
                                                         <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                                            <GradientStop Color="#00FFFFFF" Offset="0.0" />
-                                                            <GradientStop Color="#AAFFFFFF" Offset="0.45" />
-                                                            <GradientStop Color="#00FFFFFF" Offset="1.0" />
+                                                            <GradientStop Color="#00FFFFFF" Offset="0" />
+                                                            <GradientStop Color="#AAFFFFFF" Offset="0.5" />
+                                                            <GradientStop Color="#00FFFFFF" Offset="1" />
                                                         </LinearGradientBrush>
                                                     </Border.Background>
                                                 </Border>
 
-                                                <!-- Legend shimmer overlay -->
-                                                <Border
-                                                    Grid.ColumnSpan="2"
-                                                    HorizontalAlignment="Stretch"
-                                                    VerticalAlignment="Stretch"
-                                                    IsHitTestVisible="False"
-                                                    Opacity="0.4"
-                                                    Visibility="{Binding IsLegend, Converter={StaticResource BoolToVis}}">
-                                                    <Border.Background>
-                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,0.5">
-                                                            <GradientStop Color="#33FFFFFF" Offset="0.0" />
-                                                            <GradientStop Color="#88FFFFFF" Offset="0.3" />
-                                                            <GradientStop Color="#33FFFFFF" Offset="0.6" />
-                                                            <GradientStop Color="#88FFFFFF" Offset="1.0" />
-                                                        </LinearGradientBrush>
-                                                    </Border.Background>
-                                                </Border>
+                                                <!-- Header: icon + title + level -->
+                                                <Grid Grid.Row="0" Margin="18,16,16,0">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
 
-                                                <!-- Icon Badge -->
-                                                <Border
-                                                    Grid.Column="0"
-                                                    Width="46"
-                                                    Height="46"
-                                                    CornerRadius="10"
-                                                    Background="#33FFFFFF"
-                                                    Margin="0,0,14,0"
-                                                    VerticalAlignment="Top">
-                                                    <Path
-                                                        Data="{StaticResource Icon.Trophy}"
-                                                        Fill="#FFFFFFFF"
-                                                        Width="20"
-                                                        Height="20"
-                                                        Stretch="Uniform"
-                                                        HorizontalAlignment="Center"
-                                                        VerticalAlignment="Center" />
-                                                </Border>
-
-                                                <!-- Content -->
-                                                <StackPanel Grid.Column="1">
-                                                    <Grid>
-                                                        <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="13.5" Foreground="#FFFFFFFF" />
-                                                        <Border
-                                                            HorizontalAlignment="Right"
-                                                            Background="#44FFFFFF"
-                                                            CornerRadius="4"
-                                                            Padding="6,2">
-                                                            <TextBlock Text="{Binding Level}" FontSize="10" FontWeight="Bold" Foreground="#FFFFFFFF" />
-                                                        </Border>
+                                                    <Grid
+                                                        Grid.Column="0"
+                                                        Width="44"
+                                                        Height="44"
+                                                        Margin="0,0,12,0"
+                                                        VerticalAlignment="Top">
+                                                        <Border CornerRadius="12" Background="{Binding AccentBrush}" Opacity="0.22" />
+                                                        <Path
+                                                            Data="{Binding IconGeometry}"
+                                                            Fill="{Binding AccentBrush}"
+                                                            Width="20"
+                                                            Height="20"
+                                                            Stretch="Uniform"
+                                                            HorizontalAlignment="Center"
+                                                            VerticalAlignment="Center"
+                                                            Visibility="{Binding IsUnlocked, Converter={StaticResource BoolToVis}}" />
+                                                        <Path
+                                                            Data="{StaticResource Icon.Lock}"
+                                                            Fill="{DynamicResource Brush.TextMuted}"
+                                                            Width="18"
+                                                            Height="18"
+                                                            Stretch="Uniform"
+                                                            HorizontalAlignment="Center"
+                                                            VerticalAlignment="Center"
+                                                            Visibility="{Binding IsUnlocked, Converter={StaticResource InvertBoolToVis}}" />
                                                     </Grid>
-                                                    <TextBlock
-                                                        Text="{Binding Description}"
-                                                        FontSize="11.5"
-                                                        Foreground="#CCFFFFFF"
-                                                        TextWrapping="Wrap"
-                                                        Margin="0,4,0,8" />
 
-                                                    <!-- Progress Bar -->
+                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                        <Grid>
+                                                            <TextBlock
+                                                                Text="{Binding Title}"
+                                                                FontWeight="Bold"
+                                                                FontSize="13.5"
+                                                                Foreground="{DynamicResource Brush.TextPrimary}"
+                                                                TextTrimming="CharacterEllipsis"
+                                                                Margin="0,0,64,0" />
+                                                            <Border
+                                                                HorizontalAlignment="Right"
+                                                                VerticalAlignment="Top"
+                                                                Background="{Binding AccentBrush}"
+                                                                CornerRadius="6"
+                                                                Padding="8,3">
+                                                                <TextBlock
+                                                                    Text="{Binding Level}"
+                                                                    FontSize="10"
+                                                                    FontWeight="Bold"
+                                                                    Foreground="#FFFFFFFF" />
+                                                            </Border>
+                                                        </Grid>
+                                                        <TextBlock
+                                                            Text="{Binding StatusText}"
+                                                            FontSize="11"
+                                                            Foreground="{DynamicResource Brush.TextMuted}"
+                                                            TextTrimming="CharacterEllipsis"
+                                                            Margin="0,4,0,0" />
+                                                    </StackPanel>
+                                                </Grid>
+
+                                                <!-- Description -->
+                                                <TextBlock
+                                                    Grid.Row="1"
+                                                    Text="{Binding Description}"
+                                                    FontSize="12"
+                                                    LineHeight="17"
+                                                    Foreground="{DynamicResource Brush.TextSecondary}"
+                                                    TextWrapping="Wrap"
+                                                    Margin="18,10,16,0"
+                                                    VerticalAlignment="Top" />
+
+                                                <!-- Progress -->
+                                                <StackPanel Grid.Row="2" Margin="18,12,16,16">
+                                                    <Grid Margin="0,0,0,6">
+                                                        <TextBlock
+                                                            Text="{Binding ProgressLabel}"
+                                                            FontSize="11"
+                                                            FontWeight="SemiBold"
+                                                            Foreground="{DynamicResource Brush.TextPrimary}" />
+                                                        <TextBlock
+                                                            HorizontalAlignment="Right"
+                                                            FontSize="11"
+                                                            FontWeight="SemiBold"
+                                                            Foreground="{Binding AccentBrush}"
+                                                            Text="{Binding ProgressPercentText}" />
+                                                    </Grid>
                                                     <ProgressBar
                                                         Value="{Binding ProgressPercent}"
                                                         Maximum="100"
-                                                        Height="5"
-                                                        Foreground="#FFFFFFFF"
-                                                        Background="#33FFFFFF"
+                                                        Height="6"
+                                                        Foreground="{Binding AccentBrush}"
+                                                        Background="{DynamicResource Brush.Border}"
                                                         Style="{StaticResource ProgressBar.Modern}" />
                                                 </StackPanel>
                                             </Grid>

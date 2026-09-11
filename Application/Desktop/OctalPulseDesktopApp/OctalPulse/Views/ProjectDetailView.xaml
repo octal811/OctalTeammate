@@ -138,95 +138,238 @@
                         </StackPanel>
                     </Border>
 
-                    <!-- Tracks Cards Grid -->
-                    <ItemsControl ItemsSource="{Binding Tracks}">
+                    <!-- Tracks as folders — 2 columns stretch to full width (no dead right gap) -->
+                    <ItemsControl ItemsSource="{Binding Tracks}" HorizontalAlignment="Stretch" Margin="0,0,-14,0">
                         <ItemsControl.ItemsPanel>
                             <ItemsPanelTemplate>
-                                <WrapPanel Orientation="Horizontal" />
+                                <UniformGrid Columns="2" />
                             </ItemsPanelTemplate>
                         </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemContainerStyle>
+                            <Style TargetType="ContentPresenter">
+                                <Setter Property="HorizontalAlignment" Value="Stretch" />
+                                <Setter Property="VerticalAlignment" Value="Stretch" />
+                                <Setter Property="Margin" Value="0,0,14,20" />
+                            </Style>
+                        </ItemsControl.ItemContainerStyle>
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
-                                <Border Style="{StaticResource Border.Card}" Width="440" Margin="0,0,18,18" Padding="20">
-                                    <Grid>
-                                        <Grid.RowDefinitions>
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="*" />
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="Auto" />
-                                            <RowDefinition Height="Auto" />
-                                        </Grid.RowDefinitions>
+                                <Grid MinHeight="196">
+                                    <!-- Clickable folder body -->
+                                    <Button
+                                        Command="{Binding DataContext.OpenTrackCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                        CommandParameter="{Binding}"
+                                        Cursor="Hand"
+                                        HorizontalContentAlignment="Stretch"
+                                        VerticalContentAlignment="Stretch"
+                                        ToolTip="Open track folder">
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Grid Background="Transparent">
+                                                    <Grid.RowDefinitions>
+                                                        <RowDefinition Height="22" />
+                                                        <RowDefinition Height="*" />
+                                                    </Grid.RowDefinitions>
 
-                                        <!-- Track Name -->
-                                        <Grid Grid.Row="0" Margin="0,0,0,6">
-                                            <TextBlock Text="{Binding Item.Name}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource Brush.TextPrimary}" VerticalAlignment="Center" />
-                                            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center"
-                                                        Visibility="{Binding IsOwner, Converter={StaticResource BoolToVis}}">
-                                                <Button Style="{StaticResource Button.Icon}" Margin="0,0,6,0"
-                                                        Command="{Binding DataContext.OpenEditTrackModalCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                        CommandParameter="{Binding}" ToolTip="Edit Track">
-                                                    <Path Data="{StaticResource Icon.Edit}" Fill="{DynamicResource Brush.TextSecondary}" Width="12" Height="12" Stretch="Uniform" />
-                                                </Button>
-                                                <Button Style="{StaticResource Button.Icon}"
-                                                        Command="{Binding DataContext.DeleteTrackCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                        CommandParameter="{Binding}" ToolTip="Delete Track">
-                                                    <Path Data="{StaticResource Icon.Trash}" Fill="{DynamicResource Brush.Danger}" Width="12" Height="12" Stretch="Uniform" />
-                                                </Button>
-                                            </StackPanel>
-                                        </Grid>
+                                                    <!-- Folder tab -->
+                                                    <Border
+                                                        Grid.Row="0"
+                                                        Width="118"
+                                                        Height="22"
+                                                        HorizontalAlignment="Left"
+                                                        VerticalAlignment="Bottom"
+                                                        Margin="16,0,0,-1"
+                                                        CornerRadius="8,8,0,0"
+                                                        BorderThickness="1,1,1,0"
+                                                        BorderBrush="#D97706"
+                                                        Panel.ZIndex="2"
+                                                        SnapsToDevicePixels="True">
+                                                        <Border.Background>
+                                                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                                <GradientStop Color="#FCD34D" Offset="0" />
+                                                                <GradientStop Color="#F59E0B" Offset="1" />
+                                                            </LinearGradientBrush>
+                                                        </Border.Background>
+                                                    </Border>
 
-                                        <!-- Track Description -->
-                                        <TextBlock Grid.Row="1" Text="{Binding Item.Description, FallbackValue='No description provided.'}" FontSize="13" Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,0,0,16" />
+                                                    <!-- Folder body -->
+                                                    <Border
+                                                        x:Name="FolderBody"
+                                                        Grid.Row="1"
+                                                        CornerRadius="4,14,14,14"
+                                                        BorderBrush="#D97706"
+                                                        BorderThickness="1"
+                                                        Padding="18,16"
+                                                        Panel.ZIndex="1"
+                                                        SnapsToDevicePixels="True">
+                                                        <Border.Background>
+                                                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                                                <GradientStop Color="#FFFBEB" Offset="0" />
+                                                                <GradientStop Color="#FDE68A" Offset="1" />
+                                                            </LinearGradientBrush>
+                                                        </Border.Background>
+                                                        <Border.Effect>
+                                                            <DropShadowEffect BlurRadius="14" ShadowDepth="3" Opacity="0.14" Direction="270" Color="#92400E" />
+                                                        </Border.Effect>
 
-                                        <!-- Track Members (avatars) -->
-                                        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,0,0,14"
-                                                    Visibility="{Binding Item.Members.Count, Converter={StaticResource BoolToVis}}">
-                                            <ItemsControl ItemsSource="{Binding Item.Members}">
-                                                <ItemsControl.ItemsPanel>
-                                                    <ItemsPanelTemplate>
-                                                        <StackPanel Orientation="Horizontal" />
-                                                    </ItemsPanelTemplate>
-                                                </ItemsControl.ItemsPanel>
-                                                <ItemsControl.ItemTemplate>
-                                                    <DataTemplate>
-                                                        <Border Width="26" Height="26" CornerRadius="13" Background="{DynamicResource Brush.Primary}"
-                                                                Margin="0,0,-8,0" BorderBrush="{DynamicResource Brush.CardBackground}" BorderThickness="2"
-                                                                ToolTip="{Binding Name}">
-                                                            <Grid>
-                                                                <Image Source="{Binding ProfilePictureUrl, Converter={StaticResource RelativeUrlToImage}}"
-                                                                       Stretch="UniformToFill"
-                                                                       Visibility="{Binding ProfilePictureUrl, Converter={StaticResource NullToVis}}" />
-                                                                <TextBlock Text="{Binding Name, Converter={StaticResource StringToInitial}}"
-                                                                           FontSize="10" FontWeight="Bold" Foreground="White"
-                                                                           HorizontalAlignment="Center" VerticalAlignment="Center"
-                                                                           Visibility="{Binding ProfilePictureUrl, Converter={StaticResource NullToVis}, ConverterParameter=invert}" />
+                                                        <Grid>
+                                                            <Grid.RowDefinitions>
+                                                                <RowDefinition Height="Auto" />
+                                                                <RowDefinition Height="*" />
+                                                                <RowDefinition Height="Auto" />
+                                                                <RowDefinition Height="Auto" />
+                                                            </Grid.RowDefinitions>
+
+                                                            <!-- Header -->
+                                                            <Grid Grid.Row="0" Margin="0,0,0,10">
+                                                                <Grid.ColumnDefinitions>
+                                                                    <ColumnDefinition Width="Auto" />
+                                                                    <ColumnDefinition Width="*" />
+                                                                    <ColumnDefinition Width="56" />
+                                                                </Grid.ColumnDefinitions>
+
+                                                                <Border
+                                                                    Grid.Column="0"
+                                                                    Width="38"
+                                                                    Height="38"
+                                                                    CornerRadius="10"
+                                                                    Margin="0,0,12,0"
+                                                                    VerticalAlignment="Center">
+                                                                    <Border.Background>
+                                                                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                                                            <GradientStop Color="#F59E0B" Offset="0" />
+                                                                            <GradientStop Color="#B45309" Offset="1" />
+                                                                        </LinearGradientBrush>
+                                                                    </Border.Background>
+                                                                    <Path
+                                                                        Data="{StaticResource Icon.Projects}"
+                                                                        Fill="#FFFFFF"
+                                                                        Width="17"
+                                                                        Height="17"
+                                                                        Stretch="Uniform"
+                                                                        HorizontalAlignment="Center"
+                                                                        VerticalAlignment="Center" />
+                                                                </Border>
+
+                                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,8,0">
+                                                                    <TextBlock
+                                                                        Text="{Binding Item.Name}"
+                                                                        FontSize="15"
+                                                                        FontWeight="Bold"
+                                                                        Foreground="#78350F"
+                                                                        TextTrimming="CharacterEllipsis" />
+                                                                    <TextBlock
+                                                                        Text="Workstream folder"
+                                                                        FontSize="11"
+                                                                        Foreground="#92400E"
+                                                                        Opacity="0.7"
+                                                                        Margin="0,2,0,0" />
+                                                                </StackPanel>
                                                             </Grid>
-                                                        </Border>
-                                                    </DataTemplate>
-                                                </ItemsControl.ItemTemplate>
-                                            </ItemsControl>
 
-                                            <StackPanel Orientation="Horizontal" Margin="12,0,0,0" VerticalAlignment="Center">
-                                                <TextBlock Text="{Binding Item.Members.Count}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource Brush.TextSecondary}" />
-                                                <TextBlock Text=" member(s)" FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" />
-                                            </StackPanel>
-                                        </StackPanel>
+                                                            <!-- Description -->
+                                                            <TextBlock
+                                                                Grid.Row="1"
+                                                                Text="{Binding Item.Description, FallbackValue='No description provided.'}"
+                                                                FontSize="12.5"
+                                                                LineHeight="18"
+                                                                Foreground="#92400E"
+                                                                Opacity="0.9"
+                                                                TextWrapping="Wrap"
+                                                                TextTrimming="CharacterEllipsis"
+                                                                MaxHeight="56"
+                                                                Margin="0,0,0,14"
+                                                                VerticalAlignment="Top" />
 
-                                        <!-- Track Progress -->
-                                        <StackPanel Grid.Row="3" Margin="0,0,0,16">
-                                            <Grid Margin="0,0,0,4">
-                                                <TextBlock Text="Progress from Major Tasks" FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" />
-                                                <TextBlock Text="{Binding Item.Progress, StringFormat='{}{0}%'}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource Brush.Primary}" HorizontalAlignment="Right" />
-                                            </Grid>
-                                            <ProgressBar Value="{Binding Item.Progress}" Maximum="100" Style="{StaticResource ProgressBar.Modern}" />
-                                        </StackPanel>
+                                                            <!-- Members row -->
+                                                            <StackPanel
+                                                                Grid.Row="2"
+                                                                Orientation="Horizontal"
+                                                                Margin="0,0,0,12"
+                                                                Visibility="{Binding Item.Members.Count, Converter={StaticResource BoolToVis}}">
+                                                                <ItemsControl ItemsSource="{Binding Item.Members}">
+                                                                    <ItemsControl.ItemsPanel>
+                                                                        <ItemsPanelTemplate>
+                                                                            <StackPanel Orientation="Horizontal" />
+                                                                        </ItemsPanelTemplate>
+                                                                    </ItemsControl.ItemsPanel>
+                                                                    <ItemsControl.ItemTemplate>
+                                                                        <DataTemplate>
+                                                                            <Grid Width="26" Height="26" Margin="0,0,-8,0" ToolTip="{Binding Name}">
+                                                                                <Ellipse Fill="{DynamicResource Brush.Primary}" Stroke="#FEF3C7" StrokeThickness="2" />
+                                                                                <TextBlock
+                                                                                    Text="{Binding Name, Converter={StaticResource StringToInitial}}"
+                                                                                    FontSize="10"
+                                                                                    FontWeight="Bold"
+                                                                                    Foreground="White"
+                                                                                    HorizontalAlignment="Center"
+                                                                                    VerticalAlignment="Center" />
+                                                                            </Grid>
+                                                                        </DataTemplate>
+                                                                    </ItemsControl.ItemTemplate>
+                                                                </ItemsControl>
+                                                                <StackPanel Orientation="Horizontal" Margin="14,0,0,0" VerticalAlignment="Center">
+                                                                    <TextBlock Text="{Binding Item.Members.Count}" FontSize="11" FontWeight="Bold" Foreground="#78350F" />
+                                                                    <TextBlock Text=" member(s)" FontSize="11" Foreground="#92400E" Opacity="0.75" />
+                                                                </StackPanel>
+                                                            </StackPanel>
 
-                                        <!-- Enter Track Workspace -->
-                                        <Button Grid.Row="4" Style="{StaticResource Button.Secondary}" Content="Open Track Workspace →" 
-                                                Command="{Binding DataContext.OpenTrackCommand, RelativeSource={RelativeSource AncestorType=UserControl}}" 
-                                                CommandParameter="{Binding}" HorizontalAlignment="Right" Height="34" Padding="14,0" />
-                                    </Grid>
-                                </Border>
+                                                            <!-- Progress -->
+                                                            <StackPanel Grid.Row="3">
+                                                                <Grid Margin="0,0,0,5">
+                                                                    <TextBlock Text="Progress from major tasks" FontSize="11" Foreground="#92400E" Opacity="0.75" />
+                                                                    <TextBlock
+                                                                        Text="{Binding Item.Progress, StringFormat='{}{0}%'}"
+                                                                        FontSize="11"
+                                                                        FontWeight="Bold"
+                                                                        Foreground="#B45309"
+                                                                        HorizontalAlignment="Right" />
+                                                                </Grid>
+                                                                <ProgressBar
+                                                                    Value="{Binding Item.Progress}"
+                                                                    Maximum="100"
+                                                                    Height="6"
+                                                                    Foreground="#D97706"
+                                                                    Background="#FDE68A"
+                                                                    Style="{StaticResource ProgressBar.Modern}" />
+                                                            </StackPanel>
+                                                        </Grid>
+                                                    </Border>
+                                                </Grid>
+                                                <ControlTemplate.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter TargetName="FolderBody" Property="BorderBrush" Value="#B45309" />
+                                                    </Trigger>
+                                                </ControlTemplate.Triggers>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                    </Button>
+
+                                    <!-- Owner actions overlay (not nested inside open button) -->
+                                    <StackPanel
+                                        Orientation="Horizontal"
+                                        HorizontalAlignment="Right"
+                                        VerticalAlignment="Top"
+                                        Margin="0,30,10,0"
+                                        Panel.ZIndex="5"
+                                        Visibility="{Binding IsOwner, Converter={StaticResource BoolToVis}}">
+                                        <Button
+                                            Style="{StaticResource Button.Icon}"
+                                            Margin="0,0,2,0"
+                                            Command="{Binding DataContext.OpenEditTrackModalCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            ToolTip="Edit Track">
+                                            <Path Data="{StaticResource Icon.Edit}" Fill="#92400E" Width="12" Height="12" Stretch="Uniform" />
+                                        </Button>
+                                        <Button
+                                            Style="{StaticResource Button.Icon}"
+                                            Command="{Binding DataContext.DeleteTrackCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                            CommandParameter="{Binding}"
+                                            ToolTip="Delete Track">
+                                            <Path Data="{StaticResource Icon.Trash}" Fill="{DynamicResource Brush.Danger}" Width="12" Height="12" Stretch="Uniform" />
+                                        </Button>
+                                    </StackPanel>
+                                </Grid>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
