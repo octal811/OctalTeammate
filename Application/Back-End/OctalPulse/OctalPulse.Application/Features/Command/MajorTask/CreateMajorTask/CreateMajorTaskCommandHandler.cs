@@ -10,11 +10,16 @@ public class CreateMajorTaskCommandHandler : IRequestHandler<CreateMajorTaskComm
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IRealtimeNotifier _realtimeNotifier;
+    private readonly IBadgeService _badgeService;
 
-    public CreateMajorTaskCommandHandler(IUnitOfWork unitOfWork, IRealtimeNotifier realtimeNotifier)
+    public CreateMajorTaskCommandHandler(
+        IUnitOfWork unitOfWork,
+        IRealtimeNotifier realtimeNotifier,
+        IBadgeService badgeService)
     {
         _unitOfWork = unitOfWork;
         _realtimeNotifier = realtimeNotifier;
+        _badgeService = badgeService;
     }
 
     public async Task<CreateMajorTaskResponse> Handle(
@@ -48,6 +53,7 @@ public class CreateMajorTaskCommandHandler : IRequestHandler<CreateMajorTaskComm
         };
 
         await _unitOfWork.MajorTasks.AddAsync(task, cancellationToken);
+        await _badgeService.EvaluateTeamOrganizerAsync(request.UserId, request.TrackId, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         await _realtimeNotifier.MajorTaskChangedAsync(request.TrackId, task.Id, cancellationToken);

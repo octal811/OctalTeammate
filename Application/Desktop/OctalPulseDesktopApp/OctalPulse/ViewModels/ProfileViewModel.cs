@@ -25,6 +25,7 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
     private readonly IDialogService _dialogService;
     private readonly IPostService _postService;
     private readonly IBadgeService _badgeService;
+    private readonly IActivityService _activityService;
 
     [ObservableProperty]
     private string _profileName = string.Empty;
@@ -63,6 +64,8 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
 
     public ObservableCollection<ProfileBadgeItem> Badges { get; } = new();
 
+    public ObservableCollection<ContributionCell> ContributionCells { get; } = new();
+
     public ObservableCollection<ProfilePostItem> Posts { get; } = new();
 
     [ObservableProperty]
@@ -74,13 +77,41 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
     [ObservableProperty]
     private bool _badgesLoadFailed;
 
+    [ObservableProperty]
+    private bool _showAllBadges;
+
+    [ObservableProperty]
+    private bool _canExpandBadges;
+
+    [ObservableProperty]
+    private string _activityMonthLabel = string.Empty;
+
+    [ObservableProperty]
+    private string _activityTotalText = string.Empty;
+
+    [ObservableProperty]
+    private bool _isActivityLoading;
+
+    [ObservableProperty]
+    private bool _activityLoadFailed;
+
+    [ObservableProperty]
+    private bool _showHoursMetric = true;
+
+    public IEnumerable<ProfileBadgeItem> DisplayBadges =>
+        ShowAllBadges ? Badges : Badges.Take(4);
+
+    public string ShowAllBadgesText =>
+        ShowAllBadges ? "Show less" : $"Show all ({Badges.Count})";
+
     public ProfileViewModel(
         IAuthService authService,
         IUserSession userSession,
         ILocalCacheService localCache,
         IDialogService dialogService,
         IPostService postService,
-        IBadgeService badgeService)
+        IBadgeService badgeService,
+        IActivityService activityService)
     {
         _authService = authService;
         _userSession = userSession;
@@ -88,6 +119,7 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
         _dialogService = dialogService;
         _postService = postService;
         _badgeService = badgeService;
+        _activityService = activityService;
 
         InitializeFromSession();
     }
@@ -119,6 +151,14 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
         await LoadProfileAsync(isSilent: false);
     }
 
+    [RelayCommand]
+    private void ToggleBadges()
+    {
+        ShowAllBadges = !ShowAllBadges;
+        OnPropertyChanged(nameof(DisplayBadges));
+        OnPropertyChanged(nameof(ShowAllBadgesText));
+    }
+
     private async Task LoadProfileAsync(bool isSilent = true)
     {
         if (string.IsNullOrEmpty(ProfileName))
@@ -139,7 +179,7 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
             }
 
             ApplyProfile(me);
-            await Task.WhenAll(LoadBadgesAsync(), LoadUserPostsAsync());
+            await Task.WhenAll(LoadBadgesAsync(), LoadUserPostsAsync(), LoadContributionsAsync());
             if (!isSilent)
             {
                 _dialogService.ShowToast("Profile Loaded", "Your profile was refreshed.", ToastType.Info);
@@ -238,6 +278,24 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
 
             UnlockedBadgeCount = Badges.Count(x => x.IsUnlocked);
             UnlockedBadgeSummary = $"{UnlockedBadgeCount}/{Badges.Count} unlocked";
+            CanExpandBadges = Badges.Count > 4;
+            ShowAllBadges = false;
+            OnPropertyChanged(nameof(DisplayBadges));
+
+            var ranked = Badges
+                .OrderByDescending(b => b.IsUnlocked)
+                .ThenByDescending(b => RankLevel(b.Level))
+                .ThenByDescending(b => b.ProgressPercent)
+                .ToList();
+
+            Badges.Clear();
+            foreach (var badge in ranked)
+            {
+                Badges.Add(badge);
+            }
+
+            OnPropertyChanged(nameof(DisplayBadges));
+            OnPropertyChanged(nameof(ShowAllBadgesText));
         }
         catch
         {
@@ -248,11 +306,158 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
         }
     }
 
+    [RelayCommand]
+    private void ToggleActivityMetric()
+    {
+        ShowHoursMetric = !ShowHoursMetric;
+        RebuildContributionGrid();
+    }
+
+    private IReadOnlyList<DailyActivityResponse> _activityDays = Array.Empty<DailyActivityResponse>();
+
+    private async Task LoadContributionsAsync()
+    {
+        if (!_userSession.IsAuthenticated || !_userSession.UserId.HasValue) return;
+
+        IsActivityLoading = true;
+        ActivityLoadFailed = false;
+        ContributionCells.Clear();
+
+        try
+        {
+            var now = DateTime.Now;
+            var res = await _activityService.GetMonthlyActivityAsync(now.Year, now.Month);
+            if (res?.Days == null || res.Days.Count == 0)
+            {
+                ActivityLoadFailed = true;
+                return;
+            }
+
+            _activityDays = res.Days;
+            ActivityMonthLabel = res.Days[0].Date.ToString("MMMM yyyy");
+            RebuildContributionGrid();
+        }
+        catch
+        {
+            ActivityLoadFailed = true;
+            ContributionCells.Clear();
+        }
+        finally
+        {
+            IsActivityLoading = false;
+        }
+    }
+
+    private void RebuildContributionGrid()
+    {
+        ContributionCells.Clear();
+
+        if (_activityDays.Count == 0) return;
+
+        var firstDate = _activityDays[0].Date;
+        var monthStartOffset = (int)firstDate.DayOfWeek;
+
+        long totalHours = 0;
+        long totalTasks = 0;
+        var nonzero = new List<long>(_activityDays.Count);
+        var cells = new List<ContributionCell>(_activityDays.Count);
+        var levels = new List<int>(_activityDays.Count);
+
+        for (var i = 0; i < _activityDays.Count; i++)
+        {
+            var day = _activityDays[i];
+            totalHours += day.WorkSeconds;
+            totalTasks += day.CompletedTasks;
+
+            var value = ShowHoursMetric ? day.WorkSeconds : day.CompletedTasks;
+            if (value > 0)
+            {
+                nonzero.Add(value);
+            }
+
+            var date = firstDate.AddDays(i);
+            var row = (int)date.DayOfWeek;
+            var column = (monthStartOffset + i) / 7;
+
+            var metricPart = ShowHoursMetric
+                ? FormatFocusDuration(value)
+                : $"{value} task{(value == 1 ? "" : "s")}";
+
+            var toolTip = value > 0
+                ? $"{metricPart} · {date:ddd, MMM d}"
+                : $"No activity · {date:ddd, MMM d}";
+
+            cells.Add(new ContributionCell(row, column, value > 0, null, toolTip, date.Day.ToString()));
+            levels.Add(value > 0 ? 0 : -1);
+        }
+
+        if (nonzero.Count > 0)
+        {
+            var min = nonzero.Min();
+            var max = nonzero.Max();
+            var range = Math.Max(1, max - min);
+
+            for (var i = 0; i < cells.Count; i++)
+            {
+                if (levels[i] < 0) continue;
+
+                var value = ShowHoursMetric
+                    ? _activityDays[i].WorkSeconds
+                    : _activityDays[i].CompletedTasks;
+
+                var ratio = (double)(value - min) / range;
+                var bucket = Math.Clamp((int)Math.Ceiling(ratio * 4), 1, 4);
+                cells[i] = cells[i] with { Fill = ContributionBrush(bucket, !ShowHoursMetric) };
+            }
+        }
+
+        ActivityTotalText = $"{FormatFocusDuration(totalHours)} · {totalTasks} tasks";
+
+        foreach (var cell in cells)
+        {
+            ContributionCells.Add(cell);
+        }
+    }
+
+    private static Brush ContributionBrush(int bucket, bool useGreen)
+    {
+        const byte amberR = 0xF5;
+        const byte amberG = 0x9E;
+        const byte amberB = 0x0B;
+        const byte greenR = 0x10;
+        const byte greenG = 0xB9;
+        const byte greenB = 0x81;
+
+        var alpha = (byte)(bucket switch
+        {
+            1 => 0x73,
+            2 => 0x99,
+            3 => 0xBF,
+            _ => 0xE6
+        });
+
+        var brush = new SolidColorBrush(Color.FromArgb(
+            alpha,
+            useGreen ? greenR : amberR,
+            useGreen ? greenG : amberG,
+            useGreen ? greenB : amberB));
+
+        brush.Freeze();
+        return brush;
+    }
+
     private static string GetBadgeTitle(string type) => type switch
     {
         "CriticalFocus" => "Critical Focus",
         "HeavyWork" => "Heavy Work",
         "BugHunter" => "Bug Hunter",
+        "WorkTitan" => "Work Titan",
+        "StreakMaster" => "Streak Master",
+        "TaskFinisher" => "Task Finisher",
+        "AllRounder" => "All-Rounder",
+        "CommunityVoice" => "Community Voice",
+        "TeamCaptain" => "Team Captain",
+        "TeamOrganizer" => "Team Organizer",
         _ => type
     };
 
@@ -261,6 +466,13 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
         "CriticalFocus" => "Best single-day focused work time tracked on tasks.",
         "HeavyWork" => "Highest share of minor tasks you finished on a completed major.",
         "BugHunter" => "Bugs you solved by completing Solve Bug tasks.",
+        "WorkTitan" => "Lifetime work time you tracked on tasks.",
+        "StreakMaster" => "Longest run of consecutive days with logged work.",
+        "TaskFinisher" => "Tasks you created that you completed.",
+        "AllRounder" => "Different task types you completed a task in.",
+        "CommunityVoice" => "Posts and comments you shared with your teams.",
+        "TeamCaptain" => "Workstream tracks you currently lead.",
+        "TeamOrganizer" => "Most major tasks you created within one track.",
         _ => "Achievement earned from your team activity."
     };
 
@@ -269,6 +481,13 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
         "CriticalFocus" => "Icon.Stopwatch",
         "HeavyWork" => "Icon.Award",
         "BugHunter" => "Icon.Shield",
+        "WorkTitan" => "Icon.Stopwatch",
+        "StreakMaster" => "Icon.Calendar",
+        "TaskFinisher" => "Icon.CheckCircle",
+        "AllRounder" => "Icon.Sparkles",
+        "CommunityVoice" => "Icon.MessageSquare",
+        "TeamCaptain" => "Icon.Shield",
+        "TeamOrganizer" => "Icon.TeamOrganizer",
         _ => "Icon.Trophy"
     };
 
@@ -282,6 +501,13 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
         "CriticalFocus" => FormatFocusDuration(value),
         "HeavyWork" => $"{value}%",
         "BugHunter" => value == 1 ? "1 bug" : $"{value} bugs",
+        "WorkTitan" => FormatFocusDuration(value),
+        "StreakMaster" => value == 1 ? "1 day" : $"{value} days",
+        "TaskFinisher" => value == 1 ? "1 task" : $"{value} tasks",
+        "AllRounder" => value == 1 ? "1 type" : $"{value} types",
+        "CommunityVoice" => value == 1 ? "1 share" : $"{value} shares",
+        "TeamCaptain" => value == 1 ? "1 track" : $"{value} tracks",
+        "TeamOrganizer" => value == 1 ? "1 task" : $"{value} tasks",
         _ => value.ToString()
     };
 
@@ -320,6 +546,17 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
 
         return brush;
     }
+
+    private static int RankLevel(string? level) => level switch
+    {
+        "Bronze" => 1,
+        "Silver" => 2,
+        "Gold" => 3,
+        "Platinum" => 4,
+        "Diamond" => 5,
+        "Legend" => 6,
+        _ => 0
+    };
 
     private static Brush GetBadgeLevelBrush(string? level) => level switch
     {
@@ -526,3 +763,11 @@ public record ProfilePostItem(
     int LikesCount,
     int CommentsCount,
     string? PhotoUrl);
+
+public record ContributionCell(
+    int Row,
+    int Column,
+    bool IsActive,
+    Brush? Fill,
+    string ToolTip,
+    string DayNumber);

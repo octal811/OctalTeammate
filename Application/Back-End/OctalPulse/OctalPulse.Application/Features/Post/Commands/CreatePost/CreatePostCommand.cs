@@ -32,11 +32,16 @@ public class CreatePostCommandHandler : IRequestHandler<CreatePostCommand, PostR
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IRealtimeNotifier _realtimeNotifier;
+    private readonly IBadgeService _badgeService;
 
-    public CreatePostCommandHandler(IUnitOfWork unitOfWork, IRealtimeNotifier realtimeNotifier)
+    public CreatePostCommandHandler(
+        IUnitOfWork unitOfWork,
+        IRealtimeNotifier realtimeNotifier,
+        IBadgeService badgeService)
     {
         _unitOfWork = unitOfWork;
         _realtimeNotifier = realtimeNotifier;
+        _badgeService = badgeService;
     }
 
     public async Task<PostResponse> Handle(CreatePostCommand request, CancellationToken cancellationToken)
@@ -75,6 +80,7 @@ public class CreatePostCommandHandler : IRequestHandler<CreatePostCommand, PostR
         };
 
         await _unitOfWork.Posts.AddAsync(post, cancellationToken);
+        await _badgeService.EvaluateCommunityVoiceAsync(request.AuthorId, true, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         await _realtimeNotifier.PostCreatedAsync(post.Id, post.ProjectId, post.TrackId, cancellationToken);

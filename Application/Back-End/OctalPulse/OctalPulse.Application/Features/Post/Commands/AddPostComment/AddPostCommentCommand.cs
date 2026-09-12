@@ -30,11 +30,16 @@ public class AddPostCommentCommandHandler : IRequestHandler<AddPostCommentComman
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IRealtimeNotifier _realtimeNotifier;
+    private readonly IBadgeService _badgeService;
 
-    public AddPostCommentCommandHandler(IUnitOfWork unitOfWork, IRealtimeNotifier realtimeNotifier)
+    public AddPostCommentCommandHandler(
+        IUnitOfWork unitOfWork,
+        IRealtimeNotifier realtimeNotifier,
+        IBadgeService badgeService)
     {
         _unitOfWork = unitOfWork;
         _realtimeNotifier = realtimeNotifier;
+        _badgeService = badgeService;
     }
 
     public async Task<CommentResponse> Handle(AddPostCommentCommand request, CancellationToken cancellationToken)
@@ -78,6 +83,7 @@ public class AddPostCommentCommandHandler : IRequestHandler<AddPostCommentComman
         };
 
         await _unitOfWork.PostComments.AddAsync(comment, cancellationToken);
+        await _badgeService.EvaluateCommunityVoiceAsync(request.UserId, true, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         await _realtimeNotifier.CommentAddedAsync(post.Id, comment.Id, comment.ParentCommentId, post.ProjectId, cancellationToken);

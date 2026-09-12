@@ -572,7 +572,7 @@
         </Setter>
     </Style>
 
-    <!-- Ultra-thin Scrollbar (4px) — macOS/modern style -->
+<!-- Ultra-thin Scrollbar (4px) — macOS/modern style -->
     <Style TargetType="ScrollBar">
         <Setter Property="Background"  Value="Transparent" />
         <Setter Property="Width"       Value="4" />

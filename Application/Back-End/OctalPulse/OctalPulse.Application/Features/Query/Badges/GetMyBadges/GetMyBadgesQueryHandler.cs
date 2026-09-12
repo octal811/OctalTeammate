@@ -23,12 +23,26 @@ public class GetMyBadgesQueryHandler : IRequestHandler<GetMyBadgesQuery, GetMyBa
         var criticalFocus = await GetCriticalFocusProgressAsync(request.UserId, earned, cancellationToken);
         var bugHunter = await GetBugHunterProgressAsync(request.UserId, earned, cancellationToken);
         var heavyWork = await GetHeavyWorkProgressAsync(request.UserId, earned, cancellationToken);
+        var workTitan = await GetWorkTitanProgressAsync(request.UserId, earned, cancellationToken);
+        var streakMaster = await GetStreakMasterProgressAsync(request.UserId, earned, cancellationToken);
+        var taskFinisher = await GetTaskFinisherProgressAsync(request.UserId, earned, cancellationToken);
+        var allRounder = await GetAllRounderProgressAsync(request.UserId, earned, cancellationToken);
+        var communityVoice = await GetCommunityVoiceProgressAsync(request.UserId, earned, cancellationToken);
+        var teamCaptain = await GetTeamCaptainProgressAsync(request.UserId, earned, cancellationToken);
+        var teamOrganizer = await GetTeamOrganizerProgressAsync(request.UserId, earned, cancellationToken);
 
         return new GetMyBadgesResponse(new[]
         {
             criticalFocus,
+            heavyWork,
             bugHunter,
-            heavyWork
+            workTitan,
+            streakMaster,
+            taskFinisher,
+            allRounder,
+            communityVoice,
+            teamCaptain,
+            teamOrganizer
         });
     }
 
@@ -118,6 +132,126 @@ public class GetMyBadgesQueryHandler : IRequestHandler<GetMyBadgesQuery, GetMyBa
         }
 
         return best;
+    }
+
+    private async Task<BadgeProgressResponse> GetWorkTitanProgressAsync(
+        Guid userId,
+        IReadOnlyDictionary<BadgeType, Domain.Entities.UserBadge> earned,
+        CancellationToken cancellationToken)
+    {
+        var current = await _unitOfWork.DailyWorkLogs.GetTotalSecondsAsync(userId, cancellationToken);
+        var next = BadgeRules.NextWorkTitanTarget(current);
+        var level = BadgeRules.WorkTitanLevelFor(current);
+        var badge = earned.GetValueOrDefault(BadgeType.WorkTitan);
+
+        return Build(BadgeType.WorkTitan, level, badge, current, next);
+    }
+
+    private async Task<BadgeProgressResponse> GetStreakMasterProgressAsync(
+        Guid userId,
+        IReadOnlyDictionary<BadgeType, Domain.Entities.UserBadge> earned,
+        CancellationToken cancellationToken)
+    {
+        var current = await _unitOfWork.DailyWorkLogs.GetLongestActiveStreakAsync(userId, cancellationToken);
+        var next = BadgeRules.NextStreakMasterTarget(current);
+        var level = BadgeRules.StreakMasterLevelFor(current);
+        var badge = earned.GetValueOrDefault(BadgeType.StreakMaster);
+
+        return Build(BadgeType.StreakMaster, level, badge, current, next);
+    }
+
+    private async Task<BadgeProgressResponse> GetTaskFinisherProgressAsync(
+        Guid userId,
+        IReadOnlyDictionary<BadgeType, Domain.Entities.UserBadge> earned,
+        CancellationToken cancellationToken)
+    {
+        var current = await _unitOfWork.MinorTasks.CountAsync(
+            mn => mn.CreatedByUserId == userId && mn.State == MinorTaskState.Done,
+            cancellationToken);
+        var next = BadgeRules.NextTaskFinisherTarget(current);
+        var level = BadgeRules.TaskFinisherLevelFor(current);
+        var badge = earned.GetValueOrDefault(BadgeType.TaskFinisher);
+
+        return Build(BadgeType.TaskFinisher, level, badge, current, next);
+    }
+
+    private async Task<BadgeProgressResponse> GetAllRounderProgressAsync(
+        Guid userId,
+        IReadOnlyDictionary<BadgeType, Domain.Entities.UserBadge> earned,
+        CancellationToken cancellationToken)
+    {
+        var doneTasks = (await _unitOfWork.MinorTasks.FindAsync(
+                mn => mn.CreatedByUserId == userId && mn.State == MinorTaskState.Done,
+                cancellationToken))
+            .ToList();
+
+        var current = doneTasks
+            .Where(mn => mn.JobType.HasValue)
+            .Select(mn => mn.JobType!.Value)
+            .Distinct()
+            .Count();
+
+        var next = BadgeRules.NextAllRounderTarget(current);
+        var level = BadgeRules.AllRounderLevelFor(current);
+        var badge = earned.GetValueOrDefault(BadgeType.AllRounder);
+
+        return Build(BadgeType.AllRounder, level, badge, current, next);
+    }
+
+    private async Task<BadgeProgressResponse> GetCommunityVoiceProgressAsync(
+        Guid userId,
+        IReadOnlyDictionary<BadgeType, Domain.Entities.UserBadge> earned,
+        CancellationToken cancellationToken)
+    {
+        var posts = await _unitOfWork.Posts.CountAsync(
+            p => p.AuthorId == userId && !p.IsDeleted,
+            cancellationToken);
+        var comments = await _unitOfWork.PostComments.CountAsync(
+            c => c.UserId == userId && !c.IsDeleted,
+            cancellationToken);
+        var current = posts + comments;
+
+        var next = BadgeRules.NextCommunityVoiceTarget(current);
+        var level = BadgeRules.CommunityVoiceLevelFor(current);
+        var badge = earned.GetValueOrDefault(BadgeType.CommunityVoice);
+
+        return Build(BadgeType.CommunityVoice, level, badge, current, next);
+    }
+
+    private async Task<BadgeProgressResponse> GetTeamCaptainProgressAsync(
+        Guid userId,
+        IReadOnlyDictionary<BadgeType, Domain.Entities.UserBadge> earned,
+        CancellationToken cancellationToken)
+    {
+        var current = await _unitOfWork.Tracks.CountAsync(
+            t => t.TrackLeadUserId == userId && !t.IsDeleted,
+            cancellationToken);
+        var next = BadgeRules.NextTeamCaptainTarget(current);
+        var level = BadgeRules.TeamCaptainLevelFor(current);
+        var badge = earned.GetValueOrDefault(BadgeType.TeamCaptain);
+
+        return Build(BadgeType.TeamCaptain, level, badge, current, next);
+    }
+
+    private async Task<BadgeProgressResponse> GetTeamOrganizerProgressAsync(
+        Guid userId,
+        IReadOnlyDictionary<BadgeType, Domain.Entities.UserBadge> earned,
+        CancellationToken cancellationToken)
+    {
+        var majors = (await _unitOfWork.MajorTasks.FindAsync(
+                m => m.CreatedByUserId == userId && !m.IsDeleted,
+                cancellationToken))
+            .ToList();
+
+        var current = majors
+            .GroupBy(m => m.TrackId)
+            .Max(g => (int?)g.Count()) ?? 0;
+
+        var next = BadgeRules.NextTeamOrganizerTarget(current);
+        var level = BadgeRules.TeamOrganizerLevelFor(current);
+        var badge = earned.GetValueOrDefault(BadgeType.TeamOrganizer);
+
+        return Build(BadgeType.TeamOrganizer, level, badge, current, next);
     }
 
     private static BadgeProgressResponse Build(

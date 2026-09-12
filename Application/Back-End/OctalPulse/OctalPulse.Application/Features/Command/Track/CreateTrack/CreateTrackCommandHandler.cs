@@ -11,11 +11,16 @@ public class CreateTrackCommandHandler : IRequestHandler<CreateTrackCommand, Cre
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IRealtimeNotifier _realtimeNotifier;
+    private readonly IBadgeService _badgeService;
 
-    public CreateTrackCommandHandler(IUnitOfWork unitOfWork, IRealtimeNotifier realtimeNotifier)
+    public CreateTrackCommandHandler(
+        IUnitOfWork unitOfWork,
+        IRealtimeNotifier realtimeNotifier,
+        IBadgeService badgeService)
     {
         _unitOfWork = unitOfWork;
         _realtimeNotifier = realtimeNotifier;
+        _badgeService = badgeService;
     }
 
     public async Task<CreateTrackResponse> Handle(CreateTrackCommand request, CancellationToken cancellationToken)
@@ -60,6 +65,7 @@ public class CreateTrackCommandHandler : IRequestHandler<CreateTrackCommand, Cre
 
         await _unitOfWork.TrackMembers.AddAsync(leadMember, cancellationToken);
 
+        await _badgeService.EvaluateTeamCaptainAsync(request.CreatedByUserId, true, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         await _realtimeNotifier.TrackChangedAsync(track.Id, track.ProjectId, cancellationToken);

@@ -64,6 +64,8 @@ public class UpdateMinorTaskCommandHandler : IRequestHandler<UpdateMinorTaskComm
 
         _unitOfWork.MinorTasks.Update(task);
         await _badgeService.EvaluateBugHunterAsync(request.UserId, justCompletedSolveBug, cancellationToken);
+        await _badgeService.EvaluateTaskFinisherAsync(request.UserId, justCompletedSolveBug, cancellationToken);
+        await _badgeService.EvaluateAllRounderAsync(request.UserId, task.JobType, cancellationToken);
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         await _realtimeNotifier.MinorTaskChangedAsync(majorTask.TrackId, task.Id, cancellationToken);
