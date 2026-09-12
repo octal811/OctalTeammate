@@ -78,7 +78,12 @@
                                 <TextBlock Text="{Binding Project.Creator.Name}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,24,0" />
 
                                 <TextBlock Text="Team Members: " FontSize="12" Foreground="{DynamicResource Brush.TextMuted}" />
-                                <TextBlock Text="{Binding Project.MembersCount}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
+                                <TextBlock Text="{Binding Project.MembersCount}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,24,0" />
+                                <TextBlock Text="Project ID:" FontSize="12" Foreground="{DynamicResource Brush.TextMuted}" />
+                                <TextBlock Text="{Binding Project.Id}" FontSize="12" FontWeight="SemiBold" FontFamily="Consolas" Foreground="{DynamicResource Brush.TextPrimary}" Width="246" Height="23" />
+                                <Button Style="{StaticResource Button.Icon}" Command="{Binding CopyProjectIdCommand}" ToolTip="Copy project ID to share with teammates" VerticalAlignment="Center" Width="26" Height="26" Margin="2,0,20,0">
+                                    <Path Data="{StaticResource Icon.Link}" Fill="{DynamicResource Brush.TextMuted}" Width="13" Height="13" Stretch="Uniform" />
+                                </Button>
                             </StackPanel>
 
                             <!-- Overall Progress Bar -->
@@ -129,6 +134,49 @@
                         <TextBlock Text="Workstream Tracks" Style="{StaticResource Text.Heading3}" />
                         <Button Style="{StaticResource Button.Primary}" Content="+ Add Track" Command="{Binding OpenCreateTrackModalCommand}" HorizontalAlignment="Right" Height="36" Padding="14,0" />
                     </Grid>
+
+                    <!-- Pending Track Join Requests -->
+                    <Border Style="{StaticResource Border.Card}" Padding="20" Margin="0,0,0,24"
+                            Visibility="{Binding PendingTrackJoins.Count, Converter={StaticResource BoolToVis}}">
+                        <StackPanel>
+                            <TextBlock Text="Pending Track Join Requests" Style="{StaticResource Text.Heading3}" Margin="0,0,0,6" />
+                            <TextBlock Text="Approve or decline requests from project members who want to join the tracks you lead." FontSize="12" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,0,0,12" />
+
+                            <ItemsControl ItemsSource="{Binding PendingTrackJoins}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1" Padding="0,12">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="18" Background="{DynamicResource Brush.SurfaceElevated}" Margin="0,0,14,0">
+                                                    <TextBlock Text="{Binding Member.Name[0]}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource Brush.Primary}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                </Border>
+
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Member.Name}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
+                                                    <TextBlock Text="{Binding TrackName, StringFormat='wants to join track: {0}'}" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" />
+                                                </StackPanel>
+
+                                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <Button Style="{StaticResource Button.Primary}" Content="Approve" Height="32" Padding="14,0" Margin="0,0,8,0"
+                                                            Command="{Binding DataContext.ApproveJoinTrackCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}" />
+                                                    <Button Style="{StaticResource Button.Ghost}" Content="Reject" Height="32" Padding="14,0"
+                                                            Command="{Binding DataContext.RejectJoinTrackCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
 
                     <!-- Tracks Empty State -->
                     <Border Style="{StaticResource Border.Card}" Padding="32" Visibility="{Binding Tracks.Count, Converter={StaticResource BoolToVis}, ConverterParameter=invert}">
@@ -214,53 +262,66 @@
                                                 VerticalAlignment="Top" />
 
                                             <!-- Members row -->
-                                            <StackPanel
+                                            <Grid
                                                 Grid.Row="2"
-                                                Orientation="Horizontal"
-                                                Margin="0,0,0,12"
-                                                Visibility="{Binding Item.Members.Count, Converter={StaticResource BoolToVis}}">
-                                                <ItemsControl ItemsSource="{Binding Item.Members}">
-                                                    <ItemsControl.ItemsPanel>
-                                                        <ItemsPanelTemplate>
-                                                            <StackPanel Orientation="Horizontal" />
-                                                        </ItemsPanelTemplate>
-                                                    </ItemsControl.ItemsPanel>
-                                                    <ItemsControl.ItemTemplate>
-                                                        <DataTemplate>
-                                                            <Grid Width="28" Height="28" Margin="0,0,-8,0" ToolTip="{Binding Name}">
-                                                                <!-- Fallback initial -->
-                                                                <Ellipse
-                                                                    Fill="{DynamicResource Brush.Primary}"
-                                                                    Stroke="{DynamicResource Brush.CardBackground}"
-                                                                    StrokeThickness="2" />
-                                                                <TextBlock
-                                                                    Text="{Binding Name, Converter={StaticResource StringToInitial}}"
-                                                                    FontSize="10"
-                                                                    FontWeight="Bold"
-                                                                    Foreground="{DynamicResource Brush.PrimaryForeground}"
-                                                                    HorizontalAlignment="Center"
-                                                                    VerticalAlignment="Center"
-                                                                    Visibility="{Binding ProfilePictureUrl, Converter={StaticResource InvertNullToVis}}" />
-                                                                <!-- Member photo -->
-                                                                <Ellipse
-                                                                    Stroke="{DynamicResource Brush.CardBackground}"
-                                                                    StrokeThickness="2"
-                                                                    Visibility="{Binding ProfilePictureUrl, Converter={StaticResource NullToVis}}">
-                                                                    <Ellipse.Fill>
-                                                                        <ImageBrush
-                                                                            ImageSource="{Binding ProfilePictureUrl, Converter={StaticResource RelativeUrlToImage}}"
-                                                                            Stretch="UniformToFill" />
-                                                                    </Ellipse.Fill>
-                                                                </Ellipse>
-                                                            </Grid>
-                                                        </DataTemplate>
-                                                    </ItemsControl.ItemTemplate>
-                                                </ItemsControl>
-                                                <StackPanel Orientation="Horizontal" Margin="14,0,0,0" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding Item.Members.Count}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource Brush.TextPrimary}" />
-                                                    <TextBlock Text=" member(s)" FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" />
+                                                Margin="0,0,0,12">
+                                                <StackPanel
+                                                    Orientation="Horizontal"
+                                                    Visibility="{Binding Item.Members.Count, Converter={StaticResource BoolToVis}}">
+                                                    <ItemsControl ItemsSource="{Binding Item.Members}">
+                                                        <ItemsControl.ItemsPanel>
+                                                            <ItemsPanelTemplate>
+                                                                <StackPanel Orientation="Horizontal" />
+                                                            </ItemsPanelTemplate>
+                                                        </ItemsControl.ItemsPanel>
+                                                        <ItemsControl.ItemTemplate>
+                                                            <DataTemplate>
+                                                                <Grid Width="28" Height="28" Margin="0,0,-8,0" ToolTip="{Binding Name}">
+                                                                    <!-- Fallback initial -->
+                                                                    <Ellipse
+                                                                        Fill="{DynamicResource Brush.Primary}"
+                                                                        Stroke="{DynamicResource Brush.CardBackground}"
+                                                                        StrokeThickness="2" />
+                                                                    <TextBlock
+                                                                        Text="{Binding Name, Converter={StaticResource StringToInitial}}"
+                                                                        FontSize="10"
+                                                                        FontWeight="Bold"
+                                                                        Foreground="{DynamicResource Brush.PrimaryForeground}"
+                                                                        HorizontalAlignment="Center"
+                                                                        VerticalAlignment="Center"
+                                                                        Visibility="{Binding ProfilePictureUrl, Converter={StaticResource InvertNullToVis}}" />
+                                                                    <!-- Member photo -->
+                                                                    <Ellipse
+                                                                        Stroke="{DynamicResource Brush.CardBackground}"
+                                                                        StrokeThickness="2"
+                                                                        Visibility="{Binding ProfilePictureUrl, Converter={StaticResource NullToVis}}">
+                                                                        <Ellipse.Fill>
+                                                                            <ImageBrush
+                                                                                ImageSource="{Binding ProfilePictureUrl, Converter={StaticResource RelativeUrlToImage}}"
+                                                                                Stretch="UniformToFill" />
+                                                                        </Ellipse.Fill>
+                                                                    </Ellipse>
+                                                                </Grid>
+                                                            </DataTemplate>
+                                                        </ItemsControl.ItemTemplate>
+                                                    </ItemsControl>
+                                                    <StackPanel Orientation="Horizontal" Margin="14,0,0,0" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding Item.Members.Count}" FontSize="11" FontWeight="Bold" Foreground="{DynamicResource Brush.TextPrimary}" />
+                                                        <TextBlock Text=" member(s)" FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" />
+                                                    </StackPanel>
                                                 </StackPanel>
-                                            </StackPanel>
+
+                                                <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal">
+                                                    <Border CornerRadius="10" Padding="10,4" Background="{DynamicResource Brush.SurfaceElevated}"
+                                                            Visibility="{Binding IsJoinPending, Converter={StaticResource BoolToVis}}">
+                                                        <TextBlock Text="Pending Request" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextMuted}" />
+                                                    </Border>
+                                                    <Button Style="{StaticResource Button.Secondary}" Content="Request to Join" Height="30" Padding="12,0"
+                                                            Visibility="{Binding CanRequestJoin, Converter={StaticResource BoolToVis}}"
+                                                            Command="{Binding DataContext.RequestJoinTrackCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}" />
+                                                </StackPanel>
+                                            </Grid>
 
                                             <!-- Progress -->
                                             <StackPanel Grid.Row="3">
@@ -324,6 +385,51 @@
                             </Style.Triggers>
                         </Style>
                     </StackPanel.Style>
+
+                    <TextBlock Text="Pending Join Requests" Style="{StaticResource Text.Heading3}" Margin="0,0,0,18"
+                               Visibility="{Binding IsCreator, Converter={StaticResource BoolToVis}}" />
+
+                    <Border Style="{StaticResource Border.Card}" Padding="20" Margin="0,0,0,24"
+                            Visibility="{Binding IsCreator, Converter={StaticResource BoolToVis}}">
+                        <StackPanel>
+                            <TextBlock Text="No pending join requests." FontSize="13" Foreground="{DynamicResource Brush.TextMuted}"
+                                       Visibility="{Binding PendingMembers.Count, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" Margin="0,10" HorizontalAlignment="Center" />
+
+                            <ItemsControl ItemsSource="{Binding PendingMembers}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Border BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1" Padding="0,12">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="18" Background="{DynamicResource Brush.SurfaceElevated}" Margin="0,0,14,0">
+                                                    <TextBlock Text="{Binding Name[0]}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource Brush.Primary}" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                </Border>
+
+                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                    <TextBlock Text="{Binding Name}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
+                                                    <TextBlock Text="{Binding Email}" FontSize="12" Foreground="{DynamicResource Brush.TextMuted}" />
+                                                </StackPanel>
+
+                                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <Button Style="{StaticResource Button.Primary}" Content="Approve" Height="32" Padding="14,0" Margin="0,0,8,0"
+                                                            Command="{Binding DataContext.ApproveJoinRequestCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}" />
+                                                    <Button Style="{StaticResource Button.Ghost}" Content="Reject" Height="32" Padding="14,0"
+                                                            Command="{Binding DataContext.RejectJoinRequestCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}" />
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Border>
 
                     <TextBlock Text="Approved Team Members" Style="{StaticResource Text.Heading3}" Margin="0,0,0,18" />
 

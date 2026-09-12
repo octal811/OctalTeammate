@@ -25,6 +25,16 @@ public record UserProfileResponse(
     string? BackgroundImageUrl,
     string? Bio);
 
+public record UserSearchResult(
+    Guid Id,
+    string Name,
+    string Email,
+    UserRole MainRole,
+    UserRank Rank,
+    string? ProfilePictureUrl);
+
+public record SearchUsersResponse(IReadOnlyList<UserSearchResult> Results);
+
 public record UpdateUserProfileRequest(
     string Name,
     UserRole MainRole,

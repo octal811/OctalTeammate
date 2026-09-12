@@ -1,3 +1,5 @@
+using OctalPulse.Domain.Enums;
+
 namespace OctalPulse.Application.Contracts;
 
 public record CreateTrackRequest(Guid ProjectId, string Name, string? Description);
@@ -22,7 +24,9 @@ public record TrackSummaryItem(
     string? Description,
     int Progress,
     Guid? TrackLeadUserId,
-    IReadOnlyList<TrackMemberItem> Members);
+    IReadOnlyList<TrackMemberItem> Members,
+    MembershipStatus? CurrentUserMembership,
+    IReadOnlyList<TrackMemberItem>? PendingMembers);
 
 public record GetTracksByProjectResponse(IReadOnlyList<TrackSummaryItem> Tracks);
 

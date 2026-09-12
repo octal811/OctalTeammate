@@ -95,7 +95,9 @@ public partial class ProjectDetailViewModel : ObservableObject, INavigationAware
     private DateTime _newEventDate = DateTime.Today.AddDays(1);
 
     public ObservableCollection<TrackRowViewModel> Tracks { get; } = new();
+    public ObservableCollection<PendingTrackJoinViewModel> PendingTrackJoins { get; } = new();
     public ObservableCollection<ProjectMemberItem> Members { get; } = new();
+    public ObservableCollection<ProjectMemberItem> PendingMembers { get; } = new();
     public ObservableCollection<EventItem> Events { get; } = new();
 
     public IReadOnlyList<EventType> AvailableEventTypes { get; } = Enum.GetValues<EventType>();
@@ -186,6 +188,12 @@ public partial class ProjectDetailViewModel : ObservableObject, INavigationAware
                 Members.Add(m);
             }
 
+            PendingMembers.Clear();
+            foreach (var m in Project.PendingMembers ?? Array.Empty<ProjectMemberItem>())
+            {
+                PendingMembers.Add(m);
+            }
+
             await LoadTracksAsync();
             await LoadEventsAsync();
         }
@@ -203,9 +211,73 @@ public partial class ProjectDetailViewModel : ObservableObject, INavigationAware
     {
         var res = await _projectService.GetTracksByProjectAsync(ProjectId);
         Tracks.Clear();
+        PendingTrackJoins.Clear();
         foreach (var t in res.Tracks)
         {
-            Tracks.Add(new TrackRowViewModel(t, t.TrackLeadUserId == _userSession.UserId));
+            var row = new TrackRowViewModel(t, t.TrackLeadUserId == _userSession.UserId);
+            Tracks.Add(row);
+
+            if (row.HasPendingJoins && t.PendingMembers is not null)
+            {
+                foreach (var m in t.PendingMembers)
+                {
+                    PendingTrackJoins.Add(new PendingTrackJoinViewModel(t.Id, t.Name, m));
+                }
+            }
+        }
+    }
+
+    [RelayCommand]
+    private async Task RequestJoinTrackAsync(TrackRowViewModel row)
+    {
+        if (row is null || IsBusy)
+            return;
+
+        try
+        {
+            var res = await _trackService.RequestJoinTrackAsync(row.Item.Id);
+            _dialogService.ShowToast("Join Request Sent", res.Message, ToastType.Info);
+            await LoadTracksAsync();
+        }
+        catch (Exception ex)
+        {
+            _dialogService.ShowToast("Join Error", ex.Message, ToastType.Error);
+        }
+    }
+
+    [RelayCommand]
+    private async Task ApproveJoinTrackAsync(PendingTrackJoinViewModel request)
+    {
+        if (request is null || IsBusy)
+            return;
+
+        try
+        {
+            await _trackService.ApproveJoinTrackAsync(request.TrackId, request.Member.UserId);
+            _dialogService.ShowToast("Request Approved", $"{request.Member.Name} can now work on this track.", ToastType.Success);
+            await LoadTracksAsync();
+        }
+        catch (Exception ex)
+        {
+            _dialogService.ShowToast("Approve Failed", ex.Message, ToastType.Error);
+        }
+    }
+
+    [RelayCommand]
+    private async Task RejectJoinTrackAsync(PendingTrackJoinViewModel request)
+    {
+        if (request is null || IsBusy)
+            return;
+
+        try
+        {
+            await _trackService.RejectJoinTrackAsync(request.TrackId, request.Member.UserId);
+            _dialogService.ShowToast("Request Rejected", $"{request.Member.Name}'s track join request was declined.", ToastType.Info);
+            await LoadTracksAsync();
+        }
+        catch (Exception ex)
+        {
+            _dialogService.ShowToast("Reject Failed", ex.Message, ToastType.Error);
         }
     }
 
@@ -217,6 +289,56 @@ public partial class ProjectDetailViewModel : ObservableObject, INavigationAware
         foreach (var ev in res.Events)
         {
             Events.Add(ev);
+        }
+    }
+
+    [RelayCommand]
+    private void CopyProjectId()
+    {
+        try
+        {
+            System.Windows.Clipboard.SetText(ProjectId.ToString("D"));
+            _dialogService.ShowToast("Project ID Copied", "Share this ID with teammates so they can request to join.", ToastType.Success);
+        }
+        catch (Exception ex)
+        {
+            _dialogService.ShowToast("Copy Failed", ex.Message, ToastType.Error);
+        }
+    }
+
+    [RelayCommand]
+    private async Task ApproveJoinRequest(ProjectMemberItem member)
+    {
+        if (IsBusy)
+            return;
+
+        try
+        {
+            await _projectService.ApproveJoinProjectAsync(ProjectId, member.UserId);
+            _dialogService.ShowToast("Request Approved", $"{member.Name} can now access the project.", ToastType.Success);
+            await LoadProjectDataAsync();
+        }
+        catch (Exception ex)
+        {
+            _dialogService.ShowToast("Approve Failed", ex.Message, ToastType.Error);
+        }
+    }
+
+    [RelayCommand]
+    private async Task RejectJoinRequest(ProjectMemberItem member)
+    {
+        if (IsBusy)
+            return;
+
+        try
+        {
+            await _projectService.RejectJoinProjectAsync(ProjectId, member.UserId);
+            _dialogService.ShowToast("Request Rejected", $"{member.Name}'s join request was declined.", ToastType.Info);
+            await LoadProjectDataAsync();
+        }
+        catch (Exception ex)
+        {
+            _dialogService.ShowToast("Reject Failed", ex.Message, ToastType.Error);
         }
     }
 
@@ -504,6 +626,13 @@ public partial class ProjectDetailViewModel : ObservableObject, INavigationAware
     private void OpenTrack(TrackRowViewModel row)
     {
         if (row == null || Project == null) return;
+
+        if (!row.IsMember)
+        {
+            _dialogService.ShowToast("Access Restricted", "You are not joined to this track yet, or your join request hasn't been approved.", ToastType.Warning);
+            return;
+        }
+
         _navigationService.NavigateTo<TrackDetailViewModel>(new TrackNavigationPayload(
             row.Item.Id,
             row.Item.Name,

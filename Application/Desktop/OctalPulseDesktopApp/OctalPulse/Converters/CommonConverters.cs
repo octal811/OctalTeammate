@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Data;
 using System.Windows.Media;
@@ -169,12 +170,32 @@ public class RelativeUrlToImageSourceConverter : IValueConverter
 {
     private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, ImageSource> _cache = new();
 
+    private static readonly Regex DriveFileIdRegex = new(@"/file/d/([^/?#]+)", RegexOptions.IgnoreCase);
+    private static readonly Regex DriveOpenIdRegex = new(@"/open\?[^#]*?id=([^&?#]+)", RegexOptions.IgnoreCase);
+    private static readonly Regex DriveUcIdRegex = new(@"/uc\?[^#]*?[?&]id=([^&?#]+)", RegexOptions.IgnoreCase);
+
+    private static string? ToDriveDirectUrl(string url)
+    {
+        static string? Id(Regex r, string u)
+        {
+            var m = r.Match(u);
+            return m.Success ? m.Groups[1].Value : null;
+        }
+
+        var driveId = Id(DriveFileIdRegex, url)
+            ?? Id(DriveOpenIdRegex, url)
+            ?? Id(DriveUcIdRegex, url);
+
+        return driveId is null ? null : $"https://drive.google.com/uc?export=view&id={driveId}";
+    }
+
     public static void SetCachedImage(string? relativeOrFullUrl, ImageSource image)
     {
         var resolved = ApiConfiguration.ResolveUrl(relativeOrFullUrl);
         if (!string.IsNullOrEmpty(resolved))
         {
-            _cache[resolved] = image;
+            var url = ToDriveDirectUrl(resolved) ?? resolved;
+            _cache[url] = image;
         }
     }
 
@@ -186,6 +207,8 @@ public class RelativeUrlToImageSourceConverter : IValueConverter
         {
             return null;
         }
+
+        url = ToDriveDirectUrl(url) ?? url;
 
         if (_cache.TryGetValue(url, out var cached) && cached != null)
         {

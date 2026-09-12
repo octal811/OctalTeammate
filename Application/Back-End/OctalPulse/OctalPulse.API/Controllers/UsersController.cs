@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using OctalPulse.Application.Features.Command.UserProfile.SetUserImage;
 using OctalPulse.Application.Features.Command.UserProfile.UpdateProfile;
 using OctalPulse.Application.Features.Query.UserProfile.GetProfile;
+using OctalPulse.Application.Features.Query.UserSearch;
 using OctalPulse.Domain.Enums;
 
 namespace OctalPulse.API.Controllers;
@@ -34,6 +35,29 @@ public class UsersController : ControllerBase
             return Unauthorized();
 
         var result = await _sender.Send(new GetProfileQuery(userId), cancellationToken);
+        return Ok(result);
+    }
+
+    [HttpGet("{userId:guid}")]
+    public async Task<ActionResult<UserProfileResponse>> GetById(Guid userId, CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(new GetProfileQuery(userId), cancellationToken);
+        return Ok(result);
+    }
+
+    [HttpGet("search")]
+    public async Task<ActionResult<SearchUsersResponse>> Search(
+        [FromQuery] string query,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(query))
+            return BadRequest("Search query is required.");
+
+        var trimmed = query.Trim();
+        if (trimmed.Length > 100)
+            return BadRequest("Search query is too long.");
+
+        var result = await _sender.Send(new SearchUsersQuery(trimmed), cancellationToken);
         return Ok(result);
     }
 

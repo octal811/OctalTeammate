@@ -126,6 +126,22 @@ public class AuthService : IAuthService
             cancellationToken: cancellationToken);
     }
 
+    public Task<UserProfileResponse> GetProfileByIdAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return _apiClient.SendAsync<UserProfileResponse>(
+            HttpMethod.Get,
+            $"/api/users/{userId}",
+            cancellationToken: cancellationToken);
+    }
+
+    public Task<SearchUsersResponse> SearchUsersAsync(string query, CancellationToken cancellationToken = default)
+    {
+        return _apiClient.SendAsync<SearchUsersResponse>(
+            HttpMethod.Get,
+            $"/api/users/search?query={Uri.EscapeDataString(query)}",
+            cancellationToken: cancellationToken);
+    }
+
     public Task<UserProfileResponse> UpdateProfileAsync(UpdateUserProfileRequest request, CancellationToken cancellationToken = default)
     {
         return _apiClient.SendAsync<UserProfileResponse>(

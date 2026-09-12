@@ -23,6 +23,13 @@ public class RequestTrackJoinCommandHandler : IRequestHandler<RequestTrackJoinCo
         if (track is null)
             throw new NotFoundException("Track not found.");
 
+        var isProjectMember = await _unitOfWork.ProjectMembers.AnyAsync(
+            m => m.ProjectId == track.ProjectId && m.UserId == request.UserId && m.Status == MembershipStatus.Approved,
+            cancellationToken);
+
+        if (!isProjectMember)
+            throw new ForbiddenException("Only approved project members can request to join a track in this project.");
+
         if (track.TrackLeadUserId == request.UserId)
             throw new ValidationException("You created this track and are already its member.");
 

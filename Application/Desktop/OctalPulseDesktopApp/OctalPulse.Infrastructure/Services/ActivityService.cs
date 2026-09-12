@@ -24,4 +24,17 @@ public class ActivityService : IActivityService
             null,
             cancellationToken);
     }
+
+    public async Task<GetMonthlyActivityResponse?> GetMonthlyActivityAsync(
+        Guid userId,
+        int year,
+        int month,
+        CancellationToken cancellationToken = default)
+    {
+        return await _apiClient.SendAsync<GetMonthlyActivityResponse>(
+            HttpMethod.Get,
+            $"/api/activity/monthly/{userId}/{year}/{month}",
+            null,
+            cancellationToken);
+    }
 }

@@ -34,6 +34,19 @@ public class ActivityController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("monthly/{userId:guid}/{year:int}/{month:int}")]
+    public async Task<ActionResult<GetMonthlyActivityResponse>> GetMonthlyActivityForUser(
+        Guid userId,
+        int year,
+        int month,
+        CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(
+            new GetMonthlyActivityQuery(userId, year, month),
+            cancellationToken);
+        return Ok(result);
+    }
+
     private Guid GetUserId()
     {
         var id = User.FindFirstValue(ClaimTypes.NameIdentifier);

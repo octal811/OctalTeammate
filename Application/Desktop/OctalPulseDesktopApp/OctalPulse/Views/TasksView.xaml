@@ -144,6 +144,21 @@
                             ItemsSource="{Binding AvailableProjects}"
                             SelectedItem="{Binding SelectedProjectFilter, Mode=TwoWay}"
                             Style="{StaticResource ComboBox.Modern}" />
+                        <TextBlock
+                            Margin="18,0,10,0"
+                            VerticalAlignment="Center"
+                            FontSize="13"
+                            FontWeight="SemiBold"
+                            Foreground="{DynamicResource Brush.TextMuted}"
+                            Text="Filter Track:" />
+                        <ComboBox
+                            Width="220"
+                            Height="36"
+                            ItemsSource="{Binding TrackFilterOptions}"
+                            SelectedItem="{Binding SelectedTrackFilter, Mode=TwoWay}"
+                            DisplayMemberPath="DisplayName"
+                            IsEnabled="{Binding IsTrackFilterEnabled}"
+                            Style="{StaticResource ComboBox.Modern}" />
                     </StackPanel>
                 </Grid>
             </Border>

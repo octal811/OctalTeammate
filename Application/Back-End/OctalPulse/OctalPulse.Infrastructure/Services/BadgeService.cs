@@ -18,34 +18,20 @@ public class BadgeService : IBadgeService
         _logger = logger;
     }
 
-    public async Task EvaluateCriticalFocusAsync(Guid userId, long deltaSeconds, CancellationToken cancellationToken = default)
+    public async Task EvaluateCriticalFocusAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         try
         {
-            var utcNow = DateTime.UtcNow;
-            var today = DateOnly.FromDateTime(utcNow);
+            var totals = await _unitOfWork.MinorTasks.GetSameDayCompletionTotalsAsync(userId, cancellationToken);
 
-            var log = await _unitOfWork.DailyWorkLogs.GetByUserAndDateAsync(userId, today, cancellationToken);
-            if (log is null)
-            {
-                log = new DailyWorkLog
-                {
-                    Id = Guid.NewGuid(),
-                    UserId = userId,
-                    WorkDate = today,
-                    TotalSeconds = 0,
-                    CreatedDate = utcNow,
-                    UpdatedDate = utcNow,
-                    IsDeleted = false
-                };
-                await _unitOfWork.DailyWorkLogs.AddAsync(log, cancellationToken);
-            }
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            var todayTotal = totals
+                .Where(t => t.Day == today)
+                .Select(t => t.TotalSeconds)
+                .DefaultIfEmpty()
+                .Sum();
 
-            log.TotalSeconds += deltaSeconds;
-            log.UpdatedDate = utcNow;
-            log.ModifiedDate = utcNow;
-
-            var level = BadgeRules.CriticalFocusLevelFor(log.TotalSeconds);
+            var level = BadgeRules.CriticalFocusLevelFor(todayTotal);
             if (level is not null)
             {
                 await GrantOrUpgradeAsync(userId, BadgeType.CriticalFocus, level.Value, null, cancellationToken);

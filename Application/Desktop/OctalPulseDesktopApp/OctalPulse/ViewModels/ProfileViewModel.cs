@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.IO;
+using System.Threading;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
@@ -26,6 +27,7 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
     private readonly IPostService _postService;
     private readonly IBadgeService _badgeService;
     private readonly IActivityService _activityService;
+    private readonly INavigationService _navigationService;
 
     [ObservableProperty]
     private string _profileName = string.Empty;
@@ -98,6 +100,27 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
     [ObservableProperty]
     private bool _showHoursMetric = true;
 
+    [ObservableProperty]
+    private bool _isOwnProfile = true;
+
+    [ObservableProperty]
+    private string _searchQuery = string.Empty;
+
+    [ObservableProperty]
+    private bool _isSearchingUsers;
+
+    [ObservableProperty]
+    private bool _hasSearchResults;
+
+    [ObservableProperty]
+    private string? _viewedUserName;
+
+    private Guid? _activeUserId;
+
+    private CancellationTokenSource? _searchCts;
+
+    public ObservableCollection<UserSearchResult> SearchResults { get; } = new();
+
     public IEnumerable<ProfileBadgeItem> DisplayBadges =>
         ShowAllBadges ? Badges : Badges.Take(4);
 
@@ -111,7 +134,8 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
         IDialogService dialogService,
         IPostService postService,
         IBadgeService badgeService,
-        IActivityService activityService)
+        IActivityService activityService,
+        INavigationService navigationService)
     {
         _authService = authService;
         _userSession = userSession;
@@ -120,6 +144,7 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
         _postService = postService;
         _badgeService = badgeService;
         _activityService = activityService;
+        _navigationService = navigationService;
 
         InitializeFromSession();
     }
@@ -141,7 +166,22 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
 
     public void OnNavigatedTo(object? parameter)
     {
-        InitializeFromSession();
+        if (parameter is Guid targetId && targetId != Guid.Empty)
+        {
+            _activeUserId = targetId;
+            IsOwnProfile = targetId == (_userSession.UserId ?? Guid.Empty);
+            ProfileName = string.Empty;
+            ProfileImageUrl = null;
+        }
+        else
+        {
+            _activeUserId = _userSession.UserId;
+            IsOwnProfile = true;
+            InitializeFromSession();
+        }
+
+        ViewedUserName = null;
+        ClearSearch();
         _ = LoadProfileAsync(isSilent: true);
     }
 
@@ -159,6 +199,88 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
         OnPropertyChanged(nameof(ShowAllBadgesText));
     }
 
+    [RelayCommand]
+    private void OpenProfile(UserSearchResult user)
+    {
+        if (user is null) return;
+        SearchQuery = string.Empty;
+        _navigationService.NavigateTo<ProfileViewModel>(user.Id);
+    }
+
+    [RelayCommand]
+    private void BackToMyProfile()
+    {
+        SearchQuery = string.Empty;
+        _navigationService.NavigateTo<ProfileViewModel>();
+    }
+
+    partial void OnSearchQueryChanged(string value)
+    {
+        _searchCts?.Cancel();
+        if (string.IsNullOrWhiteSpace(SearchQuery))
+        {
+            SearchResults.Clear();
+            HasSearchResults = false;
+            IsSearchingUsers = false;
+            return;
+        }
+
+        var cts = new CancellationTokenSource();
+        _searchCts = cts;
+        _ = DebouncedSearchAsync(cts.Token);
+    }
+
+    private async Task DebouncedSearchAsync(CancellationToken token)
+    {
+        try
+        {
+            await Task.Delay(350, token);
+            await SearchUsersAsync(token);
+        }
+        catch (OperationCanceledException)
+        {
+        }
+    }
+
+    private async Task SearchUsersAsync(CancellationToken token)
+    {
+        IsSearchingUsers = true;
+        try
+        {
+            var response = await _authService.SearchUsersAsync(SearchQuery.Trim(), token);
+            SearchResults.Clear();
+            if (response?.Results != null)
+            {
+                foreach (var result in response.Results)
+                {
+                    SearchResults.Add(result);
+                }
+            }
+            HasSearchResults = SearchResults.Count > 0;
+        }
+        catch (OperationCanceledException)
+        {
+        }
+        catch
+        {
+            SearchResults.Clear();
+            HasSearchResults = false;
+        }
+        finally
+        {
+            IsSearchingUsers = false;
+        }
+    }
+
+    private void ClearSearch()
+    {
+        _searchCts?.Cancel();
+        _searchCts = null;
+        SearchQuery = string.Empty;
+        SearchResults.Clear();
+        HasSearchResults = false;
+    }
+
     private async Task LoadProfileAsync(bool isSilent = true)
     {
         if (string.IsNullOrEmpty(ProfileName))
@@ -168,21 +290,30 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
 
         try
         {
-            var me = await _authService.GetProfileAsync();
+            var targetId = _activeUserId ?? _userSession.UserId;
+            if (!targetId.HasValue)
+            {
+                return;
+            }
+
+            var me = IsOwnProfile
+                ? await _authService.GetProfileAsync()
+                : await _authService.GetProfileByIdAsync(targetId.Value);
             if (me == null)
             {
                 if (!isSilent)
                 {
-                    _dialogService.ShowToast("Profile Unavailable", "Could not load your profile.", ToastType.Error);
+                    _dialogService.ShowToast("Profile Unavailable", "Could not load this profile.", ToastType.Error);
                 }
                 return;
             }
 
-            ApplyProfile(me);
+            ApplyProfile(me, updateSession: IsOwnProfile);
+            ViewedUserName = IsOwnProfile ? null : me.Name;
             await Task.WhenAll(LoadBadgesAsync(), LoadUserPostsAsync(), LoadContributionsAsync());
             if (!isSilent)
             {
-                _dialogService.ShowToast("Profile Loaded", "Your profile was refreshed.", ToastType.Info);
+                _dialogService.ShowToast("Profile Loaded", "Profile refreshed.", ToastType.Info);
             }
         }
         catch (Exception ex)
@@ -200,11 +331,12 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
 
     private async Task LoadUserPostsAsync()
     {
-        if (!_userSession.IsAuthenticated || !_userSession.UserId.HasValue) return;
+        var targetId = _activeUserId ?? _userSession.UserId;
+        if (!targetId.HasValue) return;
 
         try
         {
-            var res = await _postService.GetProfilePostsAsync(_userSession.UserId.Value, 1, 20);
+            var res = await _postService.GetProfilePostsAsync(targetId.Value, 1, 20);
             Posts.Clear();
             if (res.Items != null)
             {
@@ -230,11 +362,14 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
 
     private async Task LoadBadgesAsync()
     {
-        if (!_userSession.IsAuthenticated) return;
+        var targetId = _activeUserId ?? _userSession.UserId;
+        if (!targetId.HasValue) return;
 
         try
         {
-            var res = await _badgeService.GetMyBadgesAsync();
+            var res = IsOwnProfile
+                ? await _badgeService.GetMyBadgesAsync()
+                : await _badgeService.GetBadgesAsync(targetId.Value);
             Badges.Clear();
             BadgesLoadFailed = false;
 
@@ -317,7 +452,8 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
 
     private async Task LoadContributionsAsync()
     {
-        if (!_userSession.IsAuthenticated || !_userSession.UserId.HasValue) return;
+        var targetId = _activeUserId ?? _userSession.UserId;
+        if (!targetId.HasValue) return;
 
         IsActivityLoading = true;
         ActivityLoadFailed = false;
@@ -326,7 +462,9 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
         try
         {
             var now = DateTime.Now;
-            var res = await _activityService.GetMonthlyActivityAsync(now.Year, now.Month);
+            var res = IsOwnProfile
+                ? await _activityService.GetMonthlyActivityAsync(now.Year, now.Month)
+                : await _activityService.GetMonthlyActivityAsync(targetId.Value, now.Year, now.Month);
             if (res?.Days == null || res.Days.Count == 0)
             {
                 ActivityLoadFailed = true;
@@ -395,7 +533,6 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
         {
             var min = nonzero.Min();
             var max = nonzero.Max();
-            var range = Math.Max(1, max - min);
 
             for (var i = 0; i < cells.Count; i++)
             {
@@ -405,7 +542,9 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
                     ? _activityDays[i].WorkSeconds
                     : _activityDays[i].CompletedTasks;
 
-                var ratio = (double)(value - min) / range;
+                var ratio = max == min
+                    ? 1d
+                    : (double)(value - min) / (max - min);
                 var bucket = Math.Clamp((int)Math.Ceiling(ratio * 4), 1, 4);
                 cells[i] = cells[i] with { Fill = ContributionBrush(bucket, !ShowHoursMetric) };
             }
@@ -582,6 +721,8 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
     [RelayCommand]
     private async Task SaveProfileAsync()
     {
+        if (!IsOwnProfile) return;
+
         if (string.IsNullOrWhiteSpace(ProfileName))
         {
             _dialogService.ShowToast("Validation Error", "Name cannot be empty.", ToastType.Warning);
@@ -625,6 +766,8 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
 
     private async Task PickAndUploadAsync(string imageType, Action<bool> setUploading)
     {
+        if (!IsOwnProfile) return;
+
         var dialog = new OpenFileDialog
         {
             Title = imageType == "background" ? "Choose a background image" : "Choose a profile picture",
@@ -696,7 +839,7 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
         }
     }
 
-    private void ApplyProfile(UserProfileResponse profile)
+    private void ApplyProfile(UserProfileResponse profile, bool updateSession = true)
     {
         ProfileName = profile.Name;
         ProfileRole = profile.MainRole;
@@ -705,7 +848,10 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
         Bio = profile.Bio ?? string.Empty;
         ProfileImageUrl = profile.ProfilePictureUrl;
         BackgroundImageUrl = profile.BackgroundImageUrl;
-        _userSession.SetSession(profile.Id, profile.Email, profile.Name, profile.MainRole, profile.Rank, profile.ProfilePictureUrl);
+        if (updateSession)
+        {
+            _userSession.SetSession(profile.Id, profile.Email, profile.Name, profile.MainRole, profile.Rank, profile.ProfilePictureUrl);
+        }
     }
 
     private async Task PersistSessionAsync(UserProfileResponse profile)

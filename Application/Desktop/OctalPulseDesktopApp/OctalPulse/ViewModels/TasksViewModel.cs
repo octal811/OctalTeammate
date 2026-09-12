@@ -11,7 +11,9 @@ namespace OctalPulse.ViewModels;
 
 public record TrackOption(Guid TrackId, Guid ProjectId, string ProjectTitle, string TrackName)
 {
-    public string DisplayName => $"{ProjectTitle} → {TrackName}";
+    public string DisplayName => TrackId == Guid.Empty
+        ? "All Tracks"
+        : $"{ProjectTitle} → {TrackName}";
 }
 
 public class MajorTaskCardModel : ObservableObject
@@ -51,6 +53,7 @@ public partial class TasksViewModel : ObservableObject, INavigationAware
     private readonly IDialogService _dialogService;
     private readonly IUserSession _userSession;
     private readonly List<MajorTaskCardModel> _allLoadedCards = new();
+    private readonly Dictionary<string, List<TrackOption>> _memberTracksByProjectTitle = new();
 
     [ObservableProperty]
     private bool _isBusy;
@@ -61,6 +64,12 @@ public partial class TasksViewModel : ObservableObject, INavigationAware
     [ObservableProperty]
     private string _selectedProjectFilter = "All Projects";
 
+    [ObservableProperty]
+    private TrackOption? _selectedTrackFilter;
+
+    [ObservableProperty]
+    private bool _isTrackFilterEnabled;
+
     // Columns
     public ObservableCollection<MajorTaskCardModel> TodoTasks { get; } = new();
     public ObservableCollection<MajorTaskCardModel> InProgressTasks { get; } = new();
@@ -70,6 +79,7 @@ public partial class TasksViewModel : ObservableObject, INavigationAware
     // Filters & Metadata
     public ObservableCollection<string> AvailableProjects { get; } = new();
     public ObservableCollection<TrackOption> AvailableTracks { get; } = new();
+    public ObservableCollection<TrackOption> TrackFilterOptions { get; } = new();
     public IReadOnlyList<Priority> AvailablePriorities { get; } = Enum.GetValues<Priority>();
     public IReadOnlyList<MajorTaskState> AvailableStates { get; } = new[]
     {
@@ -129,22 +139,41 @@ public partial class TasksViewModel : ObservableObject, INavigationAware
         IsBusy = true;
         _allLoadedCards.Clear();
         AvailableTracks.Clear();
+        TrackFilterOptions.Clear();
+        _memberTracksByProjectTitle.Clear();
 
         var projectNames = new HashSet<string> { "All Projects" };
 
         try
         {
-            var paged = await _projectService.GetAllProjectsAsync(1, 50);
-            foreach (var p in paged.Items)
+        var userId = _userSession.UserId;
+
+        var paged = await _projectService.GetAllProjectsAsync(1, 50);
+        foreach (var p in paged.Items)
+        {
+            var tracksRes = await _projectService.GetTracksByProjectAsync(p.Id);
+            foreach (var t in tracksRes.Tracks)
             {
+                var isMember = t.TrackLeadUserId == userId
+                    || t.CurrentUserMembership == MembershipStatus.Approved;
+
+                if (!isMember)
+                    continue;
+
                 projectNames.Add(p.Title);
 
-                var tracksRes = await _projectService.GetTracksByProjectAsync(p.Id);
-                foreach (var t in tracksRes.Tracks)
-                {
-                    var opt = new TrackOption(t.Id, p.Id, p.Title, t.Name);
-                    AvailableTracks.Add(opt);
+                var opt = new TrackOption(t.Id, p.Id, p.Title, t.Name);
+                AvailableTracks.Add(opt);
 
+                if (!_memberTracksByProjectTitle.TryGetValue(p.Title, out var opts))
+                {
+                    opts = new List<TrackOption>();
+                    _memberTracksByProjectTitle[p.Title] = opts;
+                }
+                opts.Add(opt);
+
+                try
+                {
                     var taskRes = await _taskService.GetMajorTasksByTrackAsync(t.Id);
                     foreach (var m in taskRes.MajorTasks)
                     {
@@ -170,6 +199,10 @@ public partial class TasksViewModel : ObservableObject, INavigationAware
                         });
                     }
                 }
+                catch
+                {
+                }
+            }
             }
 
             AvailableProjects.Clear();
@@ -183,6 +216,7 @@ public partial class TasksViewModel : ObservableObject, INavigationAware
                 SelectedProjectFilter = "All Projects";
             }
 
+            RebuildTrackFilterOptions();
             ApplyFilter();
         }
         catch (Exception ex)
@@ -196,7 +230,39 @@ public partial class TasksViewModel : ObservableObject, INavigationAware
     }
 
     partial void OnSearchQueryChanged(string value) => ApplyFilter();
-    partial void OnSelectedProjectFilterChanged(string value) => ApplyFilter();
+
+    partial void OnSelectedProjectFilterChanged(string value)
+    {
+        RebuildTrackFilterOptions();
+        ApplyFilter();
+    }
+
+    private void RebuildTrackFilterOptions()
+    {
+        TrackFilterOptions.Clear();
+
+        if (string.IsNullOrWhiteSpace(SelectedProjectFilter) || SelectedProjectFilter == "All Projects")
+        {
+            IsTrackFilterEnabled = false;
+            SelectedTrackFilter = null;
+            return;
+        }
+
+        IsTrackFilterEnabled = true;
+
+        var sentinel = new TrackOption(Guid.Empty, Guid.Empty, SelectedProjectFilter, "All Tracks");
+        TrackFilterOptions.Add(sentinel);
+
+        if (_memberTracksByProjectTitle.TryGetValue(SelectedProjectFilter, out var opts))
+        {
+            foreach (var opt in opts)
+            {
+                TrackFilterOptions.Add(opt);
+            }
+        }
+
+        SelectedTrackFilter = sentinel;
+    }
 
     private void ApplyFilter()
     {
@@ -215,6 +281,11 @@ public partial class TasksViewModel : ObservableObject, INavigationAware
                 (!string.IsNullOrEmpty(c.Description) && c.Description.Contains(query, StringComparison.OrdinalIgnoreCase)) ||
                 c.ProjectTitle.Contains(query, StringComparison.OrdinalIgnoreCase) ||
                 c.TrackTitle.Contains(query, StringComparison.OrdinalIgnoreCase));
+        }
+
+        if (SelectedTrackFilter is { } trackFilter && trackFilter.TrackId != Guid.Empty)
+        {
+            filtered = filtered.Where(c => c.TrackId == trackFilter.TrackId);
         }
 
         TodoTasks.Clear();

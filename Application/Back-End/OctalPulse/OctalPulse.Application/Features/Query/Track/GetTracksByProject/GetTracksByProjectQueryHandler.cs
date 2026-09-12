@@ -43,19 +43,42 @@ public class GetTracksByProjectQueryHandler : IRequestHandler<GetTracksByProject
 
         var items = tracks
             .OrderByDescending(t => t.CreatedDate)
-            .Select(t => new TrackSummaryItem(
-                t.Id,
-                t.Name,
-                t.Description,
-                progressMap.GetValueOrDefault(t.Id),
-                t.TrackLeadUserId,
-                t.Members
-                    .Where(m => m.Status == Domain.Enums.MembershipStatus.Approved)
-                    .Select(m => new TrackMemberItem(
-                        m.UserId,
-                        m.User.Name,
-                        m.User.ProfilePictureUrl))
-                    .ToList()))
+            .Select(t =>
+            {
+                var currentMembership = t.Members
+                    .FirstOrDefault(m => m.UserId == request.UserId)?.Status;
+
+                var currentUserMembership = currentMembership ??
+                    (t.TrackLeadUserId == request.UserId ? MembershipStatus.Approved : (MembershipStatus?)null);
+
+                var isLead = t.TrackLeadUserId == request.UserId;
+
+                var pendingMembers = isLead
+                    ? t.Members
+                        .Where(m => m.Status == MembershipStatus.Pending && m.User is not null)
+                        .Select(m => new TrackMemberItem(
+                            m.UserId,
+                            m.User.Name,
+                            m.User.ProfilePictureUrl))
+                        .ToList()
+                    : new List<TrackMemberItem>();
+
+                return new TrackSummaryItem(
+                    t.Id,
+                    t.Name,
+                    t.Description,
+                    progressMap.GetValueOrDefault(t.Id),
+                    t.TrackLeadUserId,
+                    t.Members
+                        .Where(m => m.Status == Domain.Enums.MembershipStatus.Approved && m.User is not null)
+                        .Select(m => new TrackMemberItem(
+                            m.UserId,
+                            m.User.Name,
+                            m.User.ProfilePictureUrl))
+                        .ToList(),
+                    currentUserMembership,
+                    pendingMembers);
+            })
             .ToList();
 
         return new GetTracksByProjectResponse(items);

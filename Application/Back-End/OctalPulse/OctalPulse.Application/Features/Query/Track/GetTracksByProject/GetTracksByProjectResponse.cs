@@ -10,7 +10,9 @@ public record TrackSummaryItem(
     string? Description,
     int Progress,
     Guid? TrackLeadUserId,
-    IReadOnlyList<TrackMemberItem> Members);
+    IReadOnlyList<TrackMemberItem> Members,
+    MembershipStatus? CurrentUserMembership,
+    IReadOnlyList<TrackMemberItem> PendingMembers);
 
 public record TrackMemberItem(
     Guid UserId,

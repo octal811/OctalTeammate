@@ -194,6 +194,26 @@ public partial class ProjectsViewModel : ObservableObject, INavigationAware
     }
 
     [RelayCommand]
+    private void CopyJoinId()
+    {
+        if (string.IsNullOrWhiteSpace(JoinProjectId) || !Guid.TryParse(JoinProjectId.Trim(), out _))
+        {
+            _dialogService.ShowToast("Validation Error", "Enter a valid Project GUID first.", ToastType.Warning);
+            return;
+        }
+
+        try
+        {
+            System.Windows.Clipboard.SetText(JoinProjectId.Trim());
+            _dialogService.ShowToast("Project ID Copied", "Share this ID with teammates so they can request to join.", ToastType.Success);
+        }
+        catch (Exception ex)
+        {
+            _dialogService.ShowToast("Copy Failed", ex.Message, ToastType.Error);
+        }
+    }
+
+    [RelayCommand]
     private async Task SubmitJoinProjectAsync()
     {
         if (!Guid.TryParse(JoinProjectId.Trim(), out var projId))

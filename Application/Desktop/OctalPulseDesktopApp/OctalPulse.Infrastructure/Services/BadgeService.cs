@@ -21,4 +21,13 @@ public class BadgeService : IBadgeService
             null,
             cancellationToken);
     }
+
+    public async Task<GetMyBadgesResponse?> GetBadgesAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        return await _apiClient.SendAsync<GetMyBadgesResponse>(
+            HttpMethod.Get,
+            $"/api/badges/{userId}",
+            null,
+            cancellationToken);
+    }
 }

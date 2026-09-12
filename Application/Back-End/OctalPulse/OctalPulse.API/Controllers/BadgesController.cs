@@ -29,6 +29,13 @@ public class BadgesController : ControllerBase
         return Ok(result);
     }
 
+    [HttpGet("{userId:guid}")]
+    public async Task<ActionResult<GetMyBadgesResponse>> GetBadges(Guid userId, CancellationToken cancellationToken)
+    {
+        var result = await _sender.Send(new GetMyBadgesQuery(userId), cancellationToken);
+        return Ok(result);
+    }
+
     private Guid GetUserId()
     {
         var id = User.FindFirstValue(ClaimTypes.NameIdentifier);

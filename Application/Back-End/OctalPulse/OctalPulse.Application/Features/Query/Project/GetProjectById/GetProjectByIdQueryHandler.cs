@@ -33,12 +33,24 @@ public class GetProjectByIdQueryHandler : IRequestHandler<GetProjectByIdQuery, G
         var progress = await _progressCalculator.GetProjectProgressAsync(project.Id, cancellationToken);
 
         var members = project.Members
-            .Where(m => m.User is not null)
+            .Where(m => m.Status == MembershipStatus.Approved && m.User is not null)
             .Select(m => new ProjectMemberItem(
                 m.UserId,
                 m.User.Name,
                 m.User.Email ?? string.Empty))
             .ToList();
+
+        var isOwner = project.CreatedByUserId == request.UserId;
+
+        var pendingMembers = isOwner
+            ? project.Members
+                .Where(m => m.Status == MembershipStatus.Pending && m.User is not null)
+                .Select(m => new ProjectMemberItem(
+                    m.UserId,
+                    m.User.Name,
+                    m.User.Email ?? string.Empty))
+                .ToList()
+            : new List<ProjectMemberItem>();
 
         return new GetProjectByIdResponse(
             project.Id,
@@ -53,6 +65,7 @@ public class GetProjectByIdQueryHandler : IRequestHandler<GetProjectByIdQuery, G
                 project.CreatedByUser.Name,
                 project.CreatedByUser.Email ?? string.Empty),
             members.Count,
-            members);
+            members,
+            pendingMembers);
     }
 }

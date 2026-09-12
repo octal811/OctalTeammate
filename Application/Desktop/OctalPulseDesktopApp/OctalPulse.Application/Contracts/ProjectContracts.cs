@@ -49,7 +49,8 @@ public record GetProjectByIdResponse(
     DateTime? ModifiedDate,
     ProjectCreator Creator,
     int MembersCount,
-    IReadOnlyList<ProjectMemberItem> Members);
+    IReadOnlyList<ProjectMemberItem> Members,
+    IReadOnlyList<ProjectMemberItem>? PendingMembers);
 
 public record UpdateProjectRequest(
     Guid Id,

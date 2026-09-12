@@ -10,7 +10,6 @@ public interface IUserBadgeRepository : IGenericRepository<UserBadge>
 public interface IDailyWorkLogRepository : IGenericRepository<DailyWorkLog>
 {
     Task<DailyWorkLog?> GetByUserAndDateAsync(Guid userId, DateOnly date, CancellationToken cancellationToken = default);
-    Task<long> GetMaxSecondsAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<long> GetTotalSecondsAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<int> GetLongestActiveStreakAsync(Guid userId, CancellationToken cancellationToken = default);
     Task<IEnumerable<DailyWorkLog>> GetRangeAsync(Guid userId, DateOnly from, DateOnly to, CancellationToken cancellationToken = default);

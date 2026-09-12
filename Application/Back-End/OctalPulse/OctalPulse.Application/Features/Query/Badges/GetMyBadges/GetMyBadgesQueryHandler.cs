@@ -51,7 +51,8 @@ public class GetMyBadgesQueryHandler : IRequestHandler<GetMyBadgesQuery, GetMyBa
         IReadOnlyDictionary<BadgeType, Domain.Entities.UserBadge> earned,
         CancellationToken cancellationToken)
     {
-        var current = await _unitOfWork.DailyWorkLogs.GetMaxSecondsAsync(userId, cancellationToken);
+        var totals = await _unitOfWork.MinorTasks.GetSameDayCompletionTotalsAsync(userId, cancellationToken);
+        var current = totals.Count > 0 ? totals.Max(t => t.TotalSeconds) : 0;
         var next = BadgeRules.NextCriticalFocusTarget(current);
         var level = BadgeRules.CriticalFocusLevelFor(current);
         var badge = earned.GetValueOrDefault(BadgeType.CriticalFocus);

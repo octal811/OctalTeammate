@@ -21,13 +21,6 @@ public class DailyWorkLogRepository : BaseRepository<DailyWorkLog>, IDailyWorkLo
             .FirstOrDefaultAsync(l => l.UserId == userId && l.WorkDate == date, cancellationToken);
     }
 
-    public async Task<long> GetMaxSecondsAsync(Guid userId, CancellationToken cancellationToken = default)
-    {
-        return await _dbSet
-            .Where(l => l.UserId == userId)
-            .MaxAsync(l => (long?)l.TotalSeconds, cancellationToken) ?? 0;
-    }
-
     public async Task<long> GetTotalSecondsAsync(Guid userId, CancellationToken cancellationToken = default)
     {
         return await _dbSet

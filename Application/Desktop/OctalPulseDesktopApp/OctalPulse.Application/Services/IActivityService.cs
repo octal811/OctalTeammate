@@ -8,4 +8,10 @@ public interface IActivityService
         int year,
         int month,
         CancellationToken cancellationToken = default);
+
+    Task<GetMonthlyActivityResponse?> GetMonthlyActivityAsync(
+        Guid userId,
+        int year,
+        int month,
+        CancellationToken cancellationToken = default);
 }

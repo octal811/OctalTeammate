@@ -24,7 +24,7 @@ public partial class App : System.Windows.Application
             {
                 var apiBaseUrl = context.Configuration["OctalPulse:ApiBaseUrl"]
                     ?? Environment.GetEnvironmentVariable("OCTALPULSE_API_URL")
-                    ?? "https://localhost:7170";
+                    ?? "https://octalpulse.runasp.net";
 
                 // Infrastructure services (EF SQLite, DPAPI, ApiClient, SignalR, Services)
                 services.AddInfrastructureServices(apiBaseUrl);

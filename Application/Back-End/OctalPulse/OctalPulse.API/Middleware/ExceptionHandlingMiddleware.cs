@@ -1,5 +1,6 @@
 using System.Net;
 using System.Text.Json;
+using Microsoft.Extensions.Configuration;
 using OctalPulse.Application.Exceptions;
 using OctalPulse.Application.Interface.Services;
 
@@ -9,11 +10,13 @@ public class ExceptionHandlingMiddleware
 {
     private readonly RequestDelegate _next;
     private readonly ILog _log;
+    private readonly IConfiguration _configuration;
 
-    public ExceptionHandlingMiddleware(RequestDelegate next, ILog log)
+    public ExceptionHandlingMiddleware(RequestDelegate next, ILog log, IConfiguration configuration)
     {
         _next = next;
         _log = log;
+        _configuration = configuration;
     }
 
     public async Task InvokeAsync(HttpContext context)
@@ -46,8 +49,32 @@ public class ExceptionHandlingMiddleware
         {
             _log.Error("Unhandled exception.", ex);
             context.Items["OutcomeDetails"] = ex.Message;
-            await WriteErrorAsync(context, HttpStatusCode.InternalServerError, "Internal Server Error", "An unexpected error occurred.");
+
+            var showErrors = _configuration["Diagnostics:ShowErrors"] == "true";
+            var message = showErrors ? BuildDiagnosticMessage(ex) : "An unexpected error occurred.";
+            await WriteErrorAsync(context, HttpStatusCode.InternalServerError, "Internal Server Error", message);
         }
+    }
+
+    private static string BuildDiagnosticMessage(Exception ex)
+    {
+        var lines = new List<string>
+        {
+            $"{ex.GetType().FullName}: {ex.Message}",
+            ex.StackTrace ?? "(no stack trace)"
+        };
+
+        var inner = ex.InnerException;
+        var depth = 0;
+        while (inner != null && depth < 5)
+        {
+            lines.Add($"INNER ({depth + 1}) {inner.GetType().FullName}: {inner.Message}");
+            lines.Add(inner.StackTrace ?? "(no stack trace)");
+            inner = inner.InnerException;
+            depth++;
+        }
+
+        return string.Join(Environment.NewLine, lines);
     }
 
     private static async Task WriteErrorAsync(

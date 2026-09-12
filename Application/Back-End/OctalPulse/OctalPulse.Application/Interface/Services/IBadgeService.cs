@@ -9,10 +9,11 @@ namespace OctalPulse.Application.Interface.Services;
 public interface IBadgeService
 {
     /// <summary>
-    /// Records newly added work time toward the daily ledger and evaluates the Critical Focus badge.
-    /// Call before the surrounding operation is committed so the grant shares the same transaction.
+    /// Evaluates the Critical Focus badge from the total work time on tasks the user created AND
+    /// completed on the same UTC calendar day. Call before the surrounding operation is committed
+    /// so the grant shares the same transaction.
     /// </summary>
-    Task EvaluateCriticalFocusAsync(Guid userId, long deltaSeconds, CancellationToken cancellationToken = default);
+    Task EvaluateCriticalFocusAsync(Guid userId, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Counts solved bug tasks (JobType = SolveBug and State = Done) and evaluates the Bug Hunter badge.

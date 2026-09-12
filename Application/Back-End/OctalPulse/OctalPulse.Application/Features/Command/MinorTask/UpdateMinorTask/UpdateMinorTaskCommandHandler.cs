@@ -40,6 +40,7 @@ public class UpdateMinorTaskCommandHandler : IRequestHandler<UpdateMinorTaskComm
             throw new ForbiddenException("Only the creator of this minor task can update it.");
 
         var previousState = task.State;
+        var previousTotalSeconds = task.WorkTime?.TotalSeconds ?? 0;
 
         task.Title = request.Title;
         task.Description = request.Description;
@@ -63,9 +64,22 @@ public class UpdateMinorTaskCommandHandler : IRequestHandler<UpdateMinorTaskComm
             && previousState != MinorTaskState.Done;
 
         _unitOfWork.MinorTasks.Update(task);
+
+        var deltaSeconds = (long)Math.Floor(task.WorkTime?.TotalSeconds ?? 0) - (long)Math.Floor(previousTotalSeconds);
+        if (deltaSeconds > 0)
+        {
+            await AddToDailyLedgerAsync(request.UserId, deltaSeconds, cancellationToken);
+            await _badgeService.EvaluateWorkTitanAsync(request.UserId, cancellationToken);
+            await _badgeService.EvaluateStreakMasterAsync(request.UserId, cancellationToken);
+        }
+
         await _badgeService.EvaluateBugHunterAsync(request.UserId, justCompletedSolveBug, cancellationToken);
         await _badgeService.EvaluateTaskFinisherAsync(request.UserId, justCompletedSolveBug, cancellationToken);
         await _badgeService.EvaluateAllRounderAsync(request.UserId, task.JobType, cancellationToken);
+        if (task.State == MinorTaskState.Done)
+        {
+            await _badgeService.EvaluateCriticalFocusAsync(request.UserId, cancellationToken);
+        }
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         await _realtimeNotifier.MinorTaskChangedAsync(majorTask.TrackId, task.Id, cancellationToken);
@@ -95,5 +109,31 @@ public class UpdateMinorTaskCommandHandler : IRequestHandler<UpdateMinorTaskComm
 
         if (!isMember)
             throw new ForbiddenException("Only approved track members can update minor tasks in this track.");
+    }
+
+    private async Task AddToDailyLedgerAsync(Guid userId, long deltaSeconds, CancellationToken cancellationToken)
+    {
+        var utcNow = DateTime.UtcNow;
+        var today = DateOnly.FromDateTime(utcNow);
+
+        var log = await _unitOfWork.DailyWorkLogs.GetByUserAndDateAsync(userId, today, cancellationToken);
+        if (log is null)
+        {
+            log = new Domain.Entities.DailyWorkLog
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                WorkDate = today,
+                TotalSeconds = 0,
+                CreatedDate = utcNow,
+                UpdatedDate = utcNow,
+                IsDeleted = false
+            };
+            await _unitOfWork.DailyWorkLogs.AddAsync(log, cancellationToken);
+        }
+
+        log.TotalSeconds += deltaSeconds;
+        log.UpdatedDate = utcNow;
+        log.ModifiedDate = utcNow;
     }
 }

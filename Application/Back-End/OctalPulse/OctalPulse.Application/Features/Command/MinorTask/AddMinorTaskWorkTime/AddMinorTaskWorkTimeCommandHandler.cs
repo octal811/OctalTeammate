@@ -44,9 +44,12 @@ public class AddMinorTaskWorkTimeCommandHandler : IRequestHandler<AddMinorTaskWo
         task.ModifiedDate = DateTime.UtcNow;
 
         _unitOfWork.MinorTasks.Update(task);
-        await _badgeService.EvaluateCriticalFocusAsync(request.UserId, request.WorkTimeSeconds, cancellationToken);
         await _badgeService.EvaluateWorkTitanAsync(request.UserId, cancellationToken);
         await _badgeService.EvaluateStreakMasterAsync(request.UserId, cancellationToken);
+        if (task.State == MinorTaskState.Done)
+        {
+            await _badgeService.EvaluateCriticalFocusAsync(request.UserId, cancellationToken);
+        }
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         await _realtimeNotifier.MinorTaskChangedAsync(majorTask.TrackId, task.Id, cancellationToken);
