@@ -12,7 +12,7 @@ using OctalPulse.Services;
 
 namespace OctalPulse.ViewModels;
 
-public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAware
+public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAware, INavigationFromAware
 {
     private readonly ITaskService _taskService;
     private readonly ISignalRRealtimeService _signalRService;
@@ -135,6 +135,7 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
                 _projectId = payload.ProjectId;
                 _projectName = payload.ProjectName;
                 UpdateBreadcrumbs();
+                _ = _signalRService.JoinTrackAsync(_trackId);
                 _ = LoadMinorTasksAsync();
                 break;
 
@@ -187,8 +188,15 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
             new BreadcrumbItem(TaskTitle));
     }
 
+    public void OnNavigatedFrom()
+    {
+        _signalRService.MinorTaskChanged -= OnMinorTaskChanged;
+    }
+
     private void OnMinorTaskChanged(Guid minorTaskId, Guid trackId)
     {
+        if (_trackId != default && trackId != _trackId) return;
+
         System.Windows.Application.Current?.Dispatcher.Invoke(async () =>
         {
             await LoadMinorTasksAsync();

@@ -246,6 +246,50 @@ public class SignalRRealtimeService : ISignalRRealtimeService
         }
     }
 
+    public async Task RegisterGroupMembershipAsync(
+        IReadOnlyList<Guid> projectIds,
+        IReadOnlyList<Guid> trackIds,
+        CancellationToken cancellationToken = default)
+    {
+        foreach (var projectId in projectIds)
+        {
+            _joinedProjects.Add(projectId);
+        }
+
+        foreach (var trackId in trackIds)
+        {
+            _joinedTracks.Add(trackId);
+        }
+
+        if (!IsConnected || _hubConnection == null) return;
+
+        foreach (var projectId in projectIds)
+        {
+            try
+            {
+                await _hubConnection.InvokeAsync("JoinProject", projectId, cancellationToken);
+                _logger.LogInformation("Joined SignalR project group for {ProjectId}", projectId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to join SignalR project group for {ProjectId}", projectId);
+            }
+        }
+
+        foreach (var trackId in trackIds)
+        {
+            try
+            {
+                await _hubConnection.InvokeAsync("JoinTrack", trackId, cancellationToken);
+                _logger.LogInformation("Joined SignalR track group for {TrackId}", trackId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to join SignalR track group for {TrackId}", trackId);
+            }
+        }
+    }
+
     private void RegisterHubEvents()
     {
         if (_hubConnection == null) return;

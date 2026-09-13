@@ -53,6 +53,8 @@ public partial class WpfNavigationService : ObservableObject, INavigationService
                 CurrentViewModel = shellVm;
             }
 
+            NotifyNavigatedFrom(shellVm.CurrentView);
+
             var vm = _serviceProvider.GetRequiredService<TViewModel>();
             if (vm is INavigationAware navAware)
             {
@@ -65,6 +67,8 @@ public partial class WpfNavigationService : ObservableObject, INavigationService
         }
         else
         {
+            NotifyNavigatedFrom(CurrentViewModel);
+
             var vm = _serviceProvider.GetRequiredService<TViewModel>();
             if (vm is INavigationAware navAware)
             {
@@ -80,6 +84,8 @@ public partial class WpfNavigationService : ObservableObject, INavigationService
     public void GoBack()
     {
         if (_history.Count <= 1) return;
+
+        NotifyNavigatedFrom(CurrentViewModel);
 
         _history.Pop(); // current
         var previous = _history.Peek();
@@ -112,6 +118,20 @@ public partial class WpfNavigationService : ObservableObject, INavigationService
         }
 
         OnPropertyChanged(nameof(CanGoBack));
+    }
+
+    private static void NotifyNavigatedFrom(object? current)
+    {
+        if (current is INavigationFromAware fromAware)
+        {
+            fromAware.OnNavigatedFrom();
+            return;
+        }
+
+        if (current is ShellViewModel shellVm && shellVm.CurrentView is INavigationFromAware inner)
+        {
+            inner.OnNavigatedFrom();
+        }
     }
 
     private static bool IsInnerShellView(Type type)
@@ -154,4 +174,9 @@ public partial class WpfNavigationService : ObservableObject, INavigationService
 public interface INavigationAware
 {
     void OnNavigatedTo(object? parameter);
+}
+
+public interface INavigationFromAware
+{
+    void OnNavigatedFrom();
 }

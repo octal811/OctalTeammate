@@ -11,7 +11,7 @@ using OctalPulse.Services;
 
 namespace OctalPulse.ViewModels;
 
-public partial class TrackDetailViewModel : ObservableObject, INavigationAware
+public partial class TrackDetailViewModel : ObservableObject, INavigationAware, INavigationFromAware
 {
     private readonly ITaskService _taskService;
     private readonly ISignalRRealtimeService _signalRService;
@@ -127,6 +127,12 @@ public partial class TrackDetailViewModel : ObservableObject, INavigationAware
         UpdateBreadcrumbs();
         _ = _signalRService.JoinTrackAsync(TrackId);
         _ = LoadTasksAsync();
+    }
+
+    public void OnNavigatedFrom()
+    {
+        _signalRService.MajorTaskChanged -= OnMajorTaskChanged;
+        _signalRService.MinorTaskChanged -= OnMinorTaskChanged;
     }
 
     private void UpdateBreadcrumbs()

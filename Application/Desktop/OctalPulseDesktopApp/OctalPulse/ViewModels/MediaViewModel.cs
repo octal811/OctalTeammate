@@ -1,4 +1,8 @@
 using System.Collections.ObjectModel;
+using System.Diagnostics;
+using System.Net.Http;
+using System.Text.RegularExpressions;
+using System.Threading;
 using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -13,7 +17,7 @@ namespace OctalPulse.ViewModels;
 public record ProjectPickerOption(Guid? Id, string DisplayName);
 public record TrackPickerOption(Guid? Id, string DisplayName);
 
-public partial class MediaViewModel : ObservableObject, INavigationAware
+public partial class MediaViewModel : ObservableObject, INavigationAware, INavigationFromAware
 {
     private const int MaxPostLength = 1800;
 
@@ -96,6 +100,16 @@ public partial class MediaViewModel : ObservableObject, INavigationAware
     public void OnNavigatedTo(object? parameter)
     {
         _ = InitializeAsync();
+    }
+
+    public void OnNavigatedFrom()
+    {
+        _signalRService.PostCreated -= OnRealtimePostCreated;
+        _signalRService.PostUpdated -= OnRealtimePostUpdated;
+        _signalRService.PostDeleted -= OnRealtimePostDeleted;
+        _signalRService.PostReactionChanged -= OnRealtimePostReactionChanged;
+        _signalRService.CommentAdded -= OnRealtimeCommentAdded;
+        _signalRService.CommentDeleted -= OnRealtimeCommentDeleted;
     }
 
     private async Task InitializeAsync()
@@ -417,6 +431,12 @@ public partial class PostCardViewModel : ObservableObject
     private readonly IDialogService _dialogService;
     private readonly Action<PostCardViewModel> _onDeleteCallback;
 
+    private static readonly HttpClient _mediaHttp = new() { Timeout = TimeSpan.FromSeconds(8) };
+    private static readonly Regex DriveFileIdRegex = new(@"/file/d/([^/?#]+)", RegexOptions.IgnoreCase);
+    private static readonly Regex DriveOpenIdRegex = new(@"/open\?[^#]*?id=([^&?#]+)", RegexOptions.IgnoreCase);
+    private static readonly Regex DriveUcIdRegex = new(@"/uc\?[^#]*?[?&]id=([^&?#]+)", RegexOptions.IgnoreCase);
+    private int _mediaGeneration;
+
     public Guid Id { get; private set; }
     public Guid AuthorId { get; private set; }
 
@@ -434,6 +454,9 @@ public partial class PostCardViewModel : ObservableObject
 
     [ObservableProperty]
     private string? _photoUrl;
+
+    public bool IsImageMedia { get; private set; }
+    public bool IsExternalLink { get; private set; }
 
     [ObservableProperty]
     private Guid? _projectId;
@@ -547,6 +570,109 @@ public partial class PostCardViewModel : ObservableObject
         OnPropertyChanged(nameof(IsInsightful));
         OnPropertyChanged(nameof(IsGeneral));
         OnPropertyChanged(nameof(HasPhoto));
+        _ = DetermineMediaKindAsync();
+    }
+
+    private async Task DetermineMediaKindAsync()
+    {
+        var gen = ++_mediaGeneration;
+        var url = string.IsNullOrWhiteSpace(PhotoUrl) ? null : PhotoUrl.Trim();
+
+        var image = false;
+        var external = false;
+
+        try
+        {
+            if (url is null)
+            {
+                // No media attached.
+            }
+            else
+            {
+                var driveId = TryGetDriveId(url);
+                if (driveId is not null)
+                {
+                    var direct = $"https://drive.google.com/uc?export=view&id={driveId}";
+                    image = await LooksLikeImageAsync(direct, CancellationToken.None);
+                }
+                else
+                {
+                    image = LooksLikeDirectImageUrl(url) || await LooksLikeImageAsync(url, CancellationToken.None);
+                }
+
+                external = !image;
+            }
+        }
+        catch
+        {
+            external = true;
+        }
+
+        if (gen != _mediaGeneration) return;
+
+        IsImageMedia = image;
+        IsExternalLink = external;
+        OnPropertyChanged(nameof(IsImageMedia));
+        OnPropertyChanged(nameof(IsExternalLink));
+    }
+
+    private static string? TryGetDriveId(string url)
+    {
+        static string? Match(Regex r, string u)
+        {
+            var m = r.Match(u);
+            return m.Success ? m.Groups[1].Value : null;
+        }
+
+        return Match(DriveFileIdRegex, url)
+            ?? Match(DriveOpenIdRegex, url)
+            ?? Match(DriveUcIdRegex, url);
+    }
+
+    private static bool LooksLikeDirectImageUrl(string url)
+    {
+        var path = Uri.TryCreate(url, UriKind.Absolute, out var u) ? u.AbsolutePath : url;
+        var ext = System.IO.Path.GetExtension(path)?.ToLowerInvariant();
+        return ext is ".png" or ".jpg" or ".jpeg" or ".gif" or ".webp" or ".bmp";
+    }
+
+    private static async Task<bool> LooksLikeImageAsync(string url, CancellationToken token)
+    {
+        try
+        {
+            using var head = new HttpRequestMessage(HttpMethod.Head, url);
+            using var resp = await _mediaHttp.SendAsync(head, HttpCompletionOption.ResponseHeadersRead, token);
+            if (resp.IsSuccessStatusCode && IsImageContentType(resp.Content.Headers.ContentType?.MediaType))
+            {
+                return true;
+            }
+
+            using var get = new HttpRequestMessage(HttpMethod.Get, url);
+            using var getResp = await _mediaHttp.SendAsync(get, HttpCompletionOption.ResponseHeadersRead, token);
+            return getResp.IsSuccessStatusCode && IsImageContentType(getResp.Content.Headers.ContentType?.MediaType);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private static bool IsImageContentType(string? mediaType)
+        => !string.IsNullOrEmpty(mediaType) && mediaType.StartsWith("image/", StringComparison.OrdinalIgnoreCase);
+
+    [RelayCommand]
+    private void OpenMediaLink()
+    {
+        if (string.IsNullOrWhiteSpace(PhotoUrl)) return;
+
+        try
+        {
+            Process.Start(new ProcessStartInfo(PhotoUrl) { UseShellExecute = true });
+        }
+        catch
+        {
+            _dialogService.ShowToast("Open Link", "Could not open the link in your browser.", ToastType.Error);
+        }
     }
 
     partial void OnNewCommentTextChanged(string value)

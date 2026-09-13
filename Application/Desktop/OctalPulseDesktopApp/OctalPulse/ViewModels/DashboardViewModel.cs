@@ -9,7 +9,7 @@ using OctalPulse.Services;
 
 namespace OctalPulse.ViewModels;
 
-public partial class DashboardViewModel : ObservableObject, INavigationAware
+public partial class DashboardViewModel : ObservableObject, INavigationAware, INavigationFromAware
 {
     private readonly IProjectService _projectService;
     private readonly IEventService _eventService;
@@ -55,6 +55,12 @@ public partial class DashboardViewModel : ObservableObject, INavigationAware
     public void OnNavigatedTo(object? parameter)
     {
         _ = LoadDashboardDataAsync();
+    }
+
+    public void OnNavigatedFrom()
+    {
+        _signalRService.ProjectChanged -= OnProjectChanged;
+        _signalRService.EventChanged -= OnEventChanged;
     }
 
     private void OnProjectChanged(Guid projectId)

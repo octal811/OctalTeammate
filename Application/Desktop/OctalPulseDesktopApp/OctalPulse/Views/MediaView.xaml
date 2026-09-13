@@ -5,6 +5,7 @@
     xmlns:converters="clr-namespace:OctalPulse.Converters"
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:views="clr-namespace:OctalPulse.Views"
     xmlns:vm="clr-namespace:OctalPulse.ViewModels"
     d:DesignHeight="900"
     d:DesignWidth="1100"
@@ -157,7 +158,7 @@
                                 <TextBox Grid.Column="1" Text="{Binding NewPostPhotoUrl, UpdateSourceTrigger=PropertyChanged}"
                                          Background="Transparent" BorderThickness="0" FontSize="13"
                                          Foreground="{DynamicResource Brush.TextPrimary}"
-                                         ToolTip="Paste Google Drive image link or external photo URL" />
+                                         ToolTip="Paste Google Drive image/video link or external photo URL" />
                             </Grid>
                         </Border>
 
@@ -279,13 +280,49 @@
                                     <TextBlock Text="{Binding Content}" TextWrapping="Wrap" FontSize="14" LineHeight="22"
                                                Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,4,0,14" />
 
-                                    <!-- Attached Photo (Optional Link / Drive) -->
-                                    <Border Visibility="{Binding HasPhoto, Converter={StaticResource BoolToVis}}"
-                                            Background="{DynamicResource Brush.Background}" BorderBrush="{DynamicResource Brush.Border}"
-                                            BorderThickness="1" CornerRadius="8" Margin="0,0,0,14" MaxHeight="380" ClipToBounds="True">
-                                        <Image Source="{Binding PhotoUrl, Converter={StaticResource RelativeUrlToImage}}"
-                                               Stretch="Uniform" HorizontalAlignment="Center" />
-                                    </Border>
+                                    <!-- Attached Media (Image / Drive Video / External Link) -->
+                                    <Grid Visibility="{Binding HasPhoto, Converter={StaticResource BoolToVis}}"
+                                           Margin="0,0,0,14" ClipToBounds="True">
+                                        <!-- Inline image (direct or Drive image) -->
+                                        <Border Visibility="{Binding IsImageMedia, Converter={StaticResource BoolToVis}}"
+                                                Background="{DynamicResource Brush.Background}" BorderBrush="{DynamicResource Brush.Border}"
+                                                BorderThickness="1" CornerRadius="8" MaxHeight="380" ClipToBounds="True">
+                                            <Image Source="{Binding PhotoUrl, Converter={StaticResource RelativeUrlToImage}}"
+                                                   Stretch="Uniform" HorizontalAlignment="Center" />
+                                        </Border>
+
+                                        <!-- External link / unsupported media (Drive video, YouTube, Facebook, etc.) -->
+                                        <Border Visibility="{Binding IsExternalLink, Converter={StaticResource BoolToVis}}"
+                                                Background="{DynamicResource Brush.Background}" BorderBrush="{DynamicResource Brush.Border}"
+                                                BorderThickness="1" CornerRadius="8" Padding="14,12">
+                                            <Button Style="{StaticResource Button.Ghost}" Height="Auto" Padding="0"
+                                                    Background="Transparent" Cursor="Hand"
+                                                    Command="{Binding OpenMediaLinkCommand}"
+                                                    ToolTip="Open link in your browser">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <Border Grid.Column="0" Width="40" Height="40" CornerRadius="20"
+                                                            Background="{DynamicResource Brush.SurfaceElevated}"
+                                                            BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
+                                                            VerticalAlignment="Center" Margin="0,0,12,0">
+                                                        <Path Data="{StaticResource Icon.Link}" Fill="{DynamicResource Brush.TextMuted}"
+                                                              Width="18" Height="18" Stretch="Uniform"
+                                                              HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                    </Border>
+
+                                                    <TextBlock Grid.Column="1" Text="Open link in browser"
+                                                               FontSize="13" FontWeight="SemiBold"
+                                                               Foreground="{DynamicResource Brush.TextPrimary}"
+                                                               TextTrimming="CharacterEllipsis"
+                                                               VerticalAlignment="Center" />
+                                                </Grid>
+                                            </Button>
+                                        </Border>
+                                    </Grid>
 
                                     <!-- Reactions & Comments Summary Counts -->
                                     <Grid Margin="0,0,0,10">

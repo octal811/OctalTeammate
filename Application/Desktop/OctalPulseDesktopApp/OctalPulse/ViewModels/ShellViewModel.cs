@@ -15,9 +15,11 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
     private readonly ITokenService _tokenService;
     private readonly ILocalCacheService _localCache;
     private readonly ISignalRRealtimeService _signalRService;
+    private readonly IProjectService _projectService;
     private readonly ThemeService _themeService;
     private readonly WpfDialogService _dialogService;
     private DispatcherTimer? _toastTimer;
+    private bool _groupsRegistered;
 
     public IUserSession UserSession => _userSession;
     public INavigationService Navigation => _navigationService;
@@ -57,6 +59,7 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
         ITokenService tokenService,
         ILocalCacheService localCache,
         ISignalRRealtimeService signalRService,
+        IProjectService projectService,
         ThemeService themeService,
         IDialogService dialogService)
     {
@@ -66,6 +69,7 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
         _tokenService = tokenService;
         _localCache = localCache;
         _signalRService = signalRService;
+        _projectService = projectService;
         _themeService = themeService;
         _dialogService = (WpfDialogService)dialogService;
 
@@ -79,6 +83,44 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
         if (CurrentView == null)
         {
             NavigateDashboard();
+        }
+
+        if (!_groupsRegistered)
+        {
+            _groupsRegistered = true;
+            _ = RegisterAllGroupsAsync();
+        }
+    }
+
+    private async Task RegisterAllGroupsAsync()
+    {
+        try
+        {
+            var projects = await _projectService.GetAllProjectsAsync(1, 100);
+
+            var projectIds = new List<Guid>();
+            var trackIds = new List<Guid>();
+
+            foreach (var project in projects.Items)
+            {
+                projectIds.Add(project.Id);
+
+                try
+                {
+                    var tracks = await _projectService.GetTracksByProjectAsync(project.Id);
+                    trackIds.AddRange(tracks.Tracks.Select(t => t.Id));
+                }
+                catch
+                {
+                    // A project failing to resolve tracks shouldn't block the rest.
+                }
+            }
+
+            await _signalRService.RegisterGroupMembershipAsync(projectIds, trackIds);
+        }
+        catch
+        {
+            // Group registration is best-effort; detail views still join on navigation.
         }
     }
 
@@ -245,6 +287,7 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
         }
 
         await _signalRService.DisconnectAsync();
+        _groupsRegistered = false;
         _tokenService.ClearTokens();
         _userSession.ClearSession();
         await _localCache.ClearSessionAsync();

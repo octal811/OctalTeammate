@@ -9,7 +9,7 @@ using OctalPulse.Services;
 
 namespace OctalPulse.ViewModels;
 
-public partial class ProjectsViewModel : ObservableObject, INavigationAware
+public partial class ProjectsViewModel : ObservableObject, INavigationAware, INavigationFromAware
 {
     private readonly IProjectService _projectService;
     private readonly ISignalRRealtimeService _signalRService;
@@ -74,6 +74,11 @@ public partial class ProjectsViewModel : ObservableObject, INavigationAware
     public void OnNavigatedTo(object? parameter)
     {
         _ = LoadProjectsAsync();
+    }
+
+    public void OnNavigatedFrom()
+    {
+        _signalRService.ProjectChanged -= OnProjectChanged;
     }
 
     private void OnProjectChanged(Guid projectId)
