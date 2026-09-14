@@ -98,5 +98,9 @@ public partial class MinorTasksFloatWindow : Window
     {
         base.Show();
         SendToDesktopLevel();
+        if (_viewModel.ActiveTasks.Count == 0 && !_viewModel.IsBusy)
+        {
+            _ = _viewModel.RefreshCommand.ExecuteAsync(null);
+        }
     }
 }

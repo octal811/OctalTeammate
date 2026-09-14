@@ -262,7 +262,8 @@
 
                                                 <!-- Job Type Badge -->
                                                 <Border Background="{DynamicResource Brush.SurfaceElevated}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
-                                                        CornerRadius="0" Padding="4,1" Margin="0,0,4,2">
+                                                        CornerRadius="0" Padding="4,1" Margin="0,0,4,2"
+                                                        Visibility="{Binding HasJobType, Converter={StaticResource BoolToVis}}">
                                                     <TextBlock Text="{Binding JobType}" Foreground="{DynamicResource Brush.TextSecondary}" FontSize="9"/>
                                                 </Border>
 

@@ -22,6 +22,7 @@ public class MinorTaskCardModel : ObservableObject
     public MinorTaskJobType? JobType { get; set; }
     public long WorkTimeSeconds { get; set; }
 
+    public bool HasJobType => JobType.HasValue;
     public string FormattedWorkTime => TimeSpan.FromSeconds(WorkTimeSeconds).ToString(@"hh\:mm\:ss");
     public string ProjectAndTrack => $"{ProjectTitle} • {TrackTitle}";
 }
@@ -59,7 +60,8 @@ public partial class MinorTasksFloatViewModel : ObservableObject
         nameof(MinorTaskState.Failed)
     };
 
-    public ObservableCollection<MinorTaskCardModel> MyMinorTasks { get; } = new();
+    public ObservableCollection<MinorTaskCardModel> ActiveTasks { get; } = new();
+    public ObservableCollection<MinorTaskCardModel> MyMinorTasks => ActiveTasks;
 
     public MinorTasksFloatViewModel(
         IProjectService projectService,
@@ -138,6 +140,8 @@ public partial class MinorTasksFloatViewModel : ObservableObject
                                 var minorRes = await _taskService.GetMinorTasksByMajorTaskAsync(major.Id);
                                 foreach (var minor in minorRes.MinorTasks)
                                 {
+                                    if (minor.IsDeleted) continue;
+
                                     _allCards.Add(new MinorTaskCardModel
                                     {
                                         Id = minor.Id,
@@ -266,8 +270,8 @@ public partial class MinorTasksFloatViewModel : ObservableObject
                 c.MajorTaskTitle.Contains(q, StringComparison.OrdinalIgnoreCase));
         }
 
-        MyMinorTasks.Clear();
+        ActiveTasks.Clear();
         foreach (var item in filtered)
-            MyMinorTasks.Add(item);
+            ActiveTasks.Add(item);
     }
 }
