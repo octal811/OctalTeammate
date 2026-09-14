@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using OctalPulse.Application.Abstractions;
 using OctalPulse.Application.Services;
+using OctalPulse.FloatWindows;
 using OctalPulse.Infrastructure;
 using OctalPulse.Services;
 using OctalPulse.ViewModels;
@@ -18,6 +19,9 @@ public partial class App : System.Windows.Application
     protected override async void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+
+        // Keep the app alive when MainWindow is hidden
+        ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
         _host = Host.CreateDefaultBuilder()
             .ConfigureServices((context, services) =>
@@ -35,6 +39,12 @@ public partial class App : System.Windows.Application
                 services.AddSingleton<INavigationService>(sp => sp.GetRequiredService<WpfNavigationService>());
                 services.AddSingleton<WpfDialogService>();
                 services.AddSingleton<IDialogService>(sp => sp.GetRequiredService<WpfDialogService>());
+
+                // Background-mode services
+                services.AddSingleton<TrayService>();
+                services.AddSingleton<GlobalHotkeyService>();
+                services.AddSingleton<FloatWindowPositionStore>();
+                services.AddSingleton<FloatWindowService>();
 
                 // ViewModels
                 services.AddTransient<MainViewModel>();
@@ -55,17 +65,37 @@ public partial class App : System.Windows.Application
                 services.AddSingleton<ProfileViewModel>();
                 services.AddTransient<MediaViewModel>();
 
+                // Float ViewModels
+                services.AddSingleton<MajorTasksFloatViewModel>();
+                services.AddSingleton<MinorTasksFloatViewModel>();
+                services.AddSingleton<CalendarFloatViewModel>();
+                services.AddSingleton<MediaFloatViewModel>();
+                // StopwatchViewModel already singleton above — shared with float window
+
                 // Windows
                 services.AddSingleton<MainWindow>();
+
+                // Float Windows (singleton — one instance, show/hide as needed)
+                services.AddSingleton<MajorTasksFloatWindow>();
+                services.AddSingleton<MinorTasksFloatWindow>();
+                services.AddSingleton<StopwatchFloatWindow>();
+                services.AddSingleton<CalendarFloatWindow>();
+                services.AddSingleton<MediaFloatWindow>();
             })
             .Build();
 
         await _host.StartAsync();
         Services = _host.Services;
 
-        // Apply initial theme (defaulting to clean white/light theme)
+        // Apply the saved theme (defaults to light on first run)
         var themeService = Services.GetRequiredService<ThemeService>();
-        themeService.SetTheme("Light");
+        var localCache = Services.GetRequiredService<ILocalCacheService>();
+        var preferences = await localCache.GetPreferencesAsync();
+        themeService.SetTheme(string.IsNullOrWhiteSpace(preferences.Theme) ? "Light" : preferences.Theme);
+
+        // Load float window positions
+        var positionStore = Services.GetRequiredService<FloatWindowPositionStore>();
+        await positionStore.LoadAsync();
 
         var mainWindow = Services.GetRequiredService<MainWindow>();
         mainWindow.Show();

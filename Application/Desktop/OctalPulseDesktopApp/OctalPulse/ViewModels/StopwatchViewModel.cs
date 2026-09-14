@@ -36,6 +36,7 @@ public partial class StopwatchViewModel : ObservableObject, INavigationAware
     [ObservableProperty] private MajorTaskItem? _selectedMajorTask;
     [ObservableProperty] private MinorTaskItem? _selectedMinorTask;
 
+    [ObservableProperty] private bool _isLogPanelOpen;
     [ObservableProperty] private bool _isCreatingMinor;
     [ObservableProperty] private string _newMinorTitle = string.Empty;
     [ObservableProperty] private string _newMinorDescription = string.Empty;
@@ -121,6 +122,16 @@ public partial class StopwatchViewModel : ObservableObject, INavigationAware
         IsRunning = false;
         Elapsed = TimeSpan.Zero;
         ClearSelections();
+    }
+
+    [RelayCommand]
+    private void ToggleLogPanel()
+    {
+        IsLogPanelOpen = !IsLogPanelOpen;
+        if (IsLogPanelOpen && Projects.Count == 0)
+        {
+            _ = LoadProjectsAsync();
+        }
     }
 
     [RelayCommand]
@@ -223,7 +234,7 @@ public partial class StopwatchViewModel : ObservableObject, INavigationAware
         NewMinorJobType = null;
     }
 
-    private async Task LoadProjectsAsync()
+    public async Task LoadProjectsAsync()
     {
         try
         {

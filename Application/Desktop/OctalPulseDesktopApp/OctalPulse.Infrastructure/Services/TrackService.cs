@@ -40,7 +40,7 @@ public class TrackService : ITrackService
             cancellationToken);
     }
 
-    public Task<RequestTrackJoinResponse> RequestJoinTrackAsync(Guid trackId, CancellationToken cancellationToken = default)
+    public Task<RequestTrackJoinResponse> JoinTrackAsync(Guid trackId, CancellationToken cancellationToken = default)
     {
         return _apiClient.SendAsync<RequestTrackJoinResponse>(
             HttpMethod.Post,
@@ -49,21 +49,12 @@ public class TrackService : ITrackService
             cancellationToken);
     }
 
-    public Task<ReviewTrackJoinResponse> ApproveJoinTrackAsync(Guid trackId, Guid targetUserId, CancellationToken cancellationToken = default)
+    public Task<LeaveTrackResponse> LeaveTrackAsync(Guid trackId, CancellationToken cancellationToken = default)
     {
-        return _apiClient.SendAsync<ReviewTrackJoinResponse>(
+        return _apiClient.SendAsync<LeaveTrackResponse>(
             HttpMethod.Post,
-            "/api/tracks/approve-join",
-            new ReviewTrackJoinRequest(trackId, targetUserId),
-            cancellationToken);
-    }
-
-    public Task<ReviewTrackJoinResponse> RejectJoinTrackAsync(Guid trackId, Guid targetUserId, CancellationToken cancellationToken = default)
-    {
-        return _apiClient.SendAsync<ReviewTrackJoinResponse>(
-            HttpMethod.Post,
-            "/api/tracks/reject-join",
-            new ReviewTrackJoinRequest(trackId, targetUserId),
+            "/api/tracks/leave",
+            new LeaveTrackRequest(trackId),
             cancellationToken);
     }
 }

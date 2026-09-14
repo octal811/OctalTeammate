@@ -11,8 +11,7 @@ public record TrackSummaryItem(
     int Progress,
     Guid? TrackLeadUserId,
     IReadOnlyList<TrackMemberItem> Members,
-    MembershipStatus? CurrentUserMembership,
-    IReadOnlyList<TrackMemberItem> PendingMembers);
+    MembershipStatus? CurrentUserMembership);
 
 public record TrackMemberItem(
     Guid UserId,

@@ -2,6 +2,7 @@ using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Interop;
+using OctalPulse.Services;
 using OctalPulse.ViewModels;
 
 namespace OctalPulse;
@@ -10,29 +11,147 @@ public partial class MainWindow : Window
 {
     private const int WM_GETMINMAXINFO = 0x0024;
     private const uint MONITOR_DEFAULTTONEAREST = 0x00000002;
+    private const double MinWidthDips = 1050;
+    private const double MinHeightDips = 680;
 
     private readonly MainViewModel _viewModel;
+    private readonly TrayService _trayService;
+    private readonly GlobalHotkeyService _hotkeyService;
+    private readonly FloatWindowService _floatWindowService;
 
-    public MainWindow(MainViewModel viewModel)
+    public MainWindow(
+        MainViewModel viewModel,
+        TrayService trayService,
+        GlobalHotkeyService hotkeyService,
+        FloatWindowService floatWindowService)
     {
         InitializeComponent();
         _viewModel = viewModel;
+        _trayService = trayService;
+        _hotkeyService = hotkeyService;
+        _floatWindowService = floatWindowService;
+
         DataContext = _viewModel;
 
         Loaded += MainWindow_Loaded;
         SourceInitialized += Window_SourceInitialized;
+        Closed += MainWindow_Closed;
     }
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
+        // Initialize tray icon
+        _trayService.Initialize();
+        _trayService.ShowMainWindowRequested += OnShowMainWindowRequested;
+        _trayService.ExitRequested += OnExitRequested;
+
+        // Wire hotkeys
+        _hotkeyService.HotkeyFired += OnHotkeyFired;
+
         await _viewModel.InitializeAsync();
     }
 
     private void Window_SourceInitialized(object? sender, EventArgs e)
     {
         var handle = new WindowInteropHelper(this).Handle;
-        HwndSource.FromHwnd(handle)?.AddHook(WndProc);
+        var hwndSource = HwndSource.FromHwnd(handle);
+        hwndSource?.AddHook(WndProc);
+
+        // Attach global hotkeys to this window's message pump
+        _hotkeyService.Attach(hwndSource!);
     }
+
+    private void MainWindow_Closed(object? sender, EventArgs e)
+    {
+        _floatWindowService.HideAll();
+        _hotkeyService.Dispose();
+        _trayService.Dispose();
+        System.Windows.Application.Current.Shutdown();
+    }
+
+    // ── Tray handlers ──────────────────────────────────────────────
+
+    private void OnShowMainWindowRequested()
+    {
+        Dispatcher.Invoke(() =>
+        {
+            Show();
+            WindowState = WindowState.Normal;
+            Activate();
+        });
+    }
+
+    private void OnExitRequested()
+    {
+        Dispatcher.Invoke(() =>
+        {
+            // Detach events so no double-dispose
+            _trayService.ShowMainWindowRequested -= OnShowMainWindowRequested;
+            _trayService.ExitRequested -= OnExitRequested;
+            System.Windows.Application.Current.Shutdown();
+        });
+    }
+
+    // ── Hotkey dispatcher ─────────────────────────────────────────
+
+    private void OnHotkeyFired(int id)
+    {
+        Dispatcher.Invoke(() =>
+        {
+            switch (id)
+            {
+                case GlobalHotkeyService.HK_SHOW_MAIN:
+                    OnShowMainWindowRequested();
+                    break;
+                case GlobalHotkeyService.HK_MAJOR_TASKS:
+                    _floatWindowService.Toggle(FloatWindowType.MajorTasks);
+                    break;
+                case GlobalHotkeyService.HK_MINOR_TASKS:
+                    _floatWindowService.Toggle(FloatWindowType.MinorTasks);
+                    break;
+                case GlobalHotkeyService.HK_STOPWATCH:
+                    _floatWindowService.Toggle(FloatWindowType.Stopwatch);
+                    break;
+                case GlobalHotkeyService.HK_CALENDAR:
+                    _floatWindowService.Toggle(FloatWindowType.Calendar);
+                    break;
+                case GlobalHotkeyService.HK_MEDIA:
+                    _floatWindowService.Toggle(FloatWindowType.Media);
+                    break;
+            }
+        });
+    }
+
+    // ── Title bar button handlers ────────────────────────────────
+
+    private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState.Minimized;
+    }
+
+    private void MaximizeButton_Click(object sender, RoutedEventArgs e)
+    {
+        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
+    }
+
+    private void CloseButton_Click(object sender, RoutedEventArgs e)
+    {
+        // Close = full exit (same as before)
+        Close();
+    }
+
+    private void HideToTrayButton_Click(object sender, RoutedEventArgs e)
+    {
+        Hide();
+        _trayService.ShowBalloonTip("OctalPulse", "Running in background. Press Alt+W or double-click the tray icon to restore.");
+    }
+
+    private void Window_StateChanged(object? sender, EventArgs e)
+    {
+        MaximizeGlyph.Text = WindowState == WindowState.Maximized ? "\uE923" : "\uE922";
+    }
+
+    // ── WndProc for MINMAXINFO ───────────────────────────────────
 
     private IntPtr WndProc(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam, ref bool handled)
     {
@@ -47,7 +166,7 @@ public partial class MainWindow : Window
 
     private static void WmGetMinMaxInfo(IntPtr hwnd, IntPtr lParam)
     {
-        var mmi = (MINMAXINFO)Marshal.PtrToStructure(lParam, typeof(MINMAXINFO));
+        var mmi = (MINMAXINFO)Marshal.PtrToStructure(lParam, typeof(MINMAXINFO))!;
         var monitor = MonitorFromWindow(hwnd, MONITOR_DEFAULTTONEAREST);
         if (monitor != IntPtr.Zero)
         {
@@ -57,48 +176,27 @@ public partial class MainWindow : Window
                 var workArea = monitorInfo.rcWork;
                 var monitorArea = monitorInfo.rcMonitor;
 
-                // Maximum size is the monitor's work area (excludes taskbar).
                 mmi.ptMaxSize.X = workArea.Right - workArea.Left;
                 mmi.ptMaxSize.Y = workArea.Bottom - workArea.Top;
-
-                // Position relative to the monitor's origin (may be a negative/origin-at-virtual-screen top-left).
                 mmi.ptMaxPosition.X = workArea.Left - monitorArea.Left;
                 mmi.ptMaxPosition.Y = workArea.Top - monitorArea.Top;
-
                 mmi.ptMaxTrackSize.X = mmi.ptMaxSize.X;
                 mmi.ptMaxTrackSize.Y = mmi.ptMaxSize.Y;
             }
         }
 
+        var dpi = GetDpiForWindow(hwnd);
+        var scale = dpi <= 0 ? 1.0 : dpi / 96.0;
+        mmi.ptMinTrackSize.X = (int)Math.Round(MinWidthDips * scale);
+        mmi.ptMinTrackSize.Y = (int)Math.Round(MinHeightDips * scale);
+
         Marshal.StructureToPtr(mmi, lParam, true);
     }
 
-    private void MinimizeButton_Click(object sender, RoutedEventArgs e)
-    {
-        WindowState = WindowState.Minimized;
-    }
-
-    private void MaximizeButton_Click(object sender, RoutedEventArgs e)
-    {
-        WindowState = WindowState == WindowState.Maximized ? WindowState.Normal : WindowState.Maximized;
-    }
-
-    private void CloseButton_Click(object sender, RoutedEventArgs e)
-    {
-        Close();
-    }
-
-    private void Window_StateChanged(object? sender, EventArgs e)
-    {
-        MaximizeGlyph.Text = WindowState == WindowState.Maximized ? "\uE923" : "\uE922";
-    }
+    // ── P/Invoke structs ──────────────────────────────────────────
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct POINT
-    {
-        public int X;
-        public int Y;
-    }
+    private struct POINT { public int X; public int Y; }
 
     [StructLayout(LayoutKind.Sequential)]
     private struct MINMAXINFO
@@ -111,13 +209,7 @@ public partial class MainWindow : Window
     }
 
     [StructLayout(LayoutKind.Sequential)]
-    private struct RECT
-    {
-        public int Left;
-        public int Top;
-        public int Right;
-        public int Bottom;
-    }
+    private struct RECT { public int Left; public int Top; public int Right; public int Bottom; }
 
     [StructLayout(LayoutKind.Sequential)]
     private struct MONITORINFO
@@ -133,4 +225,7 @@ public partial class MainWindow : Window
 
     [DllImport("user32.dll", CharSet = CharSet.Auto)]
     private static extern bool GetMonitorInfo(IntPtr hMonitor, ref MONITORINFO lpmi);
+
+    [DllImport("user32.dll")]
+    private static extern uint GetDpiForWindow(IntPtr handle);
 }

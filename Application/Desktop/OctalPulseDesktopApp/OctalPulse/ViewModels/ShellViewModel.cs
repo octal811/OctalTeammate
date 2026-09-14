@@ -188,10 +188,14 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
     }
 
     [RelayCommand]
-    private void ToggleTheme()
+    private async Task ToggleThemeAsync()
     {
         _themeService.ToggleTheme();
         CurrentTheme = _themeService.CurrentTheme;
+
+        var pref = await _localCache.GetPreferencesAsync();
+        pref.Theme = CurrentTheme;
+        await _localCache.SavePreferencesAsync(pref);
     }
 
     [RelayCommand]

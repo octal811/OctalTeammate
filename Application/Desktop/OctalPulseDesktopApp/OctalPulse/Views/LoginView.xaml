@@ -37,9 +37,12 @@
 
                         <!-- App Brand Header -->
                         <StackPanel Grid.Row="0" Orientation="Horizontal" VerticalAlignment="Center">
-                            <Border Width="42" Height="42" CornerRadius="10" Background="{DynamicResource Brush.Primary}" Margin="0,0,14,0">
-                                <Path Data="{StaticResource Icon.Logo}" Fill="{DynamicResource Brush.PrimaryForeground}" Width="24" Height="24" Stretch="Uniform" />
-                            </Border>
+                            <Grid Width="44" Height="44" Margin="0,0,14,0">
+                                <Grid.Clip>
+                                    <EllipseGeometry RadiusX="22" RadiusY="22" Center="22,22" />
+                                </Grid.Clip>
+                                <Image Source="pack://application:,,,/OctalPulse;component/Assets/OctalPulse.png" Width="44" Height="44" Stretch="UniformToFill" />
+                            </Grid>
                             <StackPanel VerticalAlignment="Center">
                                 <TextBlock Text="OCTALPULSE" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource Brush.TextPrimary}" />
                                 <TextBlock Text="Team &amp; Work Management" FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" FontWeight="Medium" />

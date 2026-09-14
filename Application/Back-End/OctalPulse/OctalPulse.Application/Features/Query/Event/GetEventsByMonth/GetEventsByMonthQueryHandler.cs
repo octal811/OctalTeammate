@@ -34,7 +34,7 @@ public class GetEventsByMonthQueryHandler : IRequestHandler<GetEventsByMonthQuer
         if (!isMember)
             throw new ForbiddenException("Only approved project members can view events of this project.");
 
-        var events = (await _unitOfWork.Events.FindAsync(
+        var events = (await _unitOfWork.Events.FindWithCreatedByUserAsync(
             e => e.ProjectId == request.ProjectId &&
                  e.StartDate.Year == request.Year &&
                  e.StartDate.Month == request.Month,
@@ -57,6 +57,8 @@ public class GetEventsByMonthQueryHandler : IRequestHandler<GetEventsByMonthQuer
                 e.TrackId,
                 e.MajorTaskId,
                 e.CreatedByUserId,
+                e.CreatedByUser?.Name,
+                e.CreatedByUser?.Email,
                 e.DeletedByUserId,
                 e.IsDeleted,
                 e.CreatedDate,

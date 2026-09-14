@@ -5,8 +5,8 @@ using Microsoft.AspNetCore.Mvc;
 using OctalPulse.API.Attributes;
 using OctalPulse.Application.Features.Command.Track.CreateTrack;
 using OctalPulse.Application.Features.Command.Track.DeleteTrack;
+using OctalPulse.Application.Features.Command.Track.LeaveTrack;
 using OctalPulse.Application.Features.Command.Track.RequestTrackJoin;
-using OctalPulse.Application.Features.Command.Track.ReviewTrackJoin;
 using OctalPulse.Application.Features.Command.Track.UpdateTrack;
 
 namespace OctalPulse.API.Controllers;
@@ -59,7 +59,7 @@ public class TracksController : ControllerBase
     }
 
     [HttpPost("join")]
-    public async Task<ActionResult<RequestTrackJoinResponse>> RequestJoin(
+    public async Task<ActionResult<RequestTrackJoinResponse>> Join(
         [FromBody] RequestTrackJoinCommand command,
         CancellationToken cancellationToken)
     {
@@ -69,24 +69,13 @@ public class TracksController : ControllerBase
         return Ok(result);
     }
 
-    [HttpPost("approve-join")]
-    public async Task<ActionResult<ReviewTrackJoinResponse>> ApproveJoin(
-        [FromBody] ReviewTrackJoinCommand command,
+    [HttpPost("leave")]
+    public async Task<ActionResult<LeaveTrackResponse>> Leave(
+        [FromBody] LeaveTrackCommand command,
         CancellationToken cancellationToken)
     {
         var result = await _sender.Send(
-            command with { UserId = GetUserId(), Approve = true },
-            cancellationToken);
-        return Ok(result);
-    }
-
-    [HttpPost("reject-join")]
-    public async Task<ActionResult<ReviewTrackJoinResponse>> RejectJoin(
-        [FromBody] ReviewTrackJoinCommand command,
-        CancellationToken cancellationToken)
-    {
-        var result = await _sender.Send(
-            command with { UserId = GetUserId(), Approve = false },
+            command with { UserId = GetUserId() },
             cancellationToken);
         return Ok(result);
     }

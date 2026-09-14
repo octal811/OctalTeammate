@@ -25,8 +25,7 @@ public record TrackSummaryItem(
     int Progress,
     Guid? TrackLeadUserId,
     IReadOnlyList<TrackMemberItem> Members,
-    MembershipStatus? CurrentUserMembership,
-    IReadOnlyList<TrackMemberItem>? PendingMembers);
+    MembershipStatus? CurrentUserMembership);
 
 public record GetTracksByProjectResponse(IReadOnlyList<TrackSummaryItem> Tracks);
 
@@ -50,6 +49,6 @@ public record RequestTrackJoinRequest(Guid TrackId);
 
 public record RequestTrackJoinResponse(Guid TrackId, string Status, string Message);
 
-public record ReviewTrackJoinRequest(Guid TrackId, Guid TargetUserId);
+public record LeaveTrackRequest(Guid TrackId);
 
-public record ReviewTrackJoinResponse(Guid TrackId, Guid UserId, string Status);
+public record LeaveTrackResponse(Guid TrackId, string Message);

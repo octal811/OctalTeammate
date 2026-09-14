@@ -10,6 +10,8 @@
     <UserControl.Resources>
         <converters:BooleanToVisibilityConverter x:Key="BoolToVis" />
         <converters:DateFormattingConverter x:Key="DateFormatter" />
+        <converters:NullToVisibilityConverter x:Key="NullToVis" />
+        <converters:StringToInitialConverter x:Key="StringToInitial" />
     </UserControl.Resources>
 
     <Grid>
@@ -148,6 +150,7 @@
                                                 <Grid.RowDefinitions>
                                                     <RowDefinition Height="Auto" />
                                                     <RowDefinition Height="Auto" />
+                                                    <RowDefinition Height="Auto" />
                                                 </Grid.RowDefinitions>
 
                                                 <Grid Grid.Row="0">
@@ -164,6 +167,16 @@
                                                         <TextBlock Text="{Binding Type}" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Primary}" />
                                                     </Border>
                                                     <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" />
+                                                </StackPanel>
+
+                                                <!-- Created By -->
+                                                <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="0,6,0,0"
+                                                            Visibility="{Binding CreatedByUserName, Converter={StaticResource NullToVis}}">
+                                                    <Border Width="18" Height="18" CornerRadius="9" Background="{DynamicResource Brush.Primary}" Margin="0,0,6,0" VerticalAlignment="Center">
+                                                        <TextBlock Text="{Binding CreatedByUserName, Converter={StaticResource StringToInitial}}" FontSize="8.5" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                    </Border>
+                                                    <TextBlock FontSize="10.5" Foreground="{DynamicResource Brush.TextMuted}" VerticalAlignment="Center"
+                                                               Text="{Binding CreatedByUserName, StringFormat='by {0}'}" />
                                                 </StackPanel>
                                             </Grid>
                                         </Border>

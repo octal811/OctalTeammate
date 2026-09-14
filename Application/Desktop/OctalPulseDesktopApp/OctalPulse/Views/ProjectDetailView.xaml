@@ -135,50 +135,7 @@
                         <Button Style="{StaticResource Button.Primary}" Content="+ Add Track" Command="{Binding OpenCreateTrackModalCommand}" HorizontalAlignment="Right" Height="36" Padding="14,0" />
                     </Grid>
 
-                    <!-- Pending Track Join Requests -->
-                    <Border Style="{StaticResource Border.Card}" Padding="20" Margin="0,0,0,24"
-                            Visibility="{Binding PendingTrackJoins.Count, Converter={StaticResource BoolToVis}}">
-                        <StackPanel>
-                            <TextBlock Text="Pending Track Join Requests" Style="{StaticResource Text.Heading3}" Margin="0,0,0,6" />
-                            <TextBlock Text="Approve or decline requests from project members who want to join the tracks you lead." FontSize="12" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,0,0,12" />
-
-                            <ItemsControl ItemsSource="{Binding PendingTrackJoins}">
-                                <ItemsControl.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1" Padding="0,12">
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="Auto" />
-                                                    <ColumnDefinition Width="*" />
-                                                    <ColumnDefinition Width="Auto" />
-                                                </Grid.ColumnDefinitions>
-
-                                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="18" Background="{DynamicResource Brush.SurfaceElevated}" Margin="0,0,14,0">
-                                                    <TextBlock Text="{Binding Member.Name[0]}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource Brush.Primary}" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                                </Border>
-
-                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
-                                                    <TextBlock Text="{Binding Member.Name}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
-                                                    <TextBlock Text="{Binding TrackName, StringFormat='wants to join track: {0}'}" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" />
-                                                </StackPanel>
-
-                                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                                    <Button Style="{StaticResource Button.Primary}" Content="Approve" Height="32" Padding="14,0" Margin="0,0,8,0"
-                                                            Command="{Binding DataContext.ApproveJoinTrackCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                            CommandParameter="{Binding}" />
-                                                    <Button Style="{StaticResource Button.Ghost}" Content="Reject" Height="32" Padding="14,0"
-                                                            Command="{Binding DataContext.RejectJoinTrackCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
-                                                            CommandParameter="{Binding}" />
-                                                </StackPanel>
-                                            </Grid>
-                                        </Border>
-                                    </DataTemplate>
-                                </ItemsControl.ItemTemplate>
-                            </ItemsControl>
-                        </StackPanel>
-                    </Border>
-
-                    <!-- Tracks Empty State -->
+<!-- Tracks Empty State -->
                     <Border Style="{StaticResource Border.Card}" Padding="32" Visibility="{Binding Tracks.Count, Converter={StaticResource BoolToVis}, ConverterParameter=invert}">
                         <StackPanel HorizontalAlignment="Center">
                             <TextBlock Text="No tracks created yet." FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextSecondary}" HorizontalAlignment="Center" Margin="0,0,0,4" />
@@ -311,14 +268,14 @@
                                                     </StackPanel>
                                                 </StackPanel>
 
-                                                <StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal">
-                                                    <Border CornerRadius="10" Padding="10,4" Background="{DynamicResource Brush.SurfaceElevated}"
-                                                            Visibility="{Binding IsJoinPending, Converter={StaticResource BoolToVis}}">
-                                                        <TextBlock Text="Pending Request" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextMuted}" />
-                                                    </Border>
-                                                    <Button Style="{StaticResource Button.Secondary}" Content="Request to Join" Height="30" Padding="12,0"
-                                                            Visibility="{Binding CanRequestJoin, Converter={StaticResource BoolToVis}}"
-                                                            Command="{Binding DataContext.RequestJoinTrackCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+<StackPanel HorizontalAlignment="Right" VerticalAlignment="Center" Orientation="Horizontal">
+                                                    <Button Style="{StaticResource Button.Secondary}" Content="Join Track" Height="30" Padding="12,0" Margin="0,0,8,0"
+                                                            Visibility="{Binding CanJoin, Converter={StaticResource BoolToVis}}"
+                                                            Command="{Binding DataContext.JoinTrackCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
+                                                            CommandParameter="{Binding}" />
+                                                    <Button Style="{StaticResource Button.Danger}" Content="Leave Track" Height="30" Padding="12,0"
+                                                            Visibility="{Binding CanLeave, Converter={StaticResource BoolToVis}}"
+                                                            Command="{Binding DataContext.LeaveTrackCommand, RelativeSource={RelativeSource AncestorType=UserControl}}"
                                                             CommandParameter="{Binding}" />
                                                 </StackPanel>
                                             </Grid>
@@ -499,9 +456,17 @@
                                                                FontSize="12" FontWeight="Bold" Foreground="{DynamicResource Brush.TextPrimary}" />
                                                 </Border>
 
-                                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+<StackPanel Grid.Column="1" VerticalAlignment="Center">
                                                     <TextBlock Text="{Binding Title}" FontSize="14" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
                                                     <TextBlock Text="{Binding Description}" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,2,0,0" />
+                                                    <StackPanel Orientation="Horizontal" Margin="0,6,0,0"
+                                                                Visibility="{Binding CreatedByUserName, Converter={StaticResource NullToVis}}">
+                                                        <Border Width="18" Height="18" CornerRadius="9" Background="{DynamicResource Brush.Primary}" Margin="0,0,6,0" VerticalAlignment="Center">
+                                                            <TextBlock Text="{Binding CreatedByUserName, Converter={StaticResource StringToInitial}}" FontSize="8.5" FontWeight="Bold" Foreground="White" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                        </Border>
+                                                        <TextBlock FontSize="10.5" Foreground="{DynamicResource Brush.TextMuted}" VerticalAlignment="Center"
+                                                                   Text="{Binding CreatedByUserName, StringFormat='by {0}'}" />
+                                                    </StackPanel>
                                                 </StackPanel>
 
                                                 <Border Grid.Column="2" VerticalAlignment="Center" CornerRadius="10" Padding="8,3" Background="{DynamicResource Brush.SurfaceElevated}">

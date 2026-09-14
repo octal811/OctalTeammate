@@ -19,9 +19,12 @@
                 <StackPanel>
                     <!-- Header -->
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,16">
-                        <Border Width="36" Height="36" CornerRadius="8" Background="{DynamicResource Brush.Primary}" Margin="0,0,12,0">
-                            <Path Data="{StaticResource Icon.Logo}" Fill="{DynamicResource Brush.PrimaryForeground}" Width="20" Height="20" Stretch="Uniform" />
-                        </Border>
+                        <Grid Width="36" Height="36" Margin="0,0,12,0">
+                            <Grid.Clip>
+                                <EllipseGeometry RadiusX="18" RadiusY="18" Center="18,18" />
+                            </Grid.Clip>
+                            <Image Source="pack://application:,,,/OctalPulse;component/Assets/OctalPulse.png" Width="36" Height="36" Stretch="UniformToFill" />
+                        </Grid>
                         <TextBlock Text="OCTALPULSE" FontSize="18" FontWeight="Bold" Foreground="{DynamicResource Brush.TextPrimary}" VerticalAlignment="Center" />
                     </StackPanel>
 

@@ -18,6 +18,8 @@ public record EventItem(
     Guid? TrackId,
     Guid? MajorTaskId,
     Guid CreatedByUserId,
+    string? CreatedByUserName,
+    string? CreatedByUserEmail,
     Guid? DeletedByUserId,
     bool IsDeleted,
     DateTime CreatedDate,

@@ -51,18 +51,6 @@ public class GetTracksByProjectQueryHandler : IRequestHandler<GetTracksByProject
                 var currentUserMembership = currentMembership ??
                     (t.TrackLeadUserId == request.UserId ? MembershipStatus.Approved : (MembershipStatus?)null);
 
-                var isLead = t.TrackLeadUserId == request.UserId;
-
-                var pendingMembers = isLead
-                    ? t.Members
-                        .Where(m => m.Status == MembershipStatus.Pending && m.User is not null)
-                        .Select(m => new TrackMemberItem(
-                            m.UserId,
-                            m.User.Name,
-                            m.User.ProfilePictureUrl))
-                        .ToList()
-                    : new List<TrackMemberItem>();
-
                 return new TrackSummaryItem(
                     t.Id,
                     t.Name,
@@ -76,8 +64,7 @@ public class GetTracksByProjectQueryHandler : IRequestHandler<GetTracksByProject
                             m.User.Name,
                             m.User.ProfilePictureUrl))
                         .ToList(),
-                    currentUserMembership,
-                    pendingMembers);
+                    currentUserMembership);
             })
             .ToList();
 

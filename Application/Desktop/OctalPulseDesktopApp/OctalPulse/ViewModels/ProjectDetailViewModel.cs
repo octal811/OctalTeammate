@@ -95,7 +95,6 @@ public partial class ProjectDetailViewModel : ObservableObject, INavigationAware
     private DateTime _newEventDate = DateTime.Today.AddDays(1);
 
     public ObservableCollection<TrackRowViewModel> Tracks { get; } = new();
-    public ObservableCollection<PendingTrackJoinViewModel> PendingTrackJoins { get; } = new();
     public ObservableCollection<ProjectMemberItem> Members { get; } = new();
     public ObservableCollection<ProjectMemberItem> PendingMembers { get; } = new();
     public ObservableCollection<EventItem> Events { get; } = new();
@@ -218,32 +217,24 @@ public partial class ProjectDetailViewModel : ObservableObject, INavigationAware
     {
         var res = await _projectService.GetTracksByProjectAsync(ProjectId);
         Tracks.Clear();
-        PendingTrackJoins.Clear();
         foreach (var t in res.Tracks)
         {
             var row = new TrackRowViewModel(t, t.TrackLeadUserId == _userSession.UserId);
             Tracks.Add(row);
-
-            if (row.HasPendingJoins && t.PendingMembers is not null)
-            {
-                foreach (var m in t.PendingMembers)
-                {
-                    PendingTrackJoins.Add(new PendingTrackJoinViewModel(t.Id, t.Name, m));
-                }
-            }
         }
     }
 
     [RelayCommand]
-    private async Task RequestJoinTrackAsync(TrackRowViewModel row)
+    private async Task JoinTrackAsync(TrackRowViewModel row)
     {
         if (row is null || IsBusy)
             return;
 
         try
         {
-            var res = await _trackService.RequestJoinTrackAsync(row.Item.Id);
-            _dialogService.ShowToast("Join Request Sent", res.Message, ToastType.Info);
+            var res = await _trackService.JoinTrackAsync(row.Item.Id);
+            _ = _signalRService.JoinTrackAsync(row.Item.Id);
+            _dialogService.ShowToast("Joined Track", res.Message, ToastType.Success);
             await LoadTracksAsync();
         }
         catch (Exception ex)
@@ -253,38 +244,26 @@ public partial class ProjectDetailViewModel : ObservableObject, INavigationAware
     }
 
     [RelayCommand]
-    private async Task ApproveJoinTrackAsync(PendingTrackJoinViewModel request)
+    private async Task LeaveTrackAsync(TrackRowViewModel row)
     {
-        if (request is null || IsBusy)
+        if (row is null || IsBusy)
             return;
+
+        var confirm = await _dialogService.ShowConfirmationAsync(
+            "Leave Track",
+            $"Are you sure you want to leave \u201C{row.Item.Name}\u201D? You will lose access to its tasks.");
+        if (!confirm) return;
 
         try
         {
-            await _trackService.ApproveJoinTrackAsync(request.TrackId, request.Member.UserId);
-            _dialogService.ShowToast("Request Approved", $"{request.Member.Name} can now work on this track.", ToastType.Success);
+            var res = await _trackService.LeaveTrackAsync(row.Item.Id);
+            _ = _signalRService.LeaveTrackAsync(row.Item.Id);
+            _dialogService.ShowToast("Left Track", res.Message, ToastType.Info);
             await LoadTracksAsync();
         }
         catch (Exception ex)
         {
-            _dialogService.ShowToast("Approve Failed", ex.Message, ToastType.Error);
-        }
-    }
-
-    [RelayCommand]
-    private async Task RejectJoinTrackAsync(PendingTrackJoinViewModel request)
-    {
-        if (request is null || IsBusy)
-            return;
-
-        try
-        {
-            await _trackService.RejectJoinTrackAsync(request.TrackId, request.Member.UserId);
-            _dialogService.ShowToast("Request Rejected", $"{request.Member.Name}'s track join request was declined.", ToastType.Info);
-            await LoadTracksAsync();
-        }
-        catch (Exception ex)
-        {
-            _dialogService.ShowToast("Reject Failed", ex.Message, ToastType.Error);
+            _dialogService.ShowToast("Leave Error", ex.Message, ToastType.Error);
         }
     }
 
@@ -636,7 +615,7 @@ public partial class ProjectDetailViewModel : ObservableObject, INavigationAware
 
         if (!row.IsMember)
         {
-            _dialogService.ShowToast("Access Restricted", "You are not joined to this track yet, or your join request hasn't been approved.", ToastType.Warning);
+            _dialogService.ShowToast("Access Restricted", "You are not joined to this track yet. Use the Join button to join it.", ToastType.Warning);
             return;
         }
 

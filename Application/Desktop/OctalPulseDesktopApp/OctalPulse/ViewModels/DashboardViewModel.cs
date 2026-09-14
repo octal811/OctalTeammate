@@ -88,7 +88,7 @@ public partial class DashboardViewModel : ObservableObject, INavigationAware, IN
         try
         {
             // Load projects
-            var pagedProjects = await _projectService.GetAllProjectsAsync(1, 20);
+            var pagedProjects = await _projectService.GetAllProjectsAsync(1, 100);
             RecentProjects.Clear();
 
             var totalProgress = 0;
@@ -101,18 +101,37 @@ public partial class DashboardViewModel : ObservableObject, INavigationAware, IN
             MyProjectsCount = pagedProjects.TotalCount;
             AverageProgress = pagedProjects.Items.Count > 0 ? totalProgress / pagedProjects.Items.Count : 0;
 
-            // Load upcoming events for the first active project if available
+            // Load upcoming events aggregated across all the user's projects.
             UpcomingEvents.Clear();
             if (pagedProjects.Items.Count > 0)
             {
                 var now = DateTime.UtcNow;
-                var monthEvents = await _eventService.GetEventsByMonthAsync(pagedProjects.Items[0].Id, now.Year, now.Month);
-                var upcoming = monthEvents.Events.Where(e => e.StartDate >= now.Date).Take(5);
-                foreach (var ev in upcoming)
+                var projectIds = pagedProjects.Items.Select(p => p.Id).ToList();
+
+                var results = await Task.WhenAll(projectIds.Select(async id =>
+                {
+                    try
+                    {
+                        return await _eventService.GetEventsByMonthAsync(id, now.Year, now.Month);
+                    }
+                    catch
+                    {
+                        return null;
+                    }
+                }));
+
+                var merged = results
+                    .Where(r => r != null)
+                    .SelectMany(r => r!.Events)
+                    .Where(e => e.StartDate >= now.Date)
+                    .OrderBy(e => e.StartDate)
+                    .ToList();
+
+                foreach (var ev in merged.Take(8))
                 {
                     UpcomingEvents.Add(ev);
                 }
-                UpcomingEventsCount = monthEvents.TotalCount;
+                UpcomingEventsCount = merged.Count;
             }
         }
         catch (Exception)

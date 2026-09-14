@@ -9,6 +9,7 @@
         WindowStyle="None"
         AllowsTransparency="False"
         Title="OctalPulse • Enterprise Project Management"
+        Icon="pack://application:,,,/OctalPulse;component/Assets/OctalPulse.ico"
         Height="820" Width="1280"
         MinHeight="680" MinWidth="1050"
         WindowStartupLocation="CenterScreen"
@@ -115,15 +116,16 @@
 
                 <!-- Brand -->
                 <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,10,0">
-                    <Border Width="20" Height="20" CornerRadius="5" Background="{DynamicResource Brush.Primary}">
-                        <Path Data="{StaticResource Icon.Logo}" Fill="{DynamicResource Brush.PrimaryForeground}"
-                              Width="12" Height="12" Stretch="Uniform" />
-                    </Border>
+                    <Grid Width="22" Height="22">
+                        <Grid.Clip>
+                            <EllipseGeometry RadiusX="11" RadiusY="11" Center="11,11" />
+                        </Grid.Clip>
+                        <Image Source="pack://application:,,,/OctalPulse;component/Assets/OctalPulse.png" Width="22" Height="22" Stretch="UniformToFill" />
+                    </Grid>
                     <TextBlock Text="OctalPulse" VerticalAlignment="Center" Margin="8,0,0,0"
                                FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
                 </StackPanel>
 
-                <!-- Window Controls -->
                 <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Top">
                     <Button Style="{StaticResource TitleBarButton}" Click="MinimizeButton_Click"
                             WindowChrome.IsHitTestVisibleInChrome="True"
@@ -134,6 +136,34 @@
                             WindowChrome.IsHitTestVisibleInChrome="True"
                             ToolTip="Maximize">
                         <TextBlock x:Name="MaximizeGlyph" Text="&#xE922;" FontFamily="Segoe MDL2 Assets" FontSize="10" />
+                    </Button>
+                    <!-- Hide to background (run in system tray) -->
+                    <Button x:Name="HideToTrayButton"
+                            WindowChrome.IsHitTestVisibleInChrome="True"
+                            ToolTip="Hide to background (Alt+W to restore)"
+                            Click="HideToTrayButton_Click"
+                            Width="46" Height="32"
+                            BorderThickness="0" Padding="0"
+                            Background="Transparent"
+                            Foreground="{DynamicResource Brush.TextMuted}">
+                        <Button.Template>
+                            <ControlTemplate TargetType="Button">
+                                <Border x:Name="bd" Background="{TemplateBinding Background}">
+                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                </Border>
+                                <ControlTemplate.Triggers>
+                                    <Trigger Property="IsMouseOver" Value="True">
+                                        <Setter TargetName="bd" Property="Background" Value="#1AF59E0B"/>
+                                        <Setter Property="Foreground" Value="#F59E0B"/>
+                                    </Trigger>
+                                    <Trigger Property="IsPressed" Value="True">
+                                        <Setter TargetName="bd" Property="Background" Value="#2AF59E0B"/>
+                                    </Trigger>
+                                </ControlTemplate.Triggers>
+                            </ControlTemplate>
+                        </Button.Template>
+                        <!-- Segoe MDL2: arrow-down-to-line / hide icon -->
+                        <TextBlock Text="&#xE93C;" FontFamily="Segoe MDL2 Assets" FontSize="10"/>
                     </Button>
                     <Button Style="{StaticResource TitleBarButtonClose}" Click="CloseButton_Click"
                             WindowChrome.IsHitTestVisibleInChrome="True"

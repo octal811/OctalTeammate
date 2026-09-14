@@ -91,19 +91,22 @@
                             Grid.Column="0"
                             Margin="26,0,0,0"
                             Orientation="Horizontal">
-                            <Border
-                                Width="36"
-                                Height="36"
-                                Margin="0,0,12,0"
-                                Background="{DynamicResource Brush.Primary}"
-                                CornerRadius="8">
-                                <Path
-                                    Width="20"
-                                    Height="20"
-                                    Data="{StaticResource Icon.Logo}"
-                                    Fill="{DynamicResource Brush.PrimaryForeground}"
-                                    Stretch="Uniform" />
-                            </Border>
+                            <Grid
+                                Width="40"
+                                Height="40"
+                                Margin="0,0,12,0">
+                                <Grid.Clip>
+                                    <EllipseGeometry
+                                        RadiusX="20"
+                                        RadiusY="20"
+                                        Center="20,20" />
+                                </Grid.Clip>
+                                <Image
+                                    Width="40"
+                                    Height="40"
+                                    Source="pack://application:,,,/OctalPulse;component/Assets/OctalPulse.png"
+                                    Stretch="UniformToFill" />
+                            </Grid>
                             <StackPanel VerticalAlignment="Center">
                                 <TextBlock
                                     FontSize="16"
