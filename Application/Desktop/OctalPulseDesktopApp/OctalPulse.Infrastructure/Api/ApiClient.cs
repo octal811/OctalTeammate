@@ -8,6 +8,27 @@ using OctalPulse.Application.Contracts;
 
 namespace OctalPulse.Infrastructure.Api;
 
+/// <summary>
+/// Ensures all DateTime values received from the API are treated as UTC.
+/// Without this, System.Text.Json deserializes UTC datetime strings with Kind=Unspecified,
+/// causing ToUniversalTime() to incorrectly add the local timezone offset.
+/// </summary>
+internal sealed class UtcDateTimeJsonConverter : JsonConverter<DateTime>
+{
+    public override DateTime Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
+    {
+        var dt = reader.GetDateTime();
+        return dt.Kind == DateTimeKind.Utc
+            ? dt
+            : DateTime.SpecifyKind(dt, DateTimeKind.Utc);
+    }
+
+    public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
+    {
+        writer.WriteStringValue(value.ToUniversalTime().ToString("O"));
+    }
+}
+
 public class ApiClient
 {
     private readonly HttpClient _httpClient;
@@ -24,6 +45,7 @@ public class ApiClient
             PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         };
         _jsonOptions.Converters.Add(new JsonStringEnumConverter());
+        _jsonOptions.Converters.Add(new UtcDateTimeJsonConverter());
     }
 
     public async Task<TResponse> SendAsync<TResponse>(

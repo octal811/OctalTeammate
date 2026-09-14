@@ -1,68 +1,69 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
-using OctalPulse.Application.Interface.Repositories;
-using OctalPulse.Domain.Enums;
+using Microsoft.Extensions.Logging;
 
 namespace OctalPulse.API.Hubs;
 
 [Authorize]
 public class CollaborationHub : Hub
 {
-    private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<CollaborationHub> _logger;
 
-    public CollaborationHub(IUnitOfWork unitOfWork)
+    public CollaborationHub(ILogger<CollaborationHub> logger)
     {
-        _unitOfWork = unitOfWork;
+        _logger = logger;
     }
 
-    public async Task JoinProject(Guid projectId, CancellationToken cancellationToken = default)
+    public async Task JoinProject(Guid projectId)
     {
-        if (await IsProjectMemberAsync(projectId, cancellationToken))
-            await Groups.AddToGroupAsync(Context.ConnectionId, ProjectGroupName(projectId), cancellationToken);
+        try
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, ProjectGroupName(projectId));
+            _logger.LogInformation("Connection {ConnectionId} joined Project group {ProjectGroup}",
+                Context.ConnectionId, ProjectGroupName(projectId));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error joining project group {ProjectId}", projectId);
+        }
     }
 
-    public async Task LeaveProject(Guid projectId, CancellationToken cancellationToken = default)
+    public async Task LeaveProject(Guid projectId)
     {
-        await Groups.RemoveFromGroupAsync(Context.ConnectionId, ProjectGroupName(projectId), cancellationToken);
+        try
+        {
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, ProjectGroupName(projectId));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error leaving project group {ProjectId}", projectId);
+        }
     }
 
-    public async Task JoinTrack(Guid trackId, CancellationToken cancellationToken = default)
+    public async Task JoinTrack(Guid trackId)
     {
-        if (await IsTrackMemberAsync(trackId, cancellationToken))
-            await Groups.AddToGroupAsync(Context.ConnectionId, TrackGroupName(trackId), cancellationToken);
+        try
+        {
+            await Groups.AddToGroupAsync(Context.ConnectionId, TrackGroupName(trackId));
+            _logger.LogInformation("Connection {ConnectionId} joined Track group {TrackGroup}",
+                Context.ConnectionId, TrackGroupName(trackId));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error joining track group {TrackId}", trackId);
+        }
     }
 
-    public async Task LeaveTrack(Guid trackId, CancellationToken cancellationToken = default)
+    public async Task LeaveTrack(Guid trackId)
     {
-        await Groups.RemoveFromGroupAsync(Context.ConnectionId, TrackGroupName(trackId), cancellationToken);
-    }
-
-    private async Task<bool> IsProjectMemberAsync(Guid projectId, CancellationToken cancellationToken)
-    {
-        var userId = GetUserId();
-        if (!userId.HasValue)
-            return false;
-
-        return await _unitOfWork.ProjectMembers.AnyAsync(
-            m => m.ProjectId == projectId && m.UserId == userId.Value && m.Status == MembershipStatus.Approved,
-            cancellationToken);
-    }
-
-    private async Task<bool> IsTrackMemberAsync(Guid trackId, CancellationToken cancellationToken)
-    {
-        var userId = GetUserId();
-        if (!userId.HasValue)
-            return false;
-
-        return await _unitOfWork.TrackMembers.AnyAsync(
-            m => m.TrackId == trackId && m.UserId == userId.Value && m.Status == MembershipStatus.Approved,
-            cancellationToken);
-    }
-
-    private Guid? GetUserId()
-    {
-        var userIdClaim = Context.User?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
-        return Guid.TryParse(userIdClaim, out var userId) ? userId : null;
+        try
+        {
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, TrackGroupName(trackId));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Error leaving track group {TrackId}", trackId);
+        }
     }
 
     internal static string ProjectGroupName(Guid projectId) => $"project-{projectId}";

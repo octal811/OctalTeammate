@@ -69,21 +69,33 @@ public partial class ProjectsViewModel : ObservableObject, INavigationAware, INa
         _dialogService = dialogService;
 
         _signalRService.ProjectChanged += OnProjectChanged;
+        _signalRService.TrackChanged += OnTrackChanged;
     }
 
     public void OnNavigatedTo(object? parameter)
     {
         _signalRService.ProjectChanged -= OnProjectChanged;
         _signalRService.ProjectChanged += OnProjectChanged;
+        _signalRService.TrackChanged -= OnTrackChanged;
+        _signalRService.TrackChanged += OnTrackChanged;
         _ = LoadProjectsAsync();
     }
 
     public void OnNavigatedFrom()
     {
         _signalRService.ProjectChanged -= OnProjectChanged;
+        _signalRService.TrackChanged -= OnTrackChanged;
     }
 
     private void OnProjectChanged(Guid projectId)
+    {
+        System.Windows.Application.Current?.Dispatcher.Invoke(async () =>
+        {
+            await LoadProjectsAsync();
+        });
+    }
+
+    private void OnTrackChanged(Guid trackId, Guid projectId)
     {
         System.Windows.Application.Current?.Dispatcher.Invoke(async () =>
         {

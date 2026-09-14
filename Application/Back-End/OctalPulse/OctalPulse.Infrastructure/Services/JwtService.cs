@@ -25,10 +25,13 @@ public class JwtService : IJwtService
 
         var claims = new List<Claim>
         {
+            new(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
+            new(ClaimTypes.Email, user.Email ?? string.Empty),
             new(JwtRegisteredClaimNames.Email, user.Email ?? string.Empty),
             new(JwtRegisteredClaimNames.Iat, new DateTimeOffset(now).ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64),
+            new(ClaimTypes.Name, user.Name),
             new(JwtRegisteredClaimNames.Name, user.Name),
             new("mainRole", user.MainRole.ToString()),
             new("rank", user.Rank.ToString())

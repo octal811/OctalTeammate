@@ -16,35 +16,35 @@ public class SignalRNotifier : IRealtimeNotifier
     public async Task ProjectChangedAsync(Guid projectId, CancellationToken cancellationToken = default)
     {
         await _hubContext.Clients
-            .Group(CollaborationHub.ProjectGroupName(projectId))
+            .All
             .SendAsync("projectChanged", projectId, cancellationToken);
     }
 
     public async Task TrackChangedAsync(Guid trackId, Guid projectId, CancellationToken cancellationToken = default)
     {
         await _hubContext.Clients
-            .Group(CollaborationHub.ProjectGroupName(projectId))
+            .All
             .SendAsync("trackChanged", trackId, projectId, cancellationToken);
     }
 
     public async Task MajorTaskChangedAsync(Guid trackId, Guid majorTaskId, CancellationToken cancellationToken = default)
     {
         await _hubContext.Clients
-            .Group(CollaborationHub.TrackGroupName(trackId))
+            .All
             .SendAsync("majorTaskChanged", majorTaskId, trackId, cancellationToken);
     }
 
     public async Task MinorTaskChangedAsync(Guid trackId, Guid minorTaskId, CancellationToken cancellationToken = default)
     {
         await _hubContext.Clients
-            .Group(CollaborationHub.TrackGroupName(trackId))
+            .All
             .SendAsync("minorTaskChanged", minorTaskId, trackId, cancellationToken);
     }
 
     public async Task EventChangedAsync(Guid projectId, Guid eventId, CancellationToken cancellationToken = default)
     {
         await _hubContext.Clients
-            .Group(CollaborationHub.ProjectGroupName(projectId))
+            .All
             .SendAsync("eventChanged", eventId, projectId, cancellationToken);
     }
 

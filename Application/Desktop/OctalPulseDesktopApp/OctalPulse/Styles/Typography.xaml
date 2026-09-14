@@ -14,9 +14,9 @@
     <!--  Base TextBlock Crisp Rendering  -->
     <Style TargetType="TextBlock">
         <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
-        <Setter Property="TextOptions.TextRenderingMode"  Value="ClearType" />
-        <Setter Property="SnapsToDevicePixels"            Value="True" />
-        <Setter Property="UseLayoutRounding"              Value="True" />
+        <Setter Property="TextOptions.TextRenderingMode" Value="ClearType" />
+        <Setter Property="SnapsToDevicePixels" Value="True" />
+        <Setter Property="UseLayoutRounding" Value="True" />
     </Style>
 
     <!--  Text Styles  -->

@@ -55,9 +55,9 @@ public sealed class TrayService : IDisposable
         _notifyIcon.DoubleClick += (_, _) => ShowMainWindowRequested?.Invoke();
     }
 
-    public void ShowBalloonTip(string title, string message, int durationMs = 2000)
+    public void ShowBalloonTip(string title, string message, int durationMs = 3000)
     {
-        _notifyIcon?.ShowBalloonTip(durationMs, title, message, WinForms.ToolTipIcon.None);
+        _notifyIcon?.ShowBalloonTip(durationMs, title, message, WinForms.ToolTipIcon.Info);
     }
 
     public void Dispose()
