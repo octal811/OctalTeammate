@@ -125,6 +125,11 @@ public partial class TrackDetailViewModel : ObservableObject, INavigationAware, 
         }
 
         UpdateBreadcrumbs();
+        _signalRService.MajorTaskChanged -= OnMajorTaskChanged;
+        _signalRService.MinorTaskChanged -= OnMinorTaskChanged;
+        _signalRService.MajorTaskChanged += OnMajorTaskChanged;
+        _signalRService.MinorTaskChanged += OnMinorTaskChanged;
+
         _ = _signalRService.JoinTrackAsync(TrackId);
         _ = LoadTasksAsync();
     }

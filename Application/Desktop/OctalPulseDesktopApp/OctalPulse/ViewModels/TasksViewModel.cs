@@ -119,13 +119,38 @@ public partial class TasksViewModel : ObservableObject, INavigationAware
         ITaskService taskService,
         INavigationService navigationService,
         IDialogService dialogService,
-        IUserSession userSession)
+        IUserSession userSession,
+        RealtimeNotificationService notificationService)
     {
         _projectService = projectService;
         _taskService = taskService;
         _navigationService = navigationService;
         _dialogService = dialogService;
         _userSession = userSession;
+
+        notificationService.MajorTasksUpdated += () =>
+        {
+            System.Windows.Application.Current?.Dispatcher.Invoke(async () =>
+            {
+                await LoadAllTasksAsync();
+            });
+        };
+
+        notificationService.MinorTasksUpdated += () =>
+        {
+            System.Windows.Application.Current?.Dispatcher.Invoke(async () =>
+            {
+                await LoadAllTasksAsync();
+            });
+        };
+
+        notificationService.ProjectsTracksUpdated += () =>
+        {
+            System.Windows.Application.Current?.Dispatcher.Invoke(async () =>
+            {
+                await LoadAllTasksAsync();
+            });
+        };
     }
 
     public void OnNavigatedTo(object? parameter)

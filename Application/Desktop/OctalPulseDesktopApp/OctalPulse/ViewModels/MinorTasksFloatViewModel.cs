@@ -65,12 +65,29 @@ public partial class MinorTasksFloatViewModel : ObservableObject
         IProjectService projectService,
         ITaskService taskService,
         IUserSession userSession,
-        IDialogService dialogService)
+        IDialogService dialogService,
+        RealtimeNotificationService notificationService)
     {
         _projectService = projectService;
         _taskService = taskService;
         _userSession = userSession;
         _dialogService = dialogService;
+
+        notificationService.MinorTasksUpdated += () =>
+        {
+            System.Windows.Application.Current?.Dispatcher.Invoke(async () =>
+            {
+                await RefreshAsync();
+            });
+        };
+
+        notificationService.MajorTasksUpdated += () =>
+        {
+            System.Windows.Application.Current?.Dispatcher.Invoke(async () =>
+            {
+                await RefreshAsync();
+            });
+        };
     }
 
     partial void OnSelectedProjectChanged(string value)

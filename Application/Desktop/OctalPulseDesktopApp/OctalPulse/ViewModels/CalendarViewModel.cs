@@ -71,7 +71,8 @@ public partial class CalendarViewModel : ObservableObject, INavigationAware
         ISignalRRealtimeService signalRService,
         IDialogService dialogService,
         IUserSession userSession,
-        INavigationService navigationService)
+        INavigationService navigationService,
+        RealtimeNotificationService notificationService)
     {
         _eventService = eventService;
         _projectService = projectService;
@@ -81,6 +82,14 @@ public partial class CalendarViewModel : ObservableObject, INavigationAware
         _navigationService = navigationService;
 
         _signalRService.EventChanged += OnEventChanged;
+
+        notificationService.CalendarUpdated += () =>
+        {
+            System.Windows.Application.Current?.Dispatcher.Invoke(async () =>
+            {
+                await LoadMonthEventsAsync();
+            });
+        };
     }
 
     public void OnNavigatedTo(object? parameter)
@@ -95,7 +104,6 @@ public partial class CalendarViewModel : ObservableObject, INavigationAware
             System.Windows.Application.Current?.Dispatcher.Invoke(async () =>
             {
                 await LoadMonthEventsAsync();
-                _dialogService.ShowToast("Calendar Update", "Events were updated in real time.", ToastType.Info);
             });
         }
     }
@@ -135,6 +143,7 @@ public partial class CalendarViewModel : ObservableObject, INavigationAware
         UpdateBreadcrumbs(value);
         if (value != null)
         {
+            _ = _signalRService.JoinProjectAsync(value.Id);
             _ = LoadMonthEventsAsync();
         }
     }

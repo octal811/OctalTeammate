@@ -22,11 +22,20 @@ public partial class CalendarFloatViewModel : ObservableObject
     public CalendarFloatViewModel(
         IEventService eventService,
         IProjectService projectService,
-        IDialogService dialogService)
+        IDialogService dialogService,
+        RealtimeNotificationService notificationService)
     {
         _eventService = eventService;
         _projectService = projectService;
         _dialogService = dialogService;
+
+        notificationService.CalendarUpdated += () =>
+        {
+            System.Windows.Application.Current?.Dispatcher.Invoke(async () =>
+            {
+                await RefreshAsync();
+            });
+        };
     }
 
     [RelayCommand]

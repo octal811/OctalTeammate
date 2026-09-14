@@ -125,6 +125,13 @@ public partial class ProjectDetailViewModel : ObservableObject, INavigationAware
 
     public void OnNavigatedTo(object? parameter)
     {
+        _signalRService.ProjectChanged -= OnProjectChanged;
+        _signalRService.ProjectChanged += OnProjectChanged;
+        _signalRService.TrackChanged -= OnTrackChanged;
+        _signalRService.TrackChanged += OnTrackChanged;
+        _signalRService.EventChanged -= OnEventChanged;
+        _signalRService.EventChanged += OnEventChanged;
+
         if (parameter is Guid id)
         {
             ProjectId = id;

@@ -45,6 +45,7 @@ public partial class App : System.Windows.Application
                 services.AddSingleton<GlobalHotkeyService>();
                 services.AddSingleton<FloatWindowPositionStore>();
                 services.AddSingleton<FloatWindowService>();
+                services.AddSingleton<RealtimeNotificationService>();
 
                 // ViewModels
                 services.AddTransient<MainViewModel>();
@@ -96,6 +97,10 @@ public partial class App : System.Windows.Application
         // Load float window positions
         var positionStore = Services.GetRequiredService<FloatWindowPositionStore>();
         await positionStore.LoadAsync();
+
+        // Initialize real-time SignalR notifications & group sync
+        var notificationService = Services.GetRequiredService<RealtimeNotificationService>();
+        notificationService.Initialize();
 
         var mainWindow = Services.GetRequiredService<MainWindow>();
         mainWindow.Show();

@@ -73,6 +73,8 @@ public partial class ProjectsViewModel : ObservableObject, INavigationAware, INa
 
     public void OnNavigatedTo(object? parameter)
     {
+        _signalRService.ProjectChanged -= OnProjectChanged;
+        _signalRService.ProjectChanged += OnProjectChanged;
         _ = LoadProjectsAsync();
     }
 

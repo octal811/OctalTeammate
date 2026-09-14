@@ -18,6 +18,7 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
     private readonly IProjectService _projectService;
     private readonly ThemeService _themeService;
     private readonly WpfDialogService _dialogService;
+    private readonly RealtimeNotificationService _notificationService;
     private DispatcherTimer? _toastTimer;
     private bool _groupsRegistered;
 
@@ -61,7 +62,8 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
         ISignalRRealtimeService signalRService,
         IProjectService projectService,
         ThemeService themeService,
-        IDialogService dialogService)
+        IDialogService dialogService,
+        RealtimeNotificationService notificationService)
     {
         _navigationService = navigationService;
         _userSession = userSession;
@@ -72,6 +74,7 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
         _projectService = projectService;
         _themeService = themeService;
         _dialogService = (WpfDialogService)dialogService;
+        _notificationService = notificationService;
 
         _isSignalRConnected = _signalRService.IsConnected;
         _signalRService.ConnectionStateChanged += OnConnectionStateChanged;
@@ -88,39 +91,7 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
         if (!_groupsRegistered)
         {
             _groupsRegistered = true;
-            _ = RegisterAllGroupsAsync();
-        }
-    }
-
-    private async Task RegisterAllGroupsAsync()
-    {
-        try
-        {
-            var projects = await _projectService.GetAllProjectsAsync(1, 100);
-
-            var projectIds = new List<Guid>();
-            var trackIds = new List<Guid>();
-
-            foreach (var project in projects.Items)
-            {
-                projectIds.Add(project.Id);
-
-                try
-                {
-                    var tracks = await _projectService.GetTracksByProjectAsync(project.Id);
-                    trackIds.AddRange(tracks.Tracks.Select(t => t.Id));
-                }
-                catch
-                {
-                    // A project failing to resolve tracks shouldn't block the rest.
-                }
-            }
-
-            await _signalRService.RegisterGroupMembershipAsync(projectIds, trackIds);
-        }
-        catch
-        {
-            // Group registration is best-effort; detail views still join on navigation.
+            _ = _notificationService.SyncAllUserGroupsAsync();
         }
     }
 
@@ -139,6 +110,11 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
             // Invoke here deadlocks during shutdown, when the UI thread is
             // busy stopping the DI container.
             app.Dispatcher.BeginInvoke(() => IsSignalRConnected = connected);
+        }
+
+        if (connected)
+        {
+            _ = _notificationService.SyncAllUserGroupsAsync();
         }
     }
 

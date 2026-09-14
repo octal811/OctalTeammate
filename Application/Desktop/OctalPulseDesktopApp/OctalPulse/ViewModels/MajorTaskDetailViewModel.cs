@@ -117,6 +117,11 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
 
     public void OnNavigatedTo(object? parameter)
     {
+        _signalRService.MinorTaskChanged -= OnMinorTaskChanged;
+        _signalRService.MinorTaskChanged += OnMinorTaskChanged;
+        _signalRService.MajorTaskChanged -= OnMajorTaskChanged;
+        _signalRService.MajorTaskChanged += OnMajorTaskChanged;
+
         switch (parameter)
         {
             case MajorTaskItem item:
@@ -191,6 +196,18 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
     public void OnNavigatedFrom()
     {
         _signalRService.MinorTaskChanged -= OnMinorTaskChanged;
+        _signalRService.MajorTaskChanged -= OnMajorTaskChanged;
+    }
+
+    private void OnMajorTaskChanged(Guid majorTaskId, Guid trackId)
+    {
+        if (majorTaskId == MajorTaskId || (_trackId != default && trackId == _trackId))
+        {
+            System.Windows.Application.Current?.Dispatcher.Invoke(async () =>
+            {
+                await LoadMinorTasksAsync();
+            });
+        }
     }
 
     private void OnMinorTaskChanged(Guid minorTaskId, Guid trackId)

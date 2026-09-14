@@ -17,10 +17,21 @@ public partial class MediaFloatViewModel : ObservableObject
 
     public ObservableCollection<PostItem> RecentPosts { get; } = new();
 
-    public MediaFloatViewModel(IPostService postService, IDialogService dialogService)
+    public MediaFloatViewModel(
+        IPostService postService,
+        IDialogService dialogService,
+        RealtimeNotificationService notificationService)
     {
         _postService = postService;
         _dialogService = dialogService;
+
+        notificationService.MediaUpdated += () =>
+        {
+            System.Windows.Application.Current?.Dispatcher.Invoke(async () =>
+            {
+                await RefreshAsync();
+            });
+        };
     }
 
     [RelayCommand]

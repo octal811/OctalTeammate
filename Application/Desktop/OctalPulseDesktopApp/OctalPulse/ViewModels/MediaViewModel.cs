@@ -99,6 +99,19 @@ public partial class MediaViewModel : ObservableObject, INavigationAware, INavig
 
     public void OnNavigatedTo(object? parameter)
     {
+        _signalRService.PostCreated -= OnRealtimePostCreated;
+        _signalRService.PostCreated += OnRealtimePostCreated;
+        _signalRService.PostUpdated -= OnRealtimePostUpdated;
+        _signalRService.PostUpdated += OnRealtimePostUpdated;
+        _signalRService.PostDeleted -= OnRealtimePostDeleted;
+        _signalRService.PostDeleted += OnRealtimePostDeleted;
+        _signalRService.PostReactionChanged -= OnRealtimePostReactionChanged;
+        _signalRService.PostReactionChanged += OnRealtimePostReactionChanged;
+        _signalRService.CommentAdded -= OnRealtimeCommentAdded;
+        _signalRService.CommentAdded += OnRealtimeCommentAdded;
+        _signalRService.CommentDeleted -= OnRealtimeCommentDeleted;
+        _signalRService.CommentDeleted += OnRealtimeCommentDeleted;
+
         _ = InitializeAsync();
     }
 
