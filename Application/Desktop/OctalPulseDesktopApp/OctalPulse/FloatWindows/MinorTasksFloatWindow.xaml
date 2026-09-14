@@ -10,7 +10,12 @@
         ShowInTaskbar="False"
         Topmost="False"
         ResizeMode="NoResize"
-        Background="Transparent">
+        Background="Transparent"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        RenderOptions.ClearTypeHint="Enabled"
+        SnapsToDevicePixels="True"
+        UseLayoutRounding="True">
 
     <Window.Resources>
         <converters:BooleanToVisibilityConverter x:Key="BoolToVis" />
@@ -18,7 +23,7 @@
         <Style x:Key="HeaderBtn" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Foreground" Value="#64748B"/>
+            <Setter Property="Foreground" Value="{DynamicResource Brush.TextSecondary}"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Padding" Value="6,4"/>
             <Setter Property="Template">
@@ -29,8 +34,8 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bd" Property="Background" Value="#F1F5F9"/>
-                                <Setter Property="Foreground" Value="#0F172A"/>
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource Brush.SurfaceHover}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -41,31 +46,29 @@
         <Style x:Key="FilterCombo" TargetType="ComboBox">
             <Setter Property="Height" Value="28"/>
             <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Background" Value="#FFFFFF"/>
-            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="Background" Value="{DynamicResource Brush.Surface}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Foreground" Value="#0F172A"/>
+            <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}"/>
         </Style>
 
         <Style x:Key="FilterBox" TargetType="TextBox">
             <Setter Property="Height" Value="28"/>
             <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Background" Value="#FFFFFF"/>
-            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="Background" Value="{DynamicResource Brush.Surface}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Foreground" Value="#0F172A"/>
+            <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}"/>
+            <Setter Property="CaretBrush" Value="{DynamicResource Brush.Primary}"/>
             <Setter Property="Padding" Value="6,4"/>
         </Style>
     </Window.Resources>
 
-    <!-- Main Container: White background, sharp edges, clean border -->
-    <Border Background="#FFFFFF"
-            BorderBrush="#CBD5E1"
+    <!-- Main Container: Theme-driven background, sharp edges, clean border -->
+    <Border Background="{DynamicResource Brush.Surface}"
+            BorderBrush="{DynamicResource Brush.Border}"
             BorderThickness="1"
             CornerRadius="0">
-        <Border.Effect>
-            <DropShadowEffect BlurRadius="16" ShadowDepth="2" Color="#000000" Opacity="0.15"/>
-        </Border.Effect>
 
         <Grid>
             <Grid.RowDefinitions>
@@ -78,8 +81,8 @@
 
             <!-- 1. Header Bar -->
             <Border Grid.Row="0"
-                    Background="#F8FAFC"
-                    BorderBrush="#E2E8F0"
+                    Background="{DynamicResource Brush.SurfaceElevated}"
+                    BorderBrush="{DynamicResource Brush.Border}"
                     BorderThickness="0,0,0,1"
                     Padding="12,8,8,8"
                     MouseLeftButtonDown="Header_MouseLeftButtonDown">
@@ -93,8 +96,8 @@
                     </Grid.ColumnDefinitions>
                     <Path Grid.Column="0"
                           Data="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
-                          Fill="#059669" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Column="1" Text="Minor Tasks" Foreground="#0F172A"
+                          Fill="{DynamicResource Brush.Success}" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" Text="Minor Tasks" Foreground="{DynamicResource Brush.TextPrimary}"
                                FontSize="12" FontWeight="Bold" VerticalAlignment="Center" Margin="8,0,0,0"/>
 
                     <Button Grid.Column="2" x:Name="LockButton" Style="{StaticResource HeaderBtn}"
@@ -112,15 +115,15 @@
                 </Grid>
             </Border>
 
-            <!-- 2. Search -->
-            <Border Grid.Row="1" Background="#FFFFFF" Padding="10,8,10,4">
+            <!-- 2. Search Box -->
+            <Border Grid.Row="1" Background="{DynamicResource Brush.Surface}" Padding="10,8,10,4">
                 <TextBox Style="{StaticResource FilterBox}"
                          Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
-                         ToolTip="Search minor tasks by title or parent task..."/>
+                         ToolTip="Search minor tasks by title..."/>
             </Border>
 
             <!-- 3. Filter Controls -->
-            <Border Grid.Row="2" Background="#FFFFFF" Padding="10,0,10,8" BorderBrush="#E2E8F0" BorderThickness="0,0,0,1">
+            <Border Grid.Row="2" Background="{DynamicResource Brush.Surface}" Padding="10,0,10,8" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -167,12 +170,11 @@
             <ScrollViewer Grid.Row="3"
                           VerticalScrollBarVisibility="Auto"
                           HorizontalScrollBarVisibility="Disabled"
-                          Background="#F8FAFC"
+                          Background="{DynamicResource Brush.Background}"
                           Padding="10,8">
                 <StackPanel>
-                    <!-- Empty state -->
                     <TextBlock Text="No minor tasks matching the selected filters."
-                               Foreground="#94A3B8"
+                               Foreground="{DynamicResource Brush.TextMuted}"
                                FontSize="11"
                                HorizontalAlignment="Center"
                                Margin="0,30,0,0">
@@ -180,7 +182,7 @@
                             <Style TargetType="TextBlock">
                                 <Setter Property="Visibility" Value="Collapsed"/>
                                 <Style.Triggers>
-                                    <DataTrigger Binding="{Binding MyMinorTasks.Count}" Value="0">
+                                    <DataTrigger Binding="{Binding ActiveTasks.Count}" Value="0">
                                         <Setter Property="Visibility" Value="Visible"/>
                                     </DataTrigger>
                                 </Style.Triggers>
@@ -188,73 +190,99 @@
                         </TextBlock.Style>
                     </TextBlock>
 
-                    <ItemsControl ItemsSource="{Binding MyMinorTasks}">
+                    <ItemsControl ItemsSource="{Binding ActiveTasks}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
                                 <Border Margin="0,0,0,8"
-                                        Background="#FFFFFF"
-                                        BorderBrush="#E2E8F0"
+                                        Background="{DynamicResource Brush.CardBackground}"
+                                        BorderBrush="{DynamicResource Brush.Border}"
                                         BorderThickness="1"
                                         CornerRadius="0"
                                         Padding="10,8">
-                                    <StackPanel>
-                                        <!-- Project / Track header -->
-                                        <WrapPanel Margin="0,0,0,4">
-                                            <!-- Project Badge -->
-                                            <Border Background="#EEF2FF" BorderBrush="#C7D2FE" BorderThickness="1"
-                                                    CornerRadius="0" Padding="5,2" Margin="0,0,4,2">
-                                                <TextBlock Foreground="#4338CA" FontSize="9" FontWeight="Bold">
-                                                    <Run Text="📁 "/><Run Text="{Binding ProjectTitle, Mode=OneWay}"/>
-                                                </TextBlock>
-                                            </Border>
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="4"/>
+                                            <ColumnDefinition Width="*"/>
+                                        </Grid.ColumnDefinitions>
 
-                                            <!-- Track Badge -->
-                                            <Border Background="#F0F9FF" BorderBrush="#BAE6FD" BorderThickness="1"
-                                                    CornerRadius="0" Padding="5,2" Margin="0,0,4,2">
-                                                <TextBlock Foreground="#0369A1" FontSize="9" FontWeight="SemiBold">
-                                                    <Run Text="⚡ "/><Run Text="{Binding TrackTitle, Mode=OneWay}"/>
-                                                </TextBlock>
-                                            </Border>
-                                        </WrapPanel>
-
-                                        <!-- Parent Major Task breadcrumb -->
-                                        <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1"
-                                                CornerRadius="0" Padding="6,2" Margin="0,0,0,6">
-                                            <TextBlock TextTrimming="CharacterEllipsis" FontSize="9" Foreground="#64748B">
-                                                <Run Text="Parent Task: " FontWeight="SemiBold"/><Run Text="{Binding MajorTaskTitle, Mode=OneWay}" Foreground="#0F172A" FontWeight="Bold"/>
-                                            </TextBlock>
+                                        <!-- State Left Stripe -->
+                                        <Border Grid.Column="0" Margin="0,0,8,0">
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Background" Value="{DynamicResource Brush.Primary}"/>
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding State}" Value="Done">
+                                                            <Setter Property="Background" Value="{DynamicResource Brush.Success}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding State}" Value="InProgress">
+                                                            <Setter Property="Background" Value="{DynamicResource Brush.Warning}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding State}" Value="Canceled">
+                                                            <Setter Property="Background" Value="{DynamicResource Brush.Danger}"/>
+                                                        </DataTrigger>
+                                                        <DataTrigger Binding="{Binding State}" Value="Failed">
+                                                            <Setter Property="Background" Value="{DynamicResource Brush.Danger}"/>
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
                                         </Border>
 
-                                        <!-- Minor Task Title -->
-                                        <TextBlock Text="{Binding Title}"
-                                                   Foreground="#0F172A"
-                                                   FontSize="12" FontWeight="Bold"
-                                                   TextWrapping="Wrap"
-                                                   Margin="0,0,0,6"/>
+                                        <!-- Content -->
+                                        <StackPanel Grid.Column="1">
+                                            <!-- Project & Track Header -->
+                                            <WrapPanel Margin="0,0,0,3">
+                                                <Border Background="{DynamicResource Brush.SurfaceElevated}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
+                                                        CornerRadius="0" Padding="4,1" Margin="0,0,4,2">
+                                                    <TextBlock Foreground="{DynamicResource Brush.Primary}" FontSize="9" FontWeight="Bold">
+                                                        <Run Text="📁 "/><Run Text="{Binding ProjectTitle, Mode=OneWay}"/>
+                                                    </TextBlock>
+                                                </Border>
 
-                                        <!-- State + Job Type + Worktime -->
-                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                            <!-- State badge -->
-                                            <Border Background="#F1F5F9" BorderBrush="#E2E8F0" BorderThickness="1"
-                                                    CornerRadius="0" Padding="5,2" Margin="0,0,6,0">
-                                                <TextBlock Text="{Binding State}" FontSize="9" Foreground="#475569" FontWeight="SemiBold"/>
-                                            </Border>
+                                                <Border Background="{DynamicResource Brush.SurfaceElevated}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
+                                                        CornerRadius="0" Padding="4,1" Margin="0,0,4,2">
+                                                    <TextBlock Foreground="{DynamicResource Brush.Info}" FontSize="9" FontWeight="SemiBold">
+                                                        <Run Text="⚡ "/><Run Text="{Binding TrackTitle, Mode=OneWay}"/>
+                                                    </TextBlock>
+                                                </Border>
+                                            </WrapPanel>
 
-                                            <!-- Job Type -->
-                                            <Border CornerRadius="0" Padding="5,2" Margin="0,0,6,0"
-                                                    Background="#ECFDF5" BorderBrush="#A7F3D0" BorderThickness="1">
-                                                <TextBlock Text="{Binding JobType}" FontSize="9" Foreground="#059669" FontWeight="SemiBold"/>
-                                            </Border>
+                                            <!-- Parent Major Task label -->
+                                            <TextBlock Foreground="{DynamicResource Brush.TextMuted}" FontSize="9" Margin="0,0,0,3">
+                                                <Run Text="Task: "/><Run Text="{Binding MajorTaskTitle, Mode=OneWay}" FontWeight="SemiBold"/>
+                                            </TextBlock>
 
-                                            <!-- Logged Time -->
-                                            <Border Background="#F8FAFC" BorderBrush="#E2E8F0" BorderThickness="1"
-                                                    CornerRadius="0" Padding="5,2">
-                                                <TextBlock FontSize="9" Foreground="#64748B" FontWeight="SemiBold">
-                                                    <Run Text="⏱ "/><Run Text="{Binding FormattedWorkTime, Mode=OneWay}"/>
-                                                </TextBlock>
-                                            </Border>
+                                            <!-- Minor Task Title -->
+                                            <TextBlock Text="{Binding Title}"
+                                                       Foreground="{DynamicResource Brush.TextPrimary}"
+                                                       FontSize="11" FontWeight="Bold"
+                                                       TextWrapping="Wrap"
+                                                       Margin="0,0,0,4"/>
+
+                                            <!-- Badges Row -->
+                                            <WrapPanel>
+                                                <!-- State Badge -->
+                                                <Border Background="{DynamicResource Brush.SurfaceElevated}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
+                                                        CornerRadius="0" Padding="4,1" Margin="0,0,4,2">
+                                                    <TextBlock Text="{Binding State}" Foreground="{DynamicResource Brush.TextSecondary}" FontSize="9" FontWeight="SemiBold"/>
+                                                </Border>
+
+                                                <!-- Job Type Badge -->
+                                                <Border Background="{DynamicResource Brush.SurfaceElevated}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
+                                                        CornerRadius="0" Padding="4,1" Margin="0,0,4,2">
+                                                    <TextBlock Text="{Binding JobType}" Foreground="{DynamicResource Brush.TextSecondary}" FontSize="9"/>
+                                                </Border>
+
+                                                <!-- Logged Time Badge -->
+                                                <Border Background="{DynamicResource Brush.SurfaceElevated}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1"
+                                                        CornerRadius="0" Padding="4,1" Margin="0,0,4,2">
+                                                    <TextBlock Foreground="{DynamicResource Brush.TextMuted}" FontSize="9">
+                                                        <Run Text="⏱ "/><Run Text="{Binding FormattedWorkTime, Mode=OneWay}"/>
+                                                    </TextBlock>
+                                                </Border>
+                                            </WrapPanel>
                                         </StackPanel>
-                                    </StackPanel>
+                                    </Grid>
                                 </Border>
                             </DataTemplate>
                         </ItemsControl.ItemTemplate>
@@ -263,8 +291,8 @@
             </ScrollViewer>
 
             <!-- 5. Footer -->
-            <Border Grid.Row="4" Background="#F8FAFC" Padding="8,5" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0">
-                <TextBlock Text="Alt+N to toggle" Foreground="#94A3B8" FontSize="9" HorizontalAlignment="Center"/>
+            <Border Grid.Row="4" Background="{DynamicResource Brush.SurfaceElevated}" Padding="8,5" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,1,0,0">
+                <TextBlock Text="Alt+N to toggle" Foreground="{DynamicResource Brush.TextMuted}" FontSize="9" HorizontalAlignment="Center"/>
             </Border>
         </Grid>
     </Border>

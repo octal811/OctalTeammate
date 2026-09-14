@@ -10,7 +10,12 @@
         ShowInTaskbar="False"
         Topmost="False"
         ResizeMode="NoResize"
-        Background="Transparent">
+        Background="Transparent"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        RenderOptions.ClearTypeHint="Enabled"
+        SnapsToDevicePixels="True"
+        UseLayoutRounding="True">
 
     <Window.Resources>
         <converters:BooleanToVisibilityConverter x:Key="BoolToVis" />
@@ -19,7 +24,7 @@
         <Style x:Key="HeaderBtn" TargetType="Button">
             <Setter Property="Background" Value="Transparent"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Foreground" Value="#64748B"/>
+            <Setter Property="Foreground" Value="{DynamicResource Brush.TextSecondary}"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="Padding" Value="6,4"/>
             <Setter Property="Template">
@@ -30,8 +35,8 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bd" Property="Background" Value="#F1F5F9"/>
-                                <Setter Property="Foreground" Value="#0F172A"/>
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource Brush.SurfaceHover}"/>
+                                <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}"/>
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -40,9 +45,9 @@
         </Style>
 
         <Style x:Key="FlatBtn" TargetType="Button">
-            <Setter Property="Background" Value="#F1F5F9"/>
-            <Setter Property="Foreground" Value="#0F172A"/>
-            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="Background" Value="{DynamicResource Brush.SurfaceElevated}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}"/>
             <Setter Property="BorderThickness" Value="1"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="FontSize" Value="11"/>
@@ -56,7 +61,7 @@
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="bd" Property="Background" Value="#E2E8F0"/>
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource Brush.SurfaceHover}"/>
                             </Trigger>
                             <Trigger Property="IsEnabled" Value="False">
                                 <Setter TargetName="bd" Property="Opacity" Value="0.5"/>
@@ -68,12 +73,12 @@
         </Style>
 
         <Style x:Key="PrimaryActionBtn" TargetType="Button" BasedOn="{StaticResource FlatBtn}">
-            <Setter Property="Background" Value="#4F46E5"/>
-            <Setter Property="Foreground" Value="#FFFFFF"/>
+            <Setter Property="Background" Value="{DynamicResource Brush.Primary}"/>
+            <Setter Property="Foreground" Value="{DynamicResource Brush.PrimaryForeground}"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Style.Triggers>
                 <Trigger Property="IsMouseOver" Value="True">
-                    <Setter Property="Background" Value="#4338CA"/>
+                    <Setter Property="Background" Value="{DynamicResource Brush.PrimaryHover}"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -81,22 +86,19 @@
         <Style x:Key="LogCombo" TargetType="ComboBox">
             <Setter Property="Height" Value="28"/>
             <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Background" Value="#FFFFFF"/>
-            <Setter Property="BorderBrush" Value="#CBD5E1"/>
+            <Setter Property="Background" Value="{DynamicResource Brush.Surface}"/>
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}"/>
             <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Foreground" Value="#0F172A"/>
+            <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}"/>
             <Setter Property="Margin" Value="0,0,0,6"/>
         </Style>
     </Window.Resources>
 
-    <!-- Main Container: White background, sharp edges (CornerRadius 0), clean slate border -->
-    <Border Background="#FFFFFF"
-            BorderBrush="#CBD5E1"
+    <!-- Main Container: Theme-driven background, sharp edges (CornerRadius 0), theme border -->
+    <Border Background="{DynamicResource Brush.Surface}"
+            BorderBrush="{DynamicResource Brush.Border}"
             BorderThickness="1"
             CornerRadius="0">
-        <Border.Effect>
-            <DropShadowEffect BlurRadius="16" ShadowDepth="2" Color="#000000" Opacity="0.15"/>
-        </Border.Effect>
 
         <Grid>
             <Grid.RowDefinitions>
@@ -108,8 +110,8 @@
 
             <!-- 1. Header Bar -->
             <Border Grid.Row="0"
-                    Background="#F8FAFC"
-                    BorderBrush="#E2E8F0"
+                    Background="{DynamicResource Brush.SurfaceElevated}"
+                    BorderBrush="{DynamicResource Brush.Border}"
                     BorderThickness="0,0,0,1"
                     Padding="12,8,8,8"
                     MouseLeftButtonDown="Header_MouseLeftButtonDown">
@@ -123,8 +125,8 @@
 
                     <Path Grid.Column="0"
                           Data="M15 1H9v2h6V1zm-4 13h2V8h-2v6zm8.03-6.61l1.42-1.42c-.43-.51-.9-.99-1.41-1.41l-1.42 1.42C16.07 4.74 14.12 4 12 4c-4.97 0-9 4.03-9 9s4.02 9 9 9 9-4.03 9-9c0-2.12-.74-4.07-1.97-5.61zM12 20c-3.87 0-7-3.13-7-7s3.13-7 7-7 7 3.13 7 7-3.13 7-7 7z"
-                          Fill="#4F46E5" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center"/>
-                    <TextBlock Grid.Column="1" Text="Stopwatch &amp; Work Timer" Foreground="#0F172A"
+                          Fill="{DynamicResource Brush.Primary}" Width="14" Height="14" Stretch="Uniform" VerticalAlignment="Center"/>
+                    <TextBlock Grid.Column="1" Text="Stopwatch &amp; Work Timer" Foreground="{DynamicResource Brush.TextPrimary}"
                                FontSize="12" FontWeight="Bold" VerticalAlignment="Center" Margin="8,0,0,0"/>
 
                     <Button Grid.Column="2" x:Name="LockButton" Style="{StaticResource HeaderBtn}"
@@ -139,7 +141,7 @@
             </Border>
 
             <!-- 2. Timer Readout & Quick Controls -->
-            <Border Grid.Row="1" Background="#FFFFFF" Padding="14,12">
+            <Border Grid.Row="1" Background="{DynamicResource Brush.Surface}" Padding="14,12">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -156,10 +158,10 @@
                                Margin="0,0,0,10">
                         <TextBlock.Style>
                             <Style TargetType="TextBlock">
-                                <Setter Property="Foreground" Value="#0F172A"/>
+                                <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}"/>
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding IsRunning}" Value="True">
-                                        <Setter Property="Foreground" Value="#059669"/>
+                                        <Setter Property="Foreground" Value="{DynamicResource Brush.Success}"/>
                                     </DataTrigger>
                                 </Style.Triggers>
                             </Style>
@@ -173,13 +175,13 @@
                                 Width="90" Height="32" Margin="0,0,8,0">
                             <Button.Style>
                                 <Style TargetType="Button" BasedOn="{StaticResource FlatBtn}">
-                                    <Setter Property="Background" Value="#10B981"/>
+                                    <Setter Property="Background" Value="{DynamicResource Brush.Success}"/>
                                     <Setter Property="Foreground" Value="#FFFFFF"/>
                                     <Setter Property="BorderThickness" Value="0"/>
                                     <Style.Triggers>
                                         <DataTrigger Binding="{Binding IsRunning}" Value="True">
-                                            <Setter Property="Background" Value="#F59E0B"/>
-                                            <Setter Property="Foreground" Value="#0F172A"/>
+                                            <Setter Property="Background" Value="{DynamicResource Brush.Warning}"/>
+                                            <Setter Property="Foreground" Value="#000000"/>
                                         </DataTrigger>
                                     </Style.Triggers>
                                 </Style>
@@ -220,25 +222,25 @@
 
             <!-- 3. Assign Time to Specific Minor Task Panel -->
             <Border Grid.Row="2"
-                    Background="#F8FAFC"
-                    BorderBrush="#E2E8F0"
+                    Background="{DynamicResource Brush.SurfaceElevated}"
+                    BorderBrush="{DynamicResource Brush.Border}"
                     BorderThickness="0,1,0,0"
                     Padding="14,10"
                     Visibility="{Binding IsLogPanelOpen, Converter={StaticResource BoolToVis}}">
                 <StackPanel>
                     <TextBlock Text="LOG ELAPSED TIME TO TASK"
-                               FontSize="10" FontWeight="Bold" Foreground="#64748B"
+                               FontSize="10" FontWeight="Bold" Foreground="{DynamicResource Brush.TextMuted}"
                                Margin="0,0,0,8"/>
 
                     <!-- Project Selection -->
-                    <TextBlock Text="Project" FontSize="10" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,2"/>
+                    <TextBlock Text="Project" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,0,0,2"/>
                     <ComboBox Style="{StaticResource LogCombo}"
                               DisplayMemberPath="Title"
                               ItemsSource="{Binding Projects}"
                               SelectedItem="{Binding SelectedProject, Mode=TwoWay}"/>
 
                     <!-- Track Selection -->
-                    <TextBlock Text="Track" FontSize="10" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,2"/>
+                    <TextBlock Text="Track" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,0,0,2"/>
                     <ComboBox Style="{StaticResource LogCombo}"
                               DisplayMemberPath="Name"
                               IsEnabled="{Binding SelectedProject, Converter={StaticResource NullToEnabled}}"
@@ -246,7 +248,7 @@
                               SelectedItem="{Binding SelectedTrack, Mode=TwoWay}"/>
 
                     <!-- Major Task Selection -->
-                    <TextBlock Text="Major Task" FontSize="10" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,2"/>
+                    <TextBlock Text="Major Task" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,0,0,2"/>
                     <ComboBox Style="{StaticResource LogCombo}"
                               DisplayMemberPath="Title"
                               IsEnabled="{Binding SelectedTrack, Converter={StaticResource NullToEnabled}}"
@@ -254,7 +256,7 @@
                               SelectedItem="{Binding SelectedMajorTask, Mode=TwoWay}"/>
 
                     <!-- Minor Task Selection -->
-                    <TextBlock Text="Minor Task (Target)" FontSize="10" FontWeight="SemiBold" Foreground="#475569" Margin="0,0,0,2"/>
+                    <TextBlock Text="Minor Task (Target)" FontSize="10" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,0,0,2"/>
                     <ComboBox Style="{StaticResource LogCombo}"
                               DisplayMemberPath="Title"
                               IsEnabled="{Binding SelectedMajorTask, Converter={StaticResource NullToEnabled}}"
@@ -275,8 +277,8 @@
             </Border>
 
             <!-- 4. Footer -->
-            <Border Grid.Row="3" Background="#F8FAFC" Padding="8,5" BorderBrush="#E2E8F0" BorderThickness="0,1,0,0">
-                <TextBlock Text="Alt+T to toggle" Foreground="#94A3B8" FontSize="9" HorizontalAlignment="Center"/>
+            <Border Grid.Row="3" Background="{DynamicResource Brush.SurfaceElevated}" Padding="8,5" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,1,0,0">
+                <TextBlock Text="Alt+T to toggle" Foreground="{DynamicResource Brush.TextMuted}" FontSize="9" HorizontalAlignment="Center"/>
             </Border>
         </Grid>
     </Border>

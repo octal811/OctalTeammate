@@ -541,12 +541,17 @@
 
     <!-- Modern Card -->
     <Style x:Key="Border.Card" TargetType="Border">
-        <Setter Property="Background"       Value="{DynamicResource Brush.CardBackground}" />
-        <Setter Property="BorderBrush"      Value="{DynamicResource Brush.Border}" />
-        <Setter Property="BorderThickness"  Value="{DynamicResource Theme.BorderThickness}" />
-        <Setter Property="CornerRadius"     Value="12" />
-        <Setter Property="Padding"          Value="20" />
-        <Setter Property="Effect"           Value="{DynamicResource Effect.CardGlow}" />
+        <Setter Property="Background"                     Value="{DynamicResource Brush.CardBackground}" />
+        <Setter Property="BorderBrush"                    Value="{DynamicResource Brush.Border}" />
+        <Setter Property="BorderThickness"                Value="{DynamicResource Theme.BorderThickness}" />
+        <Setter Property="CornerRadius"                   Value="12" />
+        <Setter Property="Padding"                        Value="20" />
+        <Setter Property="Effect"                         Value="{DynamicResource Effect.CardGlow}" />
+        <Setter Property="SnapsToDevicePixels"           Value="True" />
+        <Setter Property="UseLayoutRounding"             Value="True" />
+        <Setter Property="TextOptions.TextFormattingMode" Value="Display" />
+        <Setter Property="TextOptions.TextRenderingMode"  Value="ClearType" />
+        <Setter Property="RenderOptions.ClearTypeHint"    Value="Enabled" />
     </Style>
 
     <!-- Modern ProgressBar -->

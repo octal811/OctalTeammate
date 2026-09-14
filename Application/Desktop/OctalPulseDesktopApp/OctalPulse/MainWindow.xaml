@@ -14,7 +14,12 @@
         MinHeight="680" MinWidth="1050"
         WindowStartupLocation="CenterScreen"
         Background="{DynamicResource Brush.Background}"
-        StateChanged="Window_StateChanged">
+        StateChanged="Window_StateChanged"
+        TextOptions.TextFormattingMode="Display"
+        TextOptions.TextRenderingMode="ClearType"
+        RenderOptions.ClearTypeHint="Enabled"
+        SnapsToDevicePixels="True"
+        UseLayoutRounding="True">
 
     <WindowChrome.WindowChrome>
         <WindowChrome CaptionHeight="32"

@@ -17,8 +17,8 @@
 
     <!-- Text -->
     <Color x:Key="Color.TextPrimary">#FFFFFF</Color>
-    <Color x:Key="Color.TextSecondary">#B0B8C8</Color>
-    <Color x:Key="Color.TextMuted">#505870</Color>
+    <Color x:Key="Color.TextSecondary">#CBD5E1</Color>
+    <Color x:Key="Color.TextMuted">#7E8B9B</Color>
 
     <!-- Kept for converters/compat that reference Color.Border by name -->
     <Color x:Key="Color.Border">#818CF8</Color>
@@ -68,20 +68,11 @@
     <SolidColorBrush x:Key="Brush.Danger"  Color="{StaticResource Color.Danger}" />
     <SolidColorBrush x:Key="Brush.Info"    Color="{StaticResource Color.Info}" />
 
-    <!-- Thicker borders in OLED mode so the gradient is visible -->
-    <Thickness x:Key="Theme.BorderThickness">1.5</Thickness>
+    <!-- Standard 1px border so borders align precisely to physical pixel grid -->
+    <Thickness x:Key="Theme.BorderThickness">1</Thickness>
 
-    <!--
-        NEON GLOW — slightly stronger than before so the edge "radiates"
-          BlurRadius = 14  → wider spread
-          Opacity    = 0.55 → noticeable neon, not blinding
-          ShadowDepth = 0  → radiates from all 4 edges (no direction)
-    -->
-    <DropShadowEffect x:Key="Effect.CardGlow"
-                      Color="#6366F1"
-                      BlurRadius="14"
-                      ShadowDepth="0"
-                      Opacity="0.55" />
+    <!-- No glow effect on cards to preserve native vector rendering and ClearType text without bitmap blur -->
+    <x:Null x:Key="Effect.CardGlow" />
 
     <!-- No glow effect (used as null sentinel) -->
     <x:Null x:Key="Effect.NoGlow" />
