@@ -528,23 +528,7 @@
                                 LineHeight="20"
                                 TextWrapping="Wrap"
                                 Foreground="{DynamicResource Brush.TextSecondary}"
-                                Margin="0,0,0,16" />
-
-                            <!-- Expertise / Focus Pills -->
-                            <WrapPanel Orientation="Horizontal">
-                                <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="12" Padding="12,5" Margin="0,0,8,6">
-                                    <TextBlock Text="Team Collaboration" FontSize="11" FontWeight="Medium" Foreground="{DynamicResource Brush.TextPrimary}" />
-                                </Border>
-                                <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="12" Padding="12,5" Margin="0,0,8,6">
-                                    <TextBlock Text="Sprint Delivery" FontSize="11" FontWeight="Medium" Foreground="{DynamicResource Brush.TextPrimary}" />
-                                </Border>
-                                <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="12" Padding="12,5" Margin="0,0,8,6">
-                                    <TextBlock Text="Architecture" FontSize="11" FontWeight="Medium" Foreground="{DynamicResource Brush.TextPrimary}" />
-                                </Border>
-                                <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="12" Padding="12,5" Margin="0,0,8,6">
-                                    <TextBlock Text="Code Quality" FontSize="11" FontWeight="Medium" Foreground="{DynamicResource Brush.TextPrimary}" />
-                                </Border>
-                            </WrapPanel>
+                                Margin="0" />
                         </StackPanel>
                     </Border>
 
@@ -871,30 +855,14 @@
                                             Margin="0,0,0,14">
                                             <StackPanel>
                                                 <!-- Post Header -->
-                                                <Grid Margin="0,0,0,10">
-                                                    <Grid.ColumnDefinitions>
-                                                        <ColumnDefinition Width="*" />
-                                                        <ColumnDefinition Width="Auto" />
-                                                    </Grid.ColumnDefinitions>
-
-                                                    <StackPanel Grid.Column="0">
-                                                        <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource Brush.TextPrimary}" />
-                                                        <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
-                                                            <TextBlock Text="{Binding Category}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Primary}" />
-                                                            <TextBlock Text=" · " FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" />
-                                                            <TextBlock Text="{Binding TimeAgo}" FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" />
-                                                        </StackPanel>
+                                                <StackPanel Margin="0,0,0,10">
+                                                    <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="14" Foreground="{DynamicResource Brush.TextPrimary}" />
+                                                    <StackPanel Orientation="Horizontal" Margin="0,2,0,0">
+                                                        <TextBlock Text="{Binding Category}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Primary}" />
+                                                        <TextBlock Text=" · " FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" />
+                                                        <TextBlock Text="{Binding TimeAgo}" FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" />
                                                     </StackPanel>
-
-                                                    <Button
-                                                        Grid.Column="1"
-                                                        Style="{StaticResource Button.Icon}"
-                                                        Width="28"
-                                                        Height="28"
-                                                        ToolTip="Post Options">
-                                                        <Path Data="{StaticResource Icon.ChevronDown}" Fill="{DynamicResource Brush.TextMuted}" Width="12" Height="12" Stretch="Uniform" />
-                                                    </Button>
-                                                </Grid>
+                                                </StackPanel>
 
                                                 <!-- Post Content -->
                                                 <TextBlock
@@ -928,34 +896,21 @@
 
                                                 <!-- Social Reactions Bar -->
                                                 <Border BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,1,0,0" Padding="0,10,0,0">
-                                                    <Grid>
-                                                        <StackPanel Orientation="Horizontal">
-                                                            <!-- Likes -->
-                                                            <StackPanel Orientation="Horizontal" Margin="0,0,16,0" VerticalAlignment="Center">
-                                                                <Path Data="{StaticResource Icon.Heart}" Fill="#EF4444" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
-                                                                <TextBlock Text="{Binding LikesCount}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextSecondary}" VerticalAlignment="Center" />
-                                                                <TextBlock Text=" Likes" FontSize="12" Foreground="{DynamicResource Brush.TextMuted}" VerticalAlignment="Center" />
-                                                            </StackPanel>
-
-                                                            <!-- Comments -->
-                                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
-                                                                <Path Data="{StaticResource Icon.MessageSquare}" Fill="{DynamicResource Brush.TextMuted}" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
-                                                                <TextBlock Text="{Binding CommentsCount}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextSecondary}" VerticalAlignment="Center" />
-                                                                <TextBlock Text=" Comments" FontSize="12" Foreground="{DynamicResource Brush.TextMuted}" VerticalAlignment="Center" />
-                                                            </StackPanel>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <!-- Likes -->
+                                                        <StackPanel Orientation="Horizontal" Margin="0,0,16,0" VerticalAlignment="Center">
+                                                            <Path Data="{StaticResource Icon.Heart}" Fill="#EF4444" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                            <TextBlock Text="{Binding LikesCount}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextSecondary}" VerticalAlignment="Center" />
+                                                            <TextBlock Text=" Likes" FontSize="12" Foreground="{DynamicResource Brush.TextMuted}" VerticalAlignment="Center" />
                                                         </StackPanel>
 
-                                                        <Button
-                                                            HorizontalAlignment="Right"
-                                                            Style="{StaticResource Button.Ghost}"
-                                                            Height="28"
-                                                            Padding="8,0">
-                                                            <StackPanel Orientation="Horizontal">
-                                                                <Path Data="{StaticResource Icon.Share}" Fill="{DynamicResource Brush.TextMuted}" Width="12" Height="12" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
-                                                                <TextBlock Text="Share" FontSize="11.5" VerticalAlignment="Center" />
-                                                            </StackPanel>
-                                                        </Button>
-                                                    </Grid>
+                                                        <!-- Comments -->
+                                                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                            <Path Data="{StaticResource Icon.MessageSquare}" Fill="{DynamicResource Brush.TextMuted}" Width="13" Height="13" Stretch="Uniform" Margin="0,0,6,0" VerticalAlignment="Center" />
+                                                            <TextBlock Text="{Binding CommentsCount}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextSecondary}" VerticalAlignment="Center" />
+                                                            <TextBlock Text=" Comments" FontSize="12" Foreground="{DynamicResource Brush.TextMuted}" VerticalAlignment="Center" />
+                                                        </StackPanel>
+                                                    </StackPanel>
                                                 </Border>
                                             </StackPanel>
                                         </Border>
@@ -981,55 +936,15 @@
                                         <Path Data="{StaticResource Icon.Calendar}" Fill="{DynamicResource Brush.Primary}" Width="16" Height="16" Stretch="Uniform" Margin="0,0,8,0" VerticalAlignment="Center" />
                                         <TextBlock Text="Contributions" Style="{StaticResource Text.Heading3}" VerticalAlignment="Center" />
                                     </StackPanel>
-                                    <TextBlock Text="Tracked work hours and completed tasks for this month." Style="{StaticResource Text.Subtitle}" TextWrapping="Wrap" Margin="0,4,0,0" />
+                                    <TextBlock Text="Completed tasks contribution for this month." Style="{StaticResource Text.Subtitle}" TextWrapping="Wrap" Margin="0,4,0,0" />
                                 </StackPanel>
                             </Grid>
 
                             <!-- Month + total -->
-                            <Grid Margin="0,12,0,10">
+                            <Grid Margin="0,12,0,16">
                                 <TextBlock Text="{Binding ActivityMonthLabel}" FontWeight="Bold" FontSize="13" Foreground="{DynamicResource Brush.TextPrimary}" />
-                                <TextBlock Text="{Binding ActivityTotalText}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Primary}" HorizontalAlignment="Right" VerticalAlignment="Center" />
+                                <TextBlock Text="{Binding ActivityTotalText}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Success}" HorizontalAlignment="Right" VerticalAlignment="Center" />
                             </Grid>
-
-                            <!-- Hours / Tasks segmented toggle -->
-                            <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="8" Padding="3" Margin="0,0,0,14">
-                                <UniformGrid Columns="2">
-                                    <Button Command="{Binding ToggleActivityMetricCommand}" Height="30" Padding="0,0,0,0">
-                                        <Button.Style>
-                                            <Style TargetType="Button" BasedOn="{StaticResource Button.Ghost}">
-                                                <Setter Property="FontSize" Value="12" />
-                                                <Setter Property="HorizontalContentAlignment" Value="Center" />
-                                                <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}" />
-                                                <Setter Property="Background" Value="Transparent" />
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding ShowHoursMetric}" Value="True">
-                                                        <Setter Property="Background" Value="{DynamicResource Brush.Primary}" />
-                                                        <Setter Property="Foreground" Value="#FFFFFF" />
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Button.Style>
-                                        Hours
-                                    </Button>
-                                    <Button Command="{Binding ToggleActivityMetricCommand}" Height="30" Padding="0,0,0,0">
-                                        <Button.Style>
-                                            <Style TargetType="Button" BasedOn="{StaticResource Button.Ghost}">
-                                                <Setter Property="FontSize" Value="12" />
-                                                <Setter Property="HorizontalContentAlignment" Value="Center" />
-                                                <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}" />
-                                                <Setter Property="Background" Value="Transparent" />
-                                                <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding ShowHoursMetric}" Value="False">
-                                                        <Setter Property="Background" Value="{DynamicResource Brush.Success}" />
-                                                        <Setter Property="Foreground" Value="#FFFFFF" />
-                                                    </DataTrigger>
-                                                </Style.Triggers>
-                                            </Style>
-                                        </Button.Style>
-                                        Tasks
-                                    </Button>
-                                </UniformGrid>
-                            </Border>
 
                             <!-- Loading -->
                             <ProgressBar
@@ -1149,54 +1064,10 @@
                             <!-- Legend -->
                             <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Visibility="{Binding ActivityLoadFailed, Converter={StaticResource InvertBoolToVis}}">
                                 <TextBlock Text="Less" FontSize="10" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,0,6,0" VerticalAlignment="Center" />
-                                <Border Width="12" Height="12" CornerRadius="3" Margin="2">
-                                    <Border.Style>
-                                        <Style TargetType="Border">
-                                            <Setter Property="Background" Value="#73F59E0B" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding ShowHoursMetric}" Value="False">
-                                                    <Setter Property="Background" Value="#7310B981" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Border.Style>
-                                </Border>
-                                <Border Width="12" Height="12" CornerRadius="3" Margin="2">
-                                    <Border.Style>
-                                        <Style TargetType="Border">
-                                            <Setter Property="Background" Value="#99F59E0B" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding ShowHoursMetric}" Value="False">
-                                                    <Setter Property="Background" Value="#9910B981" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Border.Style>
-                                </Border>
-                                <Border Width="12" Height="12" CornerRadius="3" Margin="2">
-                                    <Border.Style>
-                                        <Style TargetType="Border">
-                                            <Setter Property="Background" Value="#BFF59E0B" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding ShowHoursMetric}" Value="False">
-                                                    <Setter Property="Background" Value="#BF10B981" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Border.Style>
-                                </Border>
-                                <Border Width="12" Height="12" CornerRadius="3" Margin="2">
-                                    <Border.Style>
-                                        <Style TargetType="Border">
-                                            <Setter Property="Background" Value="#E6F59E0B" />
-                                            <Style.Triggers>
-                                                <DataTrigger Binding="{Binding ShowHoursMetric}" Value="False">
-                                                    <Setter Property="Background" Value="#E610B981" />
-                                                </DataTrigger>
-                                            </Style.Triggers>
-                                        </Style>
-                                    </Border.Style>
-                                </Border>
+                                <Border Width="12" Height="12" CornerRadius="3" Margin="2" Background="#6610B981" />
+                                <Border Width="12" Height="12" CornerRadius="3" Margin="2" Background="#9910B981" />
+                                <Border Width="12" Height="12" CornerRadius="3" Margin="2" Background="#CC10B981" />
+                                <Border Width="12" Height="12" CornerRadius="3" Margin="2" Background="#FF10B981" />
                                 <TextBlock Text="More" FontSize="10" Foreground="{DynamicResource Brush.TextMuted}" Margin="6,0,0,0" VerticalAlignment="Center" />
                             </StackPanel>
                         </StackPanel>

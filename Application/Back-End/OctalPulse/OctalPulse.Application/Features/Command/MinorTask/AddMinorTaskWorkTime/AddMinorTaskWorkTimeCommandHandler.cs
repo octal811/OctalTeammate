@@ -44,8 +44,14 @@ public class AddMinorTaskWorkTimeCommandHandler : IRequestHandler<AddMinorTaskWo
         task.ModifiedDate = DateTime.UtcNow;
 
         _unitOfWork.MinorTasks.Update(task);
-        await _badgeService.EvaluateWorkTitanAsync(request.UserId, cancellationToken);
-        await _badgeService.EvaluateStreakMasterAsync(request.UserId, cancellationToken);
+
+        if (request.WorkTimeSeconds > 0)
+        {
+            await AddToDailyLedgerAsync(request.UserId, request.WorkTimeSeconds, cancellationToken);
+            await _badgeService.EvaluateWorkTitanAsync(request.UserId, cancellationToken);
+            await _badgeService.EvaluateStreakMasterAsync(request.UserId, cancellationToken);
+        }
+
         if (task.State == MinorTaskState.Done)
         {
             await _badgeService.EvaluateCriticalFocusAsync(request.UserId, cancellationToken);
@@ -57,6 +63,32 @@ public class AddMinorTaskWorkTimeCommandHandler : IRequestHandler<AddMinorTaskWo
         return new AddMinorTaskWorkTimeResponse(
             task.Id,
             (long)task.WorkTime.Value.TotalSeconds);
+    }
+
+    private async Task AddToDailyLedgerAsync(Guid userId, long deltaSeconds, CancellationToken cancellationToken)
+    {
+        var utcNow = DateTime.UtcNow;
+        var today = DateOnly.FromDateTime(utcNow);
+
+        var log = await _unitOfWork.DailyWorkLogs.GetByUserAndDateAsync(userId, today, cancellationToken);
+        if (log is null)
+        {
+            log = new Domain.Entities.DailyWorkLog
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                WorkDate = today,
+                TotalSeconds = 0,
+                CreatedDate = utcNow,
+                UpdatedDate = utcNow,
+                IsDeleted = false
+            };
+            await _unitOfWork.DailyWorkLogs.AddAsync(log, cancellationToken);
+        }
+
+        log.TotalSeconds += deltaSeconds;
+        log.UpdatedDate = utcNow;
+        log.ModifiedDate = utcNow;
     }
 
     private async Task EnsureApprovedTrackMemberAsync(Guid trackId, Guid userId, CancellationToken cancellationToken)

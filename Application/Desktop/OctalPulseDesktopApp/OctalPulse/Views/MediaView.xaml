@@ -63,6 +63,7 @@
 
                     <!-- Project Filter Dropdown -->
                     <ComboBox Width="180" Height="36" Margin="0,0,12,0"
+                              Style="{StaticResource ComboBox.Modern}"
                               ItemsSource="{Binding FilterProjectOptions}"
                               SelectedItem="{Binding FilterProject}"
                               DisplayMemberPath="DisplayName"
@@ -115,13 +116,15 @@
 
                             <!-- Scope Picker (Project / Track) -->
                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                <ComboBox Width="190" Height="32" Margin="0,0,8,0"
+                                <ComboBox Width="190" Height="36" Margin="0,0,8,0"
+                                          Style="{StaticResource ComboBox.Modern}"
                                           ItemsSource="{Binding AvailableProjects}"
                                           SelectedItem="{Binding SelectedProject}"
                                           DisplayMemberPath="DisplayName"
                                           ToolTip="Select visibility: General (profile &amp; feed) or a specific project" />
 
-                                <ComboBox Width="200" Height="32"
+                                <ComboBox Width="200" Height="36"
+                                          Style="{StaticResource ComboBox.Modern}"
                                           ItemsSource="{Binding AvailableTracks}"
                                           SelectedItem="{Binding SelectedTrack}"
                                           DisplayMemberPath="DisplayName"
@@ -140,6 +143,9 @@
                                  VerticalScrollBarVisibility="Auto"
                                  Padding="12,10"
                                  FontSize="14"
+                                 Foreground="{DynamicResource Brush.TextPrimary}"
+                                 CaretBrush="{DynamicResource Brush.Primary}"
+                                 SelectionBrush="{DynamicResource Brush.Primary}"
                                  Background="{DynamicResource Brush.Background}"
                                  BorderBrush="{DynamicResource Brush.Border}"
                                  BorderThickness="1"
@@ -158,6 +164,8 @@
                                 <TextBox Grid.Column="1" Text="{Binding NewPostPhotoUrl, UpdateSourceTrigger=PropertyChanged}"
                                          Background="Transparent" BorderThickness="0" FontSize="13"
                                          Foreground="{DynamicResource Brush.TextPrimary}"
+                                         CaretBrush="{DynamicResource Brush.Primary}"
+                                         SelectionBrush="{DynamicResource Brush.Primary}"
                                          ToolTip="Paste Google Drive image/video link or external photo URL" />
                             </Grid>
                         </Border>
@@ -430,7 +438,9 @@
                                                          MaxLength="800" AcceptsReturn="True" TextWrapping="Wrap"
                                                          MinHeight="48" MaxHeight="120"
                                                          Background="Transparent" BorderThickness="0" FontSize="13"
-                                                         Foreground="{DynamicResource Brush.TextPrimary}" />
+                                                         Foreground="{DynamicResource Brush.TextPrimary}"
+                                                         CaretBrush="{DynamicResource Brush.Primary}"
+                                                         SelectionBrush="{DynamicResource Brush.Primary}" />
                                                 <Grid Margin="0,8,0,0">
                                                     <TextBlock Text="{Binding RemainingCommentCharacters, StringFormat='{}{0} / 800 chars'}"
                                                                FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" VerticalAlignment="Center" />
@@ -506,7 +516,9 @@
                                                                     <TextBox Text="{Binding ReplyText, UpdateSourceTrigger=PropertyChanged}"
                                                                              MaxLength="800" AcceptsReturn="True" TextWrapping="Wrap"
                                                                              MinHeight="40" MaxHeight="90" Background="Transparent" BorderThickness="0"
-                                                                             FontSize="12" Foreground="{DynamicResource Brush.TextPrimary}" />
+                                                                             FontSize="12" Foreground="{DynamicResource Brush.TextPrimary}"
+                                                                             CaretBrush="{DynamicResource Brush.Primary}"
+                                                                             SelectionBrush="{DynamicResource Brush.Primary}" />
                                                                     <Grid Margin="0,6,0,0">
                                                                         <TextBlock Text="{Binding RemainingReplyCharacters, StringFormat='{}{0} / 800 chars'}"
                                                                                    FontSize="10" Foreground="{DynamicResource Brush.TextMuted}" VerticalAlignment="Center" />

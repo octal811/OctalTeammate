@@ -98,9 +98,6 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
     private bool _activityLoadFailed;
 
     [ObservableProperty]
-    private bool _showHoursMetric = true;
-
-    [ObservableProperty]
     private bool _isOwnProfile = true;
 
     [ObservableProperty]
@@ -441,13 +438,6 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
         }
     }
 
-    [RelayCommand]
-    private void ToggleActivityMetric()
-    {
-        ShowHoursMetric = !ShowHoursMetric;
-        RebuildContributionGrid();
-    }
-
     private IReadOnlyList<DailyActivityResponse> _activityDays = Array.Empty<DailyActivityResponse>();
 
     private async Task LoadContributionsAsync()
@@ -495,7 +485,6 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
         var firstDate = _activityDays[0].Date;
         var monthStartOffset = (int)firstDate.DayOfWeek;
 
-        long totalHours = 0;
         long totalTasks = 0;
         var nonzero = new List<long>(_activityDays.Count);
         var cells = new List<ContributionCell>(_activityDays.Count);
@@ -504,10 +493,9 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
         for (var i = 0; i < _activityDays.Count; i++)
         {
             var day = _activityDays[i];
-            totalHours += day.WorkSeconds;
             totalTasks += day.CompletedTasks;
 
-            var value = ShowHoursMetric ? day.WorkSeconds : day.CompletedTasks;
+            var value = day.CompletedTasks;
             if (value > 0)
             {
                 nonzero.Add(value);
@@ -517,12 +505,8 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
             var row = (int)date.DayOfWeek;
             var column = (monthStartOffset + i) / 7;
 
-            var metricPart = ShowHoursMetric
-                ? FormatFocusDuration(value)
-                : $"{value} task{(value == 1 ? "" : "s")}";
-
             var toolTip = value > 0
-                ? $"{metricPart} · {date:ddd, MMM d}"
+                ? $"{value} completed task{(value == 1 ? "" : "s")} · {date:ddd, MMM d}"
                 : $"No activity · {date:ddd, MMM d}";
 
             cells.Add(new ContributionCell(row, column, value > 0, null, toolTip, date.Day.ToString()));
@@ -538,19 +522,16 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
             {
                 if (levels[i] < 0) continue;
 
-                var value = ShowHoursMetric
-                    ? _activityDays[i].WorkSeconds
-                    : _activityDays[i].CompletedTasks;
-
+                var value = _activityDays[i].CompletedTasks;
                 var ratio = max == min
                     ? 1d
                     : (double)(value - min) / (max - min);
                 var bucket = Math.Clamp((int)Math.Ceiling(ratio * 4), 1, 4);
-                cells[i] = cells[i] with { Fill = ContributionBrush(bucket, !ShowHoursMetric) };
+                cells[i] = cells[i] with { Fill = ContributionBrush(bucket) };
             }
         }
 
-        ActivityTotalText = $"{FormatFocusDuration(totalHours)} · {totalTasks} tasks";
+        ActivityTotalText = $"{totalTasks} task{(totalTasks == 1 ? "" : "s")} completed";
 
         foreach (var cell in cells)
         {
@@ -558,29 +539,21 @@ public partial class ProfileViewModel : ObservableObject, INavigationAware
         }
     }
 
-    private static Brush ContributionBrush(int bucket, bool useGreen)
+    private static Brush ContributionBrush(int bucket)
     {
-        const byte amberR = 0xF5;
-        const byte amberG = 0x9E;
-        const byte amberB = 0x0B;
         const byte greenR = 0x10;
         const byte greenG = 0xB9;
         const byte greenB = 0x81;
 
         var alpha = (byte)(bucket switch
         {
-            1 => 0x73,
+            1 => 0x66,
             2 => 0x99,
-            3 => 0xBF,
-            _ => 0xE6
+            3 => 0xCC,
+            _ => 0xFF
         });
 
-        var brush = new SolidColorBrush(Color.FromArgb(
-            alpha,
-            useGreen ? greenR : amberR,
-            useGreen ? greenG : amberG,
-            useGreen ? greenB : amberB));
-
+        var brush = new SolidColorBrush(Color.FromArgb(alpha, greenR, greenG, greenB));
         brush.Freeze();
         return brush;
     }

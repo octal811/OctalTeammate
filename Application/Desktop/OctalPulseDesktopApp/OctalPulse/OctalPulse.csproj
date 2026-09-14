@@ -31,6 +31,8 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>Assets\OctalPulse.ico</ApplicationIcon>
+    <!-- Use our custom Program.Main so the mutex check runs BEFORE WPF initialises -->
+    <StartupObject>OctalPulse.Program</StartupObject>
   </PropertyGroup>
 
 </Project>

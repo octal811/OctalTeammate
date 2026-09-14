@@ -43,14 +43,7 @@
             </Setter>
         </Style>
 
-        <Style x:Key="FilterCombo" TargetType="ComboBox">
-            <Setter Property="Height" Value="28"/>
-            <Setter Property="FontSize" Value="11"/>
-            <Setter Property="Background" Value="{DynamicResource Brush.Surface}"/>
-            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}"/>
-            <Setter Property="BorderThickness" Value="1"/>
-            <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}"/>
-        </Style>
+        <Style x:Key="FilterCombo" TargetType="ComboBox" BasedOn="{StaticResource ComboBox.Compact}" />
 
         <Style x:Key="FilterBox" TargetType="TextBox">
             <Setter Property="Height" Value="28"/>
