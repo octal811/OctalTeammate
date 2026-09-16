@@ -39,6 +39,8 @@ public partial class App : System.Windows.Application
                 services.AddSingleton<INavigationService>(sp => sp.GetRequiredService<WpfNavigationService>());
                 services.AddSingleton<WpfDialogService>();
                 services.AddSingleton<IDialogService>(sp => sp.GetRequiredService<WpfDialogService>());
+                services.AddSingleton<FastAddDialogService>();
+                services.AddSingleton<IFastAddDialogService>(sp => sp.GetRequiredService<FastAddDialogService>());
 
                 // Background-mode services
                 services.AddSingleton<TrayService>();
@@ -65,6 +67,7 @@ public partial class App : System.Windows.Application
                 services.AddSingleton<StopwatchViewModel>();
                 services.AddSingleton<ProfileViewModel>();
                 services.AddTransient<MediaViewModel>();
+                services.AddTransient<FastAddViewModel>();
 
                 // Float ViewModels
                 services.AddSingleton<MajorTasksFloatViewModel>();

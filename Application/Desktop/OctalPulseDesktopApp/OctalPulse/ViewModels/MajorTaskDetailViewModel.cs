@@ -18,6 +18,7 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
     private readonly ISignalRRealtimeService _signalRService;
     private readonly INavigationService _navigationService;
     private readonly IDialogService _dialogService;
+    private readonly IFastAddDialogService _fastAddDialogService;
     private readonly IUserSession _userSession;
 
     [ObservableProperty]
@@ -104,12 +105,14 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
         ISignalRRealtimeService signalRService,
         INavigationService navigationService,
         IDialogService dialogService,
+        IFastAddDialogService fastAddDialogService,
         IUserSession userSession)
     {
         _taskService = taskService;
         _signalRService = signalRService;
         _navigationService = navigationService;
         _dialogService = dialogService;
+        _fastAddDialogService = fastAddDialogService;
         _userSession = userSession;
 
         _signalRService.MinorTaskChanged += OnMinorTaskChanged;
@@ -357,6 +360,17 @@ public partial class MajorTaskDetailViewModel : ObservableObject, INavigationAwa
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task OpenFastAddMinorTasksAsync()
+    {
+        if (MajorTaskId == Guid.Empty) return;
+        var imported = await _fastAddDialogService.OpenForMajorTaskAsync(MajorTaskId, TaskTitle);
+        if (imported)
+        {
+            await LoadMinorTasksAsync();
         }
     }
 

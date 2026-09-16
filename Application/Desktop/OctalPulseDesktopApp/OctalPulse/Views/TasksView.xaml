@@ -68,6 +68,33 @@
 
                     <Button
                         Height="38"
+                        Margin="0,0,10,0"
+                        Padding="16,0"
+                        Command="{Binding OpenFastAddCommand}"
+                        ToolTip="Import group of Major &amp; Minor tasks from AI Plan"
+                        Style="{StaticResource Button.Secondary}">
+                        <Button.ContentTemplate>
+                            <DataTemplate>
+                                <StackPanel VerticalAlignment="Center" Orientation="Horizontal">
+                                    <Path
+                                        Width="14"
+                                        Height="14"
+                                        Margin="0,0,8,0"
+                                        Data="{StaticResource Icon.Sparkles}"
+                                        Fill="{DynamicResource Brush.Primary}"
+                                        Stretch="Uniform" />
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        FontWeight="Bold"
+                                        Foreground="{DynamicResource Brush.Primary}"
+                                        Text="⚡ Fast Add" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </Button.ContentTemplate>
+                    </Button>
+
+                    <Button
+                        Height="38"
                         Padding="18,0"
                         Command="{Binding OpenCreateTaskModalCommand}"
                         Style="{StaticResource Button.Primary}">

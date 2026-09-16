@@ -63,6 +63,7 @@ public static class DependencyInjection
         services.AddScoped<IApiAvailabilityAdminService, ApiAvailabilityAdminService>();
         services.AddScoped<IBadgeService, BadgeService>();
         services.AddScoped<IActivityService, ActivityService>();
+        services.AddScoped<IFastAddParserService, FastAddParserService>();
 
         // SignalR Realtime Service
         services.AddSingleton<ISignalRRealtimeService>(sp =>

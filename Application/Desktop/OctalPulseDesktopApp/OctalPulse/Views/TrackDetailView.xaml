@@ -34,7 +34,19 @@
                             <TextBlock Text="Major deliverables owned by this track. Complete sub-tasks to drive track and project progress." Style="{StaticResource Text.Subtitle}" />
                         </StackPanel>
 
-                        <Button Grid.Column="1" Style="{StaticResource Button.Primary}" Content="+ New Major Task" Command="{Binding OpenCreateMajorTaskModalCommand}" VerticalAlignment="Center" Height="40" Padding="18,0" />
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Style="{StaticResource Button.Secondary}"
+                                    Command="{Binding OpenFastAddCommand}"
+                                    Margin="0,0,10,0"
+                                    ToolTip="Import group of tasks from AI Plan"
+                                    Height="40" Padding="14,0">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Path Width="14" Height="14" Margin="0,0,6,0" Data="{StaticResource Icon.Sparkles}" Fill="{DynamicResource Brush.Primary}" Stretch="Uniform" />
+                                    <TextBlock Text="⚡ Fast Add" FontWeight="Bold" Foreground="{DynamicResource Brush.Primary}" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource Button.Primary}" Content="+ New Major Task" Command="{Binding OpenCreateMajorTaskModalCommand}" Height="40" Padding="18,0" />
+                        </StackPanel>
                     </Grid>
                 </Border>
 

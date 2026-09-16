@@ -17,6 +17,7 @@ public partial class TrackDetailViewModel : ObservableObject, INavigationAware, 
     private readonly ISignalRRealtimeService _signalRService;
     private readonly INavigationService _navigationService;
     private readonly IDialogService _dialogService;
+    private readonly IFastAddDialogService _fastAddDialogService;
     private readonly IUserSession _userSession;
 
     [ObservableProperty]
@@ -92,12 +93,14 @@ public partial class TrackDetailViewModel : ObservableObject, INavigationAware, 
         ISignalRRealtimeService signalRService,
         INavigationService navigationService,
         IDialogService dialogService,
+        IFastAddDialogService fastAddDialogService,
         IUserSession userSession)
     {
         _taskService = taskService;
         _signalRService = signalRService;
         _navigationService = navigationService;
         _dialogService = dialogService;
+        _fastAddDialogService = fastAddDialogService;
         _userSession = userSession;
 
         _signalRService.MajorTaskChanged += OnMajorTaskChanged;
@@ -193,6 +196,18 @@ public partial class TrackDetailViewModel : ObservableObject, INavigationAware, 
         finally
         {
             IsBusy = false;
+        }
+    }
+
+    // Fast Add Modal
+    [RelayCommand]
+    private async Task OpenFastAddAsync()
+    {
+        if (TrackId == Guid.Empty) return;
+        var imported = await _fastAddDialogService.OpenForTrackAsync(TrackId);
+        if (imported)
+        {
+            await LoadTasksAsync();
         }
     }
 

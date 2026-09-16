@@ -51,6 +51,7 @@ public partial class TasksViewModel : ObservableObject, INavigationAware
     private readonly ITaskService _taskService;
     private readonly INavigationService _navigationService;
     private readonly IDialogService _dialogService;
+    private readonly IFastAddDialogService _fastAddDialogService;
     private readonly IUserSession _userSession;
     private readonly List<MajorTaskCardModel> _allLoadedCards = new();
     private readonly Dictionary<string, List<TrackOption>> _memberTracksByProjectTitle = new();
@@ -119,6 +120,7 @@ public partial class TasksViewModel : ObservableObject, INavigationAware
         ITaskService taskService,
         INavigationService navigationService,
         IDialogService dialogService,
+        IFastAddDialogService fastAddDialogService,
         IUserSession userSession,
         RealtimeNotificationService notificationService)
     {
@@ -126,6 +128,7 @@ public partial class TasksViewModel : ObservableObject, INavigationAware
         _taskService = taskService;
         _navigationService = navigationService;
         _dialogService = dialogService;
+        _fastAddDialogService = fastAddDialogService;
         _userSession = userSession;
 
         notificationService.MajorTasksUpdated += () =>
@@ -339,6 +342,18 @@ public partial class TasksViewModel : ObservableObject, INavigationAware
                     TodoTasks.Add(card);
                     break;
             }
+        }
+    }
+
+    // Fast Add Modal
+    [RelayCommand]
+    private async Task OpenFastAddAsync()
+    {
+        var preferredTrackId = SelectedTrackFilter?.TrackId != Guid.Empty ? SelectedTrackFilter?.TrackId : null;
+        var imported = await _fastAddDialogService.OpenForTrackAsync(preferredTrackId);
+        if (imported)
+        {
+            await LoadAllTasksAsync();
         }
     }
 

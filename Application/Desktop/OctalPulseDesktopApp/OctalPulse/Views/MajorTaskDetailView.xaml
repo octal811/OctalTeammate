@@ -78,22 +78,35 @@
                 <StackPanel>
                     <Grid Margin="0,0,0,8">
                         <TextBlock Text="Minor Tasks (Sub-tasks Checklist)" Style="{StaticResource Text.Heading2}" />
-                        <Button
-                            Height="36"
-                            Padding="18,0"
-                            HorizontalAlignment="Right"
-                            Command="{Binding ToggleAddMinorCommand}">
-                            <Button.Style>
-                                <Style TargetType="Button" BasedOn="{StaticResource Button.Primary}">
-                                    <Setter Property="Content" Value="+ Add Minor Task" />
-                                    <Style.Triggers>
-                                        <DataTrigger Binding="{Binding IsAddingMinor}" Value="True">
-                                            <Setter Property="Content" Value="✕ Close" />
-                                        </DataTrigger>
-                                    </Style.Triggers>
-                                </Style>
-                            </Button.Style>
-                        </Button>
+                        <StackPanel HorizontalAlignment="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button
+                                Height="36"
+                                Margin="0,0,10,0"
+                                Padding="14,0"
+                                Command="{Binding OpenFastAddMinorTasksCommand}"
+                                ToolTip="Import checklist of minor tasks from AI Plan"
+                                Style="{StaticResource Button.Secondary}">
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Path Width="13" Height="13" Margin="0,0,6,0" Data="{StaticResource Icon.Sparkles}" Fill="{DynamicResource Brush.Primary}" Stretch="Uniform" />
+                                    <TextBlock Text="⚡ Fast Add" FontWeight="Bold" Foreground="{DynamicResource Brush.Primary}" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                            <Button
+                                Height="36"
+                                Padding="18,0"
+                                Command="{Binding ToggleAddMinorCommand}">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource Button.Primary}">
+                                        <Setter Property="Content" Value="+ Add Minor Task" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsAddingMinor}" Value="True">
+                                                <Setter Property="Content" Value="✕ Close" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                            </Button>
+                        </StackPanel>
                     </Grid>
                     <TextBlock Text="Checking off items automatically recalculates and cascades progress upward to the Major Task and Track." Style="{StaticResource Text.Subtitle}" Margin="0,0,0,20" />
 
