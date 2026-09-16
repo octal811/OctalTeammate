@@ -40,6 +40,9 @@
         <DataTemplate DataType="{x:Type vm:TasksViewModel}">
             <views:TasksView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:OctoViewModel}">
+            <views:OctoView />
+        </DataTemplate>
         <DataTemplate DataType="{x:Type vm:SettingsViewModel}">
             <views:SettingsView />
         </DataTemplate>
@@ -264,6 +267,56 @@
                                     Foreground="{DynamicResource Brush.TextPrimary}"
                                     Text="Tasks Center" />
                             </StackPanel>
+                        </Button>
+
+                        <!--  Octo AI Supporter  -->
+                        <Button
+                            Height="42"
+                            Margin="0,2"
+                            Padding="12,0"
+                            HorizontalContentAlignment="Left"
+                            Command="{Binding NavigateOctoCommand}"
+                            Style="{StaticResource Button.Ghost}">
+                            <Grid Width="200">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                    <Grid
+                                        Width="24"
+                                        Height="24"
+                                        Margin="0,0,12,0">
+                                        <Path
+                                            Width="18"
+                                            Height="18"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Data="{StaticResource Icon.Sparkles}"
+                                            Fill="{DynamicResource Brush.Primary}"
+                                            Stretch="Uniform" />
+                                    </Grid>
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        FontSize="14"
+                                        FontWeight="SemiBold"
+                                        Foreground="{DynamicResource Brush.TextPrimary}"
+                                        Text="Octo AI" />
+                                </StackPanel>
+                                <Border
+                                    Grid.Column="1"
+                                    Margin="4,0,0,0"
+                                    Padding="6,1"
+                                    Background="{DynamicResource Brush.PrimarySoft}"
+                                    CornerRadius="4"
+                                    VerticalAlignment="Center">
+                                    <TextBlock
+                                        FontSize="9"
+                                        FontWeight="Bold"
+                                        Foreground="{DynamicResource Brush.Primary}"
+                                        Text="AGENT" />
+                                </Border>
+                            </Grid>
                         </Button>
 
                         <!--  Stopwatch  -->

@@ -86,7 +86,8 @@ public partial class MajorTasksFloatViewModel : ObservableObject
 
         try
         {
-            _allCards.Clear();
+            var loadedCards = new List<MajorTaskCardModel>();
+            var seenIds = new HashSet<Guid>();
             var userId = _userSession.UserId;
             var paged = await _projectService.GetAllProjectsAsync(1, 50);
 
@@ -104,7 +105,9 @@ public partial class MajorTasksFloatViewModel : ObservableObject
                         var taskRes = await _taskService.GetMajorTasksByTrackAsync(t.Id);
                         foreach (var m in taskRes.MajorTasks)
                         {
-                            _allCards.Add(new MajorTaskCardModel
+                            if (!seenIds.Add(m.Id)) continue;
+
+                            loadedCards.Add(new MajorTaskCardModel
                             {
                                 Id = m.Id,
                                 TrackId = m.TrackId,
@@ -126,6 +129,9 @@ public partial class MajorTasksFloatViewModel : ObservableObject
                     catch { /* skip inaccessible tracks */ }
                 }
             }
+
+            _allCards.Clear();
+            _allCards.AddRange(loadedCards);
 
             UpdateAvailableProjects();
             UpdateAvailableTracks();

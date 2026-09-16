@@ -14,9 +14,11 @@ public partial class SettingsViewModel : ObservableObject, INavigationAware
     private readonly ILocalCacheService _localCache;
     private readonly ISecureStorageService _secureStorage;
     private readonly IGitHubService _gitHubService;
+    private readonly IGeminiClient _geminiClient;
     private readonly IDialogService _dialogService;
 
     private const string GitHubTokenSecretKey = "OctalPulse_GitHubToken";
+    private const string GeminiApiKeySecretKey = "OctalPulse_GeminiApiKey";
 
     [ObservableProperty]
     private string _currentTheme = "Light";
@@ -31,6 +33,19 @@ public partial class SettingsViewModel : ObservableObject, INavigationAware
     [ObservableProperty]
     private GitHubUserInfo? _gitHubUser;
 
+    // Google Gemini Integration (Octo AI Supporter)
+    [ObservableProperty]
+    private string _geminiApiKeyInput = string.Empty;
+
+    [ObservableProperty]
+    private bool _isGeminiConnected;
+
+    [ObservableProperty]
+    private string _geminiModel = "gemini-1.5-flash";
+
+    [ObservableProperty]
+    private string _geminiMaskedKeyDisplay = string.Empty;
+
     [ObservableProperty]
     private bool _isBusy;
 
@@ -41,12 +56,14 @@ public partial class SettingsViewModel : ObservableObject, INavigationAware
         ILocalCacheService localCache,
         ISecureStorageService secureStorage,
         IGitHubService gitHubService,
+        IGeminiClient geminiClient,
         IDialogService dialogService)
     {
         _themeService = themeService;
         _localCache = localCache;
         _secureStorage = secureStorage;
         _gitHubService = gitHubService;
+        _geminiClient = geminiClient;
         _dialogService = dialogService;
 
         _currentTheme = _themeService.CurrentTheme;
@@ -80,6 +97,23 @@ public partial class SettingsViewModel : ObservableObject, INavigationAware
                 {
                     Repositories.Add(r);
                 }
+            }
+
+            // Load Gemini state
+            var storedGeminiKey = _secureStorage.GetSecret(GeminiApiKeySecretKey);
+            IsGeminiConnected = !string.IsNullOrWhiteSpace(storedGeminiKey);
+            if (IsGeminiConnected && storedGeminiKey!.Length > 8)
+            {
+                GeminiMaskedKeyDisplay = $"{storedGeminiKey[..4]}...{storedGeminiKey[^4..]}";
+                var bestModel = await _geminiClient.ResolveBestModelAsync(storedGeminiKey);
+                if (!string.IsNullOrEmpty(bestModel))
+                {
+                    GeminiModel = bestModel;
+                }
+            }
+            else
+            {
+                GeminiMaskedKeyDisplay = IsGeminiConnected ? "••••••••" : string.Empty;
             }
         }
         catch (Exception ex)
@@ -179,5 +213,58 @@ public partial class SettingsViewModel : ObservableObject, INavigationAware
         Repositories.Clear();
 
         _dialogService.ShowToast("GitHub Disconnected", "GitHub integration removed.", ToastType.Info);
+    }
+
+    [RelayCommand]
+    private async Task ConnectGeminiAsync()
+    {
+        if (string.IsNullOrWhiteSpace(GeminiApiKeyInput))
+        {
+            _dialogService.ShowToast("Validation Error", "Please provide a Google Gemini API key.", ToastType.Warning);
+            return;
+        }
+
+        IsBusy = true;
+        try
+        {
+            var isValid = await _geminiClient.ValidateApiKeyAsync(GeminiApiKeyInput.Trim(), GeminiModel);
+            if (!isValid)
+            {
+                _dialogService.ShowToast("Gemini Validation Error", "The key could not be verified with Google Gemini. Please check the key and your network connection.", ToastType.Error);
+                return;
+            }
+
+            // Securely store with Windows DPAPI
+            _secureStorage.SaveSecret(GeminiApiKeySecretKey, GeminiApiKeyInput.Trim());
+
+            var rawKey = GeminiApiKeyInput.Trim();
+            GeminiMaskedKeyDisplay = rawKey.Length > 8 ? $"{rawKey[..4]}...{rawKey[^4..]}" : "••••••••";
+            IsGeminiConnected = true;
+            GeminiApiKeyInput = string.Empty;
+
+            _dialogService.ShowToast("Gemini Connected", "Google Gemini connected successfully! Octo AI Supporter is ready to assist.", ToastType.Success);
+        }
+        catch (Exception ex)
+        {
+            _dialogService.ShowToast("Gemini Connection Error", ex.Message, ToastType.Error);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+    }
+
+    [RelayCommand]
+    private async Task DisconnectGeminiAsync()
+    {
+        var confirm = await _dialogService.ShowConfirmationAsync("Disconnect Gemini", "Disconnect Google Gemini and delete the securely stored API key? Octo AI Supporter will be disabled.", "Disconnect", "Cancel");
+        if (!confirm) return;
+
+        _secureStorage.RemoveSecret(GeminiApiKeySecretKey);
+
+        IsGeminiConnected = false;
+        GeminiMaskedKeyDisplay = string.Empty;
+
+        _dialogService.ShowToast("Gemini Disconnected", "Google Gemini API key removed.", ToastType.Info);
     }
 }

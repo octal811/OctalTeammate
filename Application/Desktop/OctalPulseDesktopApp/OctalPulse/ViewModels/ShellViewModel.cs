@@ -203,6 +203,13 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
     }
 
     [RelayCommand]
+    private void NavigateOcto()
+    {
+        CurrentRoute = "Octo";
+        _navigationService.NavigateTo<OctoViewModel>();
+    }
+
+    [RelayCommand]
     private void NavigateSettings()
     {
         CurrentRoute = "Settings";

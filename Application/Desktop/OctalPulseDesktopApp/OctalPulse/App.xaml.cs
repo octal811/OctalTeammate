@@ -68,6 +68,7 @@ public partial class App : System.Windows.Application
                 services.AddSingleton<ProfileViewModel>();
                 services.AddTransient<MediaViewModel>();
                 services.AddTransient<FastAddViewModel>();
+                services.AddTransient<OctoViewModel>();
 
                 // Float ViewModels
                 services.AddSingleton<MajorTasksFloatViewModel>();

@@ -25,7 +25,24 @@ internal sealed class UtcDateTimeJsonConverter : JsonConverter<DateTime>
 
     public override void Write(Utf8JsonWriter writer, DateTime value, JsonSerializerOptions options)
     {
-        writer.WriteStringValue(value.ToUniversalTime().ToString("O"));
+        DateTime utc;
+        if (value.Kind == DateTimeKind.Utc)
+        {
+            utc = value;
+        }
+        else if (value.TimeOfDay == TimeSpan.Zero)
+        {
+            // Pure calendar date with no time component (e.g., from DatePicker or DateTime.Today).
+            // Treating this as UTC directly preserves the selected date and prevents negative timezone offsets
+            // from shifting the date to the previous day (e.g. 2026-09-25 00:00 local becoming 2026-09-24 22:00 UTC).
+            utc = DateTime.SpecifyKind(value.Date, DateTimeKind.Utc);
+        }
+        else
+        {
+            utc = value.ToUniversalTime();
+        }
+
+        writer.WriteStringValue(utc.ToString("O"));
     }
 }
 

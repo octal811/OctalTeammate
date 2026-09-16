@@ -143,6 +143,7 @@ public partial class WpfNavigationService : ObservableObject, INavigationService
                type == typeof(MajorTaskDetailViewModel) ||
                type == typeof(CalendarViewModel) ||
                type == typeof(TasksViewModel) ||
+               type == typeof(OctoViewModel) ||
                type == typeof(SettingsViewModel) ||
                type == typeof(StopwatchViewModel) ||
                type == typeof(ProfileViewModel) ||
@@ -160,6 +161,7 @@ public partial class WpfNavigationService : ObservableObject, INavigationService
             nameof(CalendarViewModel) => "Calendar",
             nameof(TasksViewModel) => "Tasks Center",
             nameof(MajorTaskDetailViewModel) => "Tasks Center",
+            nameof(OctoViewModel) => "Octo AI",
             nameof(SettingsViewModel) => "Settings & GitHub",
             nameof(StopwatchViewModel) => "Stopwatch",
             nameof(ProfileViewModel) => "Profile",

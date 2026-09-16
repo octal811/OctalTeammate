@@ -65,6 +65,22 @@ public static class DependencyInjection
         services.AddScoped<IActivityService, ActivityService>();
         services.AddScoped<IFastAddParserService, FastAddParserService>();
 
+        // Gemini & Octo AI Supporter
+        services.AddHttpClient<IGeminiClient, OctalPulse.Infrastructure.Gemini.GeminiClient>(client =>
+        {
+            client.Timeout = TimeSpan.FromSeconds(60);
+        });
+
+        services.AddScoped<IOctoTool, OctalPulse.Infrastructure.Octo.Tools.GetAccessibleProjectsTool>();
+        services.AddScoped<IOctoTool, OctalPulse.Infrastructure.Octo.Tools.GetTracksTool>();
+        services.AddScoped<IOctoTool, OctalPulse.Infrastructure.Octo.Tools.GetMajorTasksTool>();
+        services.AddScoped<IOctoTool, OctalPulse.Infrastructure.Octo.Tools.GetMinorTasksTool>();
+        services.AddScoped<IOctoTool, OctalPulse.Infrastructure.Octo.Tools.GetTaskDetailsTool>();
+        services.AddScoped<IOctoTool, OctalPulse.Infrastructure.Octo.Tools.CompareTasksTool>();
+        services.AddScoped<IOctoTool, OctalPulse.Infrastructure.Octo.Tools.AnalyzeTaskDependenciesTool>();
+        services.AddScoped<IOctoToolRegistry, OctalPulse.Infrastructure.Octo.OctoToolRegistry>();
+        services.AddScoped<IOctoAgent, OctalPulse.Infrastructure.Octo.OctoAgent>();
+
         // SignalR Realtime Service
         services.AddSingleton<ISignalRRealtimeService>(sp =>
         {

@@ -45,7 +45,7 @@ public class MajorTaskCardModel : ObservableObject
     public bool HasLink => !string.IsNullOrWhiteSpace(Link);
 }
 
-public partial class TasksViewModel : ObservableObject, INavigationAware
+public partial class TasksViewModel : ObservableObject, INavigationAware, INavigationFromAware
 {
     private readonly IProjectService _projectService;
     private readonly ITaskService _taskService;
@@ -53,8 +53,11 @@ public partial class TasksViewModel : ObservableObject, INavigationAware
     private readonly IDialogService _dialogService;
     private readonly IFastAddDialogService _fastAddDialogService;
     private readonly IUserSession _userSession;
+    private readonly RealtimeNotificationService _notificationService;
     private readonly List<MajorTaskCardModel> _allLoadedCards = new();
     private readonly Dictionary<string, List<TrackOption>> _memberTracksByProjectTitle = new();
+    private readonly SemaphoreSlim _loadLock = new(1, 1);
+    private bool _isReloadPending;
 
     [ObservableProperty]
     private bool _isBusy;
@@ -130,107 +133,145 @@ public partial class TasksViewModel : ObservableObject, INavigationAware
         _dialogService = dialogService;
         _fastAddDialogService = fastAddDialogService;
         _userSession = userSession;
-
-        notificationService.MajorTasksUpdated += () =>
-        {
-            System.Windows.Application.Current?.Dispatcher.Invoke(async () =>
-            {
-                await LoadAllTasksAsync();
-            });
-        };
-
-        notificationService.MinorTasksUpdated += () =>
-        {
-            System.Windows.Application.Current?.Dispatcher.Invoke(async () =>
-            {
-                await LoadAllTasksAsync();
-            });
-        };
-
-        notificationService.ProjectsTracksUpdated += () =>
-        {
-            System.Windows.Application.Current?.Dispatcher.Invoke(async () =>
-            {
-                await LoadAllTasksAsync();
-            });
-        };
+        _notificationService = notificationService;
     }
 
     public void OnNavigatedTo(object? parameter)
     {
+        _notificationService.MajorTasksUpdated -= OnTasksUpdated;
+        _notificationService.MajorTasksUpdated += OnTasksUpdated;
+        _notificationService.MinorTasksUpdated -= OnTasksUpdated;
+        _notificationService.MinorTasksUpdated += OnTasksUpdated;
+        _notificationService.ProjectsTracksUpdated -= OnTasksUpdated;
+        _notificationService.ProjectsTracksUpdated += OnTasksUpdated;
+
         _ = LoadAllTasksAsync();
+    }
+
+    public void OnNavigatedFrom()
+    {
+        _notificationService.MajorTasksUpdated -= OnTasksUpdated;
+        _notificationService.MinorTasksUpdated -= OnTasksUpdated;
+        _notificationService.ProjectsTracksUpdated -= OnTasksUpdated;
+    }
+
+    private void OnTasksUpdated()
+    {
+        System.Windows.Application.Current?.Dispatcher.Invoke(async () =>
+        {
+            await LoadAllTasksAsync();
+        });
     }
 
     [RelayCommand]
     public async Task LoadAllTasksAsync()
     {
-        IsBusy = true;
-        _allLoadedCards.Clear();
-        AvailableTracks.Clear();
-        TrackFilterOptions.Clear();
-        _memberTracksByProjectTitle.Clear();
+        if (!_loadLock.Wait(0))
+        {
+            _isReloadPending = true;
+            return;
+        }
 
+        try
+        {
+            do
+            {
+                _isReloadPending = false;
+                await LoadAllTasksInternalAsync();
+            } while (_isReloadPending);
+        }
+        finally
+        {
+            _loadLock.Release();
+        }
+    }
+
+    private async Task LoadAllTasksInternalAsync()
+    {
+        IsBusy = true;
+        var loadedCards = new List<MajorTaskCardModel>();
+        var seenTaskIds = new HashSet<Guid>();
+        var availableTracks = new List<TrackOption>();
+        var memberTracksByProjectTitle = new Dictionary<string, List<TrackOption>>();
         var projectNames = new HashSet<string> { "All Projects" };
 
         try
         {
-        var userId = _userSession.UserId;
+            var userId = _userSession.UserId;
 
-        var paged = await _projectService.GetAllProjectsAsync(1, 50);
-        foreach (var p in paged.Items)
-        {
-            var tracksRes = await _projectService.GetTracksByProjectAsync(p.Id);
-            foreach (var t in tracksRes.Tracks)
+            var paged = await _projectService.GetAllProjectsAsync(1, 50);
+            foreach (var p in paged.Items)
             {
-                var isMember = t.TrackLeadUserId == userId
-                    || t.CurrentUserMembership == MembershipStatus.Approved;
-
-                if (!isMember)
-                    continue;
-
-                projectNames.Add(p.Title);
-
-                var opt = new TrackOption(t.Id, p.Id, p.Title, t.Name);
-                AvailableTracks.Add(opt);
-
-                if (!_memberTracksByProjectTitle.TryGetValue(p.Title, out var opts))
+                var tracksRes = await _projectService.GetTracksByProjectAsync(p.Id);
+                foreach (var t in tracksRes.Tracks)
                 {
-                    opts = new List<TrackOption>();
-                    _memberTracksByProjectTitle[p.Title] = opts;
-                }
-                opts.Add(opt);
+                    var isMember = t.TrackLeadUserId == userId
+                        || t.CurrentUserMembership == MembershipStatus.Approved;
 
-                try
-                {
-                    var taskRes = await _taskService.GetMajorTasksByTrackAsync(t.Id);
-                    foreach (var m in taskRes.MajorTasks)
+                    if (!isMember)
+                        continue;
+
+                    projectNames.Add(p.Title);
+
+                    var opt = new TrackOption(t.Id, p.Id, p.Title, t.Name);
+                    availableTracks.Add(opt);
+
+                    if (!memberTracksByProjectTitle.TryGetValue(p.Title, out var opts))
                     {
-                        _allLoadedCards.Add(new MajorTaskCardModel
+                        opts = new List<TrackOption>();
+                        memberTracksByProjectTitle[p.Title] = opts;
+                    }
+                    opts.Add(opt);
+
+                    try
+                    {
+                        var taskRes = await _taskService.GetMajorTasksByTrackAsync(t.Id);
+                        foreach (var m in taskRes.MajorTasks)
                         {
-                            Id = m.Id,
-                            TrackId = m.TrackId,
-                            Title = m.Title,
-                            Description = m.Description,
-                            Details = m.Details,
-                            Link = m.Link,
-                            State = m.State,
-                            Priority = m.Priority,
-                            DueDate = m.DueDate,
-                            Order = m.Order,
-                            AssignedUserId = m.AssignedUserId,
-                            Progress = m.Progress,
-                            CreatedByUserId = m.CreatedByUserId,
-                            IsOwner = _userSession.UserId.HasValue && m.CreatedByUserId == _userSession.UserId,
-                            CreatedDate = m.CreatedDate,
-                            ProjectTitle = p.Title,
-                            TrackTitle = t.Name
-                        });
+                            if (!seenTaskIds.Add(m.Id))
+                                continue;
+
+                            loadedCards.Add(new MajorTaskCardModel
+                            {
+                                Id = m.Id,
+                                TrackId = m.TrackId,
+                                Title = m.Title,
+                                Description = m.Description,
+                                Details = m.Details,
+                                Link = m.Link,
+                                State = m.State,
+                                Priority = m.Priority,
+                                DueDate = m.DueDate,
+                                Order = m.Order,
+                                AssignedUserId = m.AssignedUserId,
+                                Progress = m.Progress,
+                                CreatedByUserId = m.CreatedByUserId,
+                                IsOwner = _userSession.UserId.HasValue && m.CreatedByUserId == _userSession.UserId,
+                                CreatedDate = m.CreatedDate,
+                                ProjectTitle = p.Title,
+                                TrackTitle = t.Name
+                            });
+                        }
+                    }
+                    catch
+                    {
                     }
                 }
-                catch
-                {
-                }
             }
+
+            _allLoadedCards.Clear();
+            _allLoadedCards.AddRange(loadedCards);
+
+            _memberTracksByProjectTitle.Clear();
+            foreach (var kvp in memberTracksByProjectTitle)
+            {
+                _memberTracksByProjectTitle[kvp.Key] = kvp.Value;
+            }
+
+            AvailableTracks.Clear();
+            foreach (var opt in availableTracks)
+            {
+                AvailableTracks.Add(opt);
             }
 
             AvailableProjects.Clear();
@@ -451,7 +492,11 @@ public partial class TasksViewModel : ObservableObject, INavigationAware
     {
         if (card == null || card.State == newState) return;
 
-        IsBusy = true;
+        var previousState = card.State;
+        // Optimistically update card state locally for immediate visual transition
+        card.State = newState;
+        ApplyFilter();
+
         try
         {
             await _taskService.UpdateMajorTaskAsync(new UpdateMajorTaskRequest(
@@ -467,15 +512,13 @@ public partial class TasksViewModel : ObservableObject, INavigationAware
                 card.AssignedUserId));
 
             _dialogService.ShowToast("Task Updated", $"'{card.Title}' moved to {newState}.", ToastType.Info);
-            await LoadAllTasksAsync();
         }
         catch (Exception ex)
         {
+            // Revert state if the API call fails
+            card.State = previousState;
+            ApplyFilter();
             _dialogService.ShowToast("Update Error", ex.Message, ToastType.Error);
-        }
-        finally
-        {
-            IsBusy = false;
         }
     }
 

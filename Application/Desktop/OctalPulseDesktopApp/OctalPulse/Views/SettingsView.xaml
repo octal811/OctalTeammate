@@ -217,6 +217,70 @@
             </Border>
 
 
+            <!-- ── SECTION 3: GEMINI AI & OCTO SUPPORTER ──────────────────── -->
+            <Border Style="{StaticResource Border.Card}" Padding="24" Margin="0,0,0,24">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                        <Border Width="28" Height="28" CornerRadius="6" Background="{DynamicResource Brush.PrimarySoft}" Margin="0,0,10,0">
+                            <Path Data="{StaticResource Icon.Sparkles}" Fill="{DynamicResource Brush.Primary}" Width="16" Height="16" Stretch="Uniform" />
+                        </Border>
+                        <TextBlock Text="Google Gemini AI — Octo Supporter (DPAPI Protected)" Style="{StaticResource Text.Heading3}" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <TextBlock Text="Connect your personal Google Gemini API key to empower Octo — your AI assistant that analyzes tasks, dependencies, priorities, and project progression. Your API key is encrypted via Windows DPAPI and stored only on this device. It is never transmitted to other users." 
+                               Style="{StaticResource Text.Subtitle}" TextWrapping="Wrap" LineHeight="20" Margin="0,0,0,20" />
+
+                    <!-- Not Connected State -->
+                    <StackPanel Visibility="{Binding IsGeminiConnected, Converter={StaticResource BoolToVis}, ConverterParameter=invert}">
+                        <TextBlock Text="Google Gemini API Key" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <Grid Margin="0,0,0,12">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <TextBox Grid.Column="0" Text="{Binding GeminiApiKeyInput, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Tag="AIzaSy..." Margin="0,0,12,0" />
+                            <Button Grid.Column="1" Style="{StaticResource Button.Primary}" Content="Connect Gemini" Command="{Binding ConnectGeminiCommand}" Height="42" Padding="20,0" />
+                        </Grid>
+                        <TextBlock Text="Obtain a free or paid API key at Google AI Studio (aistudio.google.com). Default model: gemini-1.5-flash." FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" />
+                    </StackPanel>
+
+                    <!-- Connected State -->
+                    <StackPanel Visibility="{Binding IsGeminiConnected, Converter={StaticResource BoolToVis}}">
+                        <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="10" Padding="16">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Width="42" Height="42" CornerRadius="21" Background="{DynamicResource Brush.PrimarySoft}" Margin="0,0,14,0">
+                                    <Path Data="{StaticResource Icon.Sparkles}" Fill="{DynamicResource Brush.Primary}" Width="20" Height="20" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                </Border>
+
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="Google Gemini Connected" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,10,0" />
+                                        <Border Background="#2D10B981" CornerRadius="6" Padding="6,2">
+                                            <TextBlock Text="Octo Ready" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource Brush.Success}" />
+                                        </Border>
+                                    </StackPanel>
+                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                        <TextBlock Text="Key: " FontSize="12" Foreground="{DynamicResource Brush.TextMuted}" />
+                                        <TextBlock Text="{Binding GeminiMaskedKeyDisplay}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,0,12,0" />
+                                        <Border Background="{DynamicResource Brush.Surface}" CornerRadius="4" Padding="6,1">
+                                            <TextBlock Text="{Binding GeminiModel}" FontSize="11" Foreground="{DynamicResource Brush.Primary}" />
+                                        </Border>
+                                    </StackPanel>
+                                </StackPanel>
+
+                                <Button Grid.Column="2" Style="{StaticResource Button.Danger}" Content="Disconnect" Command="{Binding DisconnectGeminiCommand}" Height="34" Padding="14,0" />
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+
             <!-- ── SECTION 4: SYSTEM INFO ─────────────────────────────────── -->
             <Border Style="{StaticResource Border.Card}" Padding="24">
                 <StackPanel>

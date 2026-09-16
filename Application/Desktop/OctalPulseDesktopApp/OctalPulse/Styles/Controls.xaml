@@ -179,6 +179,8 @@
         <Setter Property="Padding" Value="12,0" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
         <Setter Property="CaretBrush" Value="{DynamicResource Brush.Primary}" />
+        <Setter Property="SelectionBrush" Value="{DynamicResource Brush.Primary}" />
+        <Setter Property="SelectionTextBrush" Value="White" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
@@ -187,11 +189,25 @@
                             BorderBrush="{TemplateBinding BorderBrush}"
                             BorderThickness="{TemplateBinding BorderThickness}"
                             CornerRadius="8">
-                        <ScrollViewer x:Name="PART_ContentHost"
-                                      Focusable="false"
-                                      HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
-                                      VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}"
-                                      Margin="{TemplateBinding Padding}" />
+                        <Grid>
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                          Focusable="false"
+                                          HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
+                                          VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}"
+                                          VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                                          TextElement.Foreground="{TemplateBinding Foreground}"
+                                          Margin="{TemplateBinding Padding}" />
+                            <!-- Placeholder text (shown when empty and unfocused) -->
+                            <TextBlock x:Name="placeholder"
+                                       Text="{TemplateBinding Tag}"
+                                       Foreground="{DynamicResource Brush.TextMuted}"
+                                       FontSize="{TemplateBinding FontSize}"
+                                       VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                                       IsHitTestVisible="False"
+                                       Margin="{TemplateBinding Padding}"
+                                       Opacity="0.6"
+                                       Visibility="Collapsed" />
+                        </Grid>
                     </Border>
                     <ControlTemplate.Triggers>
                         <Trigger Property="IsMouseOver" Value="True">
@@ -200,6 +216,10 @@
                         <Trigger Property="IsFocused" Value="True">
                             <Setter TargetName="border" Property="BorderBrush" Value="{DynamicResource Brush.BorderFocused}" />
                             <Setter TargetName="border" Property="BorderThickness" Value="1.5" />
+                        </Trigger>
+                        <!-- Show placeholder only when Text is empty -->
+                        <Trigger Property="Text" Value="">
+                            <Setter TargetName="placeholder" Property="Visibility" Value="Visible" />
                         </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
@@ -222,6 +242,8 @@
         <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
         <Setter Property="ScrollViewer.HorizontalScrollBarVisibility" Value="Disabled" />
         <Setter Property="CaretBrush" Value="{DynamicResource Brush.Primary}" />
+        <Setter Property="SelectionBrush" Value="{DynamicResource Brush.Primary}" />
+        <Setter Property="SelectionTextBrush" Value="White" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="TextBox">
@@ -234,6 +256,7 @@
                                       Focusable="false"
                                       HorizontalScrollBarVisibility="{TemplateBinding ScrollViewer.HorizontalScrollBarVisibility}"
                                       VerticalScrollBarVisibility="{TemplateBinding ScrollViewer.VerticalScrollBarVisibility}"
+                                      TextElement.Foreground="{TemplateBinding Foreground}"
                                       Margin="{TemplateBinding Padding}" />
                     </Border>
                     <ControlTemplate.Triggers>

@@ -20,7 +20,7 @@ public class CalendarDayItem : ObservableObject
     public ObservableCollection<EventItem> DayEvents { get; } = new();
 }
 
-public partial class CalendarViewModel : ObservableObject, INavigationAware
+public partial class CalendarViewModel : ObservableObject, INavigationAware, INavigationFromAware
 {
     private readonly IEventService _eventService;
     private readonly IProjectService _projectService;
@@ -28,6 +28,7 @@ public partial class CalendarViewModel : ObservableObject, INavigationAware
     private readonly IDialogService _dialogService;
     private readonly IUserSession _userSession;
     private readonly INavigationService _navigationService;
+    private readonly RealtimeNotificationService _notificationService;
 
     [ObservableProperty]
     private DateTime _currentMonthDate = new(DateTime.Today.Year, DateTime.Today.Month, 1);
@@ -80,21 +81,31 @@ public partial class CalendarViewModel : ObservableObject, INavigationAware
         _dialogService = dialogService;
         _userSession = userSession;
         _navigationService = navigationService;
-
-        _signalRService.EventChanged += OnEventChanged;
-
-        notificationService.CalendarUpdated += () =>
-        {
-            System.Windows.Application.Current?.Dispatcher.Invoke(async () =>
-            {
-                await LoadMonthEventsAsync();
-            });
-        };
+        _notificationService = notificationService;
     }
 
     public void OnNavigatedTo(object? parameter)
     {
+        _signalRService.EventChanged -= OnEventChanged;
+        _signalRService.EventChanged += OnEventChanged;
+        _notificationService.CalendarUpdated -= OnCalendarUpdated;
+        _notificationService.CalendarUpdated += OnCalendarUpdated;
+
         _ = LoadInitialDataAsync();
+    }
+
+    public void OnNavigatedFrom()
+    {
+        _signalRService.EventChanged -= OnEventChanged;
+        _notificationService.CalendarUpdated -= OnCalendarUpdated;
+    }
+
+    private void OnCalendarUpdated()
+    {
+        System.Windows.Application.Current?.Dispatcher.Invoke(async () =>
+        {
+            await LoadMonthEventsAsync();
+        });
     }
 
     private void OnEventChanged(Guid eventId, Guid projectId)
@@ -254,7 +265,8 @@ public partial class CalendarViewModel : ObservableObject, INavigationAware
 
             foreach (var ev in res.Events)
             {
-                var matchingDay = Days.FirstOrDefault(d => d.Date.Date == ev.StartDate.Date);
+                var eventDay = GetEffectiveDate(ev.StartDate);
+                var matchingDay = Days.FirstOrDefault(d => d.Date.Date == eventDay);
                 matchingDay?.DayEvents.Add(ev);
             }
 
@@ -268,6 +280,19 @@ public partial class CalendarViewModel : ObservableObject, INavigationAware
         {
             IsBusy = false;
         }
+    }
+
+    private static DateTime GetEffectiveDate(DateTime dt)
+    {
+        // If midnight (00:00:00), it directly represents the calendar date.
+        if (dt.TimeOfDay == TimeSpan.Zero)
+        {
+            return dt.Date;
+        }
+
+        // If it has a time component (e.g. UTC 22:00 from previous offset bug or specific hour),
+        // convert to local time to determine the local calendar day.
+        return dt.ToLocalTime().Date;
     }
 
     [RelayCommand]
@@ -323,16 +348,17 @@ public partial class CalendarViewModel : ObservableObject, INavigationAware
         IsBusy = true;
         try
         {
+            var eventDate = DateTime.SpecifyKind(NewEventDate.Date, DateTimeKind.Utc);
             await _eventService.CreateEventAsync(new CreateEventRequest(
                 SelectedProject.Id,
                 NewEventTitle.Trim(),
                 string.IsNullOrWhiteSpace(NewEventDescription) ? null : NewEventDescription.Trim(),
                 NewEventType,
-                NewEventDate.Date,
-                NewEventDate.Date.AddHours(1),
+                eventDate,
+                eventDate,
                 null,
                 null,
-                false,
+                true,
                 null,
                 null));
 
