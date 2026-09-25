@@ -103,7 +103,12 @@ public class UpdateCheckService : IUpdateCheckService
         }
     }
 
-    public async Task<InstallationMetadata?> GetInstallationMetadataAsync()
+    public Task<InstallationMetadata?> GetInstallationMetadataAsync()
+    {
+        return Task.FromResult(ReadInstallationMetadata());
+    }
+
+    private InstallationMetadata? ReadInstallationMetadata()
     {
         var path = ResolveInstallationMetadataFilePath();
         if (string.IsNullOrEmpty(path) || !File.Exists(path))
@@ -111,7 +116,7 @@ public class UpdateCheckService : IUpdateCheckService
 
         try
         {
-            var json = await File.ReadAllTextAsync(path);
+            var json = File.ReadAllText(path);
             return JsonSerializer.Deserialize<InstallationMetadata>(json);
         }
         catch (Exception ex)
@@ -123,7 +128,7 @@ public class UpdateCheckService : IUpdateCheckService
 
     public string GetCurrentInstallPath()
     {
-        var meta = GetInstallationMetadataAsync().GetAwaiter().GetResult();
+        var meta = ReadInstallationMetadata();
         if (meta != null && !string.IsNullOrWhiteSpace(meta.InstallPath) && Directory.Exists(meta.InstallPath))
         {
             return meta.InstallPath;
@@ -134,7 +139,7 @@ public class UpdateCheckService : IUpdateCheckService
 
     public bool IsInterruptedInstallation()
     {
-        var meta = GetInstallationMetadataAsync().GetAwaiter().GetResult();
+        var meta = ReadInstallationMetadata();
         if (meta == null || meta.Installed)
             return false;
 

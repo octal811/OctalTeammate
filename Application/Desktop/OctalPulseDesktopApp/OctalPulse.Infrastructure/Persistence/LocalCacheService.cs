@@ -39,23 +39,24 @@ public class LocalCacheService : ILocalCacheService
 
     public async Task<LocalSession?> GetActiveSessionAsync()
     {
-        await using var db = await _dbFactory.CreateDbContextAsync();
+        await using var db = await _dbFactory.CreateDbContextAsync().ConfigureAwait(false);
         return await db.Sessions
             .OrderByDescending(s => s.LastLoginAt)
-            .FirstOrDefaultAsync(s => s.IsActive);
+            .FirstOrDefaultAsync(s => s.IsActive)
+            .ConfigureAwait(false);
     }
 
     public async Task SaveSessionAsync(LocalSession session)
     {
-        await using var db = await _dbFactory.CreateDbContextAsync();
+        await using var db = await _dbFactory.CreateDbContextAsync().ConfigureAwait(false);
         // Deactivate previous active sessions
-        var actives = await db.Sessions.Where(s => s.IsActive).ToListAsync();
+        var actives = await db.Sessions.Where(s => s.IsActive).ToListAsync().ConfigureAwait(false);
         foreach (var s in actives)
         {
             s.IsActive = false;
         }
 
-        var existing = await db.Sessions.FirstOrDefaultAsync(s => s.UserId == session.UserId);
+        var existing = await db.Sessions.FirstOrDefaultAsync(s => s.UserId == session.UserId).ConfigureAwait(false);
         if (existing is not null)
         {
             existing.Email = session.Email;
@@ -70,32 +71,32 @@ public class LocalCacheService : ILocalCacheService
         {
             session.IsActive = true;
             session.LastLoginAt = DateTime.UtcNow;
-            await db.Sessions.AddAsync(session);
+            await db.Sessions.AddAsync(session).ConfigureAwait(false);
         }
 
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync().ConfigureAwait(false);
     }
 
     public async Task ClearSessionAsync()
     {
-        await using var db = await _dbFactory.CreateDbContextAsync();
-        var actives = await db.Sessions.Where(s => s.IsActive).ToListAsync();
+        await using var db = await _dbFactory.CreateDbContextAsync().ConfigureAwait(false);
+        var actives = await db.Sessions.Where(s => s.IsActive).ToListAsync().ConfigureAwait(false);
         foreach (var s in actives)
         {
             s.IsActive = false;
         }
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync().ConfigureAwait(false);
     }
 
     public async Task<UserPreferences> GetPreferencesAsync()
     {
-        await using var db = await _dbFactory.CreateDbContextAsync();
-        var pref = await db.Preferences.FirstOrDefaultAsync(p => p.Id == 1);
+        await using var db = await _dbFactory.CreateDbContextAsync().ConfigureAwait(false);
+        var pref = await db.Preferences.FirstOrDefaultAsync(p => p.Id == 1).ConfigureAwait(false);
         if (pref is null)
         {
             pref = new UserPreferences { Id = 1 };
-            await db.Preferences.AddAsync(pref);
-            await db.SaveChangesAsync();
+            await db.Preferences.AddAsync(pref).ConfigureAwait(false);
+            await db.SaveChangesAsync().ConfigureAwait(false);
         }
         return pref;
     }

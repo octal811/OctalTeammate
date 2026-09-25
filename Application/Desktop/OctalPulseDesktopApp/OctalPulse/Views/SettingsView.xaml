@@ -301,9 +301,6 @@
                             </StackPanel>
                         </StackPanel>
 
-                        <Button Grid.Column="1" Style="{StaticResource Button.Primary}" Content="Check for Updates" 
-                                Command="{Binding CheckForUpdatesCommand}" Height="36" Padding="16,0"
-                                IsEnabled="{Binding IsCheckingUpdate, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
                     </Grid>
 
                     <!-- Version Meaning / Breakdown Card -->
@@ -314,13 +311,6 @@
                                        FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" />
                         </StackPanel>
                     </Border>
-
-                    <!-- Status Text / Progress -->
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8" Visibility="{Binding UpdateStatusText, Converter={StaticResource NullToVis}}">
-                        <ProgressBar Width="16" Height="16" IsIndeterminate="True" Style="{StaticResource ProgressBar.Modern}" 
-                                     Visibility="{Binding IsCheckingUpdate, Converter={StaticResource BoolToVis}}" Margin="0,0,8,0" />
-                        <TextBlock Text="{Binding UpdateStatusText}" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" VerticalAlignment="Center" />
-                    </StackPanel>
 
                     <TextBlock Text="Built with WPF, C# 13, and .NET 10 following Onion Architecture, Clean MVVM, SignalR Real-Time Collaboration, SQLite Local Cache, and Windows DPAPI." 
                                FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" LineHeight="16" TextWrapping="Wrap" />

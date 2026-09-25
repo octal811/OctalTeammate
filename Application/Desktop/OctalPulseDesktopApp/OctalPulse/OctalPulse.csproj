@@ -6,12 +6,6 @@
     <ProjectReference Include="..\OctalPulse.Domain\OctalPulse.Domain.csproj" />
   </ItemGroup>
 
-  <Target Name="CopyInstallerToOutput" AfterTargets="Build">
-    <ItemGroup>
-      <InstallerFiles Include="..\..\OctalPulseInstaller\OctalPulse.Installer\bin\$(Configuration)\net10.0-windows\OctalPulse.Installer.*" />
-    </ItemGroup>
-    <Copy SourceFiles="@(InstallerFiles)" DestinationFolder="$(TargetDir)" SkipUnchangedFiles="true" Condition="Exists('..\..\OctalPulseInstaller\OctalPulse.Installer\bin\$(Configuration)\net10.0-windows\OctalPulse.Installer.exe')" />
-  </Target>
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.2" />

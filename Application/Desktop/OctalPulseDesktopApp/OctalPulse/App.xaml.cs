@@ -20,105 +20,166 @@ public partial class App : System.Windows.Application
     {
         base.OnStartup(e);
 
-        // Keep the app alive when MainWindow is hidden
-        ShutdownMode = ShutdownMode.OnExplicitShutdown;
-
-        _host = Host.CreateDefaultBuilder()
-            .ConfigureServices((context, services) =>
-            {
-                var apiBaseUrl = context.Configuration["OctalPulse:ApiBaseUrl"]
-                    ?? Environment.GetEnvironmentVariable("OCTALPULSE_API_URL")
-                    ?? "https://octalpulse.runasp.net";
-
-                // Infrastructure services (EF SQLite, DPAPI, ApiClient, SignalR, Services)
-                services.AddInfrastructureServices(apiBaseUrl);
-
-                // UI Services
-                services.AddSingleton<ThemeService>();
-                services.AddSingleton<WpfNavigationService>();
-                services.AddSingleton<INavigationService>(sp => sp.GetRequiredService<WpfNavigationService>());
-                services.AddSingleton<WpfDialogService>();
-                services.AddSingleton<IDialogService>(sp => sp.GetRequiredService<WpfDialogService>());
-                services.AddSingleton<FastAddDialogService>();
-                services.AddSingleton<IFastAddDialogService>(sp => sp.GetRequiredService<FastAddDialogService>());
-
-                // Background-mode services
-                services.AddSingleton<TrayService>();
-                services.AddSingleton<GlobalHotkeyService>();
-                services.AddSingleton<FloatWindowPositionStore>();
-                services.AddSingleton<FloatWindowService>();
-                services.AddSingleton<RealtimeNotificationService>();
-                services.AddSingleton<AppUpdateCoordinator>();
-
-                // ViewModels
-                services.AddTransient<MainViewModel>();
-                services.AddTransient<LoginViewModel>();
-                services.AddTransient<RegisterViewModel>();
-                services.AddTransient<VerifyEmailViewModel>();
-                services.AddTransient<ForgotPasswordViewModel>();
-                services.AddSingleton<ShellViewModel>();
-                services.AddTransient<DashboardViewModel>();
-                services.AddTransient<ProjectsViewModel>();
-                services.AddTransient<ProjectDetailViewModel>();
-                services.AddTransient<TrackDetailViewModel>();
-                services.AddTransient<MajorTaskDetailViewModel>();
-                services.AddTransient<CalendarViewModel>();
-                services.AddTransient<TasksViewModel>();
-                services.AddTransient<SettingsViewModel>();
-                services.AddSingleton<StopwatchViewModel>();
-                services.AddSingleton<ProfileViewModel>();
-                services.AddTransient<MediaViewModel>();
-                services.AddTransient<FastAddViewModel>();
-                services.AddTransient<OctoViewModel>();
-
-                // Float ViewModels
-                services.AddSingleton<MajorTasksFloatViewModel>();
-                services.AddSingleton<MinorTasksFloatViewModel>();
-                services.AddSingleton<CalendarFloatViewModel>();
-                services.AddSingleton<MediaFloatViewModel>();
-                // StopwatchViewModel already singleton above — shared with float window
-
-                // Windows
-                services.AddSingleton<MainWindow>();
-
-                // Float Windows (singleton — one instance, show/hide as needed)
-                services.AddSingleton<MajorTasksFloatWindow>();
-                services.AddSingleton<MinorTasksFloatWindow>();
-                services.AddSingleton<StopwatchFloatWindow>();
-                services.AddSingleton<CalendarFloatWindow>();
-                services.AddSingleton<MediaFloatWindow>();
-            })
-            .Build();
-
-        await _host.StartAsync();
-        Services = _host.Services;
-
-        // Check if an update merge was interrupted in a previous run
-        var updateCoordinator = Services.GetRequiredService<AppUpdateCoordinator>();
-        if (updateCoordinator.CheckAndHandleInterruptedUpdate())
+        var logPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "OctalPulse", "startup_debug.log");
+        void Log(string msg)
         {
-            return;
+            try
+            {
+                System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(logPath)!);
+                System.IO.File.AppendAllText(logPath, $"[{DateTime.Now:HH:mm:ss.fff}] {msg}\n");
+            }
+            catch { }
         }
 
-        // Apply the saved theme (defaults to light on first run)
-        var themeService = Services.GetRequiredService<ThemeService>();
-        var localCache = Services.GetRequiredService<ILocalCacheService>();
-        var preferences = await localCache.GetPreferencesAsync();
-        themeService.SetTheme(string.IsNullOrWhiteSpace(preferences.Theme) ? "Light" : preferences.Theme);
+        Log("1. OnStartup initiated.");
 
-        // Load float window positions
-        var positionStore = Services.GetRequiredService<FloatWindowPositionStore>();
-        await positionStore.LoadAsync();
+        try
+        {
+            // Keep the app alive when MainWindow is hidden
+            ShutdownMode = ShutdownMode.OnExplicitShutdown;
 
-        // Initialize real-time SignalR notifications & group sync
-        var notificationService = Services.GetRequiredService<RealtimeNotificationService>();
-        notificationService.Initialize();
+            Log("2. Configuring Host...");
+            _host = Host.CreateDefaultBuilder()
+                .ConfigureServices((context, services) =>
+                {
+                    var apiBaseUrl = context.Configuration["OctalPulse:ApiBaseUrl"]
+                        ?? Environment.GetEnvironmentVariable("OCTALPULSE_API_URL")
+                        ?? "https://octalpulse.runasp.net";
 
-        var mainWindow = Services.GetRequiredService<MainWindow>();
-        mainWindow.Show();
+                    // Infrastructure services (EF SQLite, DPAPI, ApiClient, SignalR, Services)
+                    services.AddInfrastructureServices(apiBaseUrl);
 
-        // Non-blocking background check for remote updates
-        updateCoordinator.StartBackgroundUpdateCheck();
+                    // UI Services
+                    services.AddSingleton<ThemeService>();
+                    services.AddSingleton<WpfNavigationService>();
+                    services.AddSingleton<INavigationService>(sp => sp.GetRequiredService<WpfNavigationService>());
+                    services.AddSingleton<WpfDialogService>();
+                    services.AddSingleton<IDialogService>(sp => sp.GetRequiredService<WpfDialogService>());
+                    services.AddSingleton<FastAddDialogService>();
+                    services.AddSingleton<IFastAddDialogService>(sp => sp.GetRequiredService<FastAddDialogService>());
+
+                    // Background-mode services
+                    services.AddSingleton<TrayService>();
+                    services.AddSingleton<GlobalHotkeyService>();
+                    services.AddSingleton<FloatWindowPositionStore>();
+                    services.AddSingleton<FloatWindowService>();
+                    services.AddSingleton<RealtimeNotificationService>();
+                    services.AddSingleton<AppUpdateCoordinator>();
+
+                    // ViewModels
+                    services.AddTransient<MainViewModel>();
+                    services.AddTransient<LoginViewModel>();
+                    services.AddTransient<RegisterViewModel>();
+                    services.AddTransient<VerifyEmailViewModel>();
+                    services.AddTransient<ForgotPasswordViewModel>();
+                    services.AddSingleton<ShellViewModel>();
+                    services.AddTransient<DashboardViewModel>();
+                    services.AddTransient<ProjectsViewModel>();
+                    services.AddTransient<ProjectDetailViewModel>();
+                    services.AddTransient<TrackDetailViewModel>();
+                    services.AddTransient<MajorTaskDetailViewModel>();
+                    services.AddTransient<CalendarViewModel>();
+                    services.AddTransient<TasksViewModel>();
+                    services.AddTransient<SettingsViewModel>();
+                    services.AddSingleton<StopwatchViewModel>();
+                    services.AddSingleton<ProfileViewModel>();
+                    services.AddTransient<MediaViewModel>();
+                    services.AddTransient<FastAddViewModel>();
+                    services.AddTransient<OctoViewModel>();
+
+                    // Float ViewModels
+                    services.AddSingleton<MajorTasksFloatViewModel>();
+                    services.AddSingleton<MinorTasksFloatViewModel>();
+                    services.AddSingleton<CalendarFloatViewModel>();
+                    services.AddSingleton<MediaFloatViewModel>();
+                    // StopwatchViewModel already singleton above — shared with float window
+
+                    // Windows
+                    services.AddSingleton<MainWindow>();
+
+                    // Float Windows (singleton — one instance, show/hide as needed)
+                    services.AddSingleton<MajorTasksFloatWindow>();
+                    services.AddSingleton<MinorTasksFloatWindow>();
+                    services.AddSingleton<StopwatchFloatWindow>();
+                    services.AddSingleton<CalendarFloatWindow>();
+                    services.AddSingleton<MediaFloatWindow>();
+                })
+                .Build();
+
+            Log("3. Starting Host...");
+            await _host.StartAsync();
+            Services = _host.Services;
+            Log("4. Host started successfully.");
+
+            // Check if an update merge was interrupted in a previous run
+            Log("5. Checking for interrupted update...");
+            var updateCoordinator = Services.GetRequiredService<AppUpdateCoordinator>();
+            if (updateCoordinator.CheckAndHandleInterruptedUpdate())
+            {
+                Log("5a. Interrupted update detected and handled. Exiting OnStartup.");
+                return;
+            }
+
+            // 1. Show MainWindow immediately so the UI is responsive and visible to the user
+            Log("6. Creating MainWindow...");
+            var mainWindow = Services.GetRequiredService<MainWindow>();
+            MainWindow = mainWindow;
+            Log("7. Showing MainWindow...");
+            mainWindow.Show();
+            Log("8. MainWindow is now visible!");
+
+            // 2. Apply theme & preferences asynchronously in background
+            Log("9. Applying theme...");
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var themeService = Services.GetRequiredService<ThemeService>();
+                    var localCache = Services.GetRequiredService<ILocalCacheService>();
+                    var preferences = await localCache.GetPreferencesAsync().ConfigureAwait(false);
+                    if (!string.IsNullOrWhiteSpace(preferences?.Theme))
+                    {
+                        await Dispatcher.InvokeAsync(() => themeService.SetTheme(preferences.Theme));
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Log($"Theme application warning: {ex.Message}");
+                }
+            });
+
+            // 3. Load float window positions asynchronously
+            Log("10. Loading float window positions...");
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    var positionStore = Services.GetRequiredService<FloatWindowPositionStore>();
+                    await positionStore.LoadAsync().ConfigureAwait(false);
+                }
+                catch { }
+            });
+
+            // 4. Initialize real-time SignalR notifications & group sync
+            Log("11. Initializing notifications...");
+            try
+            {
+                var notificationService = Services.GetRequiredService<RealtimeNotificationService>();
+                notificationService.Initialize();
+            }
+            catch (Exception ex)
+            {
+                Log($"Notification init warning: {ex.Message}");
+            }
+
+            // 5. Non-blocking background check for remote updates
+            updateCoordinator.StartBackgroundUpdateCheck();
+        }
+        catch (Exception ex)
+        {
+            Log($"FATAL STARTUP EXCEPTION: {ex}");
+            MessageBox.Show($"Startup Error:\n\n{ex.Message}\n\n{ex.StackTrace}", "OctalPulse Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
     }
 
     protected override async void OnExit(ExitEventArgs e)

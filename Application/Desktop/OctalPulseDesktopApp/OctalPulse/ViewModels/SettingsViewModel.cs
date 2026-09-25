@@ -26,12 +26,6 @@ public partial class SettingsViewModel : ObservableObject, INavigationAware
     [ObservableProperty]
     private string _currentTheme = "Light";
 
-    [ObservableProperty]
-    private bool _isCheckingUpdate;
-
-    [ObservableProperty]
-    private string _updateStatusText = string.Empty;
-
     public AppVersionInfo CurrentVersionInfo => AppVersionInfo.Current;
     public string VersionDisplay => $"v{CurrentVersionInfo.DisplayString}";
     public string VersionBreakdown => $"Provider (X1): {CurrentVersionInfo.BackendProvider}  •  Desktop Features (X2): {CurrentVersionInfo.DesktopFeatures}  •  UI/UX & Themes (X3): {CurrentVersionInfo.UiUxTheme}  •  Fixes (X4): {CurrentVersionInfo.BugFixes}";
@@ -283,43 +277,5 @@ public partial class SettingsViewModel : ObservableObject, INavigationAware
         GeminiMaskedKeyDisplay = string.Empty;
 
         _dialogService.ShowToast("Gemini Disconnected", "Google Gemini API key removed.", ToastType.Info);
-    }
-
-    [RelayCommand]
-    private async Task CheckForUpdatesAsync()
-    {
-        if (IsCheckingUpdate) return;
-
-        IsCheckingUpdate = true;
-        UpdateStatusText = "Checking for available updates...";
-
-        try
-        {
-            var result = await _updateCheckService.CheckForUpdatesAsync();
-            if (result.IsUpdateAvailable)
-            {
-                UpdateStatusText = $"New version v{result.NewVersion?.DisplayString} is available!";
-                _updateCoordinator.PromptUserForUpdate(result);
-            }
-            else if (result.HasError)
-            {
-                UpdateStatusText = $"Update check failed: {result.ErrorMessage}";
-                _dialogService.ShowToast("Update Check Failed", result.ErrorMessage ?? "Could not reach update server.", ToastType.Warning);
-            }
-            else
-            {
-                UpdateStatusText = "OctalPulse is up to date.";
-                _dialogService.ShowToast("Up to Date", $"You are running the latest version (v{CurrentVersionInfo.DisplayString}).", ToastType.Success);
-            }
-        }
-        catch (Exception ex)
-        {
-            UpdateStatusText = $"Check failed: {ex.Message}";
-            _dialogService.ShowToast("Update Error", ex.Message, ToastType.Error);
-        }
-        finally
-        {
-            IsCheckingUpdate = false;
-        }
     }
 }

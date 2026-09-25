@@ -26,25 +26,33 @@ public class AppUpdateCoordinator
     /// </summary>
     public bool CheckAndHandleInterruptedUpdate()
     {
-        if (!_updateCheckService.IsInterruptedInstallation())
-            return false;
-
-        _logger.LogWarning("Interrupted installation detected on startup.");
-
-        var dialog = new InterruptedUpdateDialog();
-        var result = dialog.ShowDialog();
-
-        if (result == true && dialog.UserChoseReinstall)
+        try
         {
-            var installPath = _updateCheckService.GetCurrentInstallPath();
-            LaunchInstaller($"--reinstall --path \"{installPath}\"");
+            if (!_updateCheckService.IsInterruptedInstallation())
+                return false;
+
+            _logger.LogWarning("Interrupted installation detected on startup.");
+
+            var dialog = new InterruptedUpdateDialog();
+            var result = dialog.ShowDialog();
+
+            if (result == true && dialog.UserChoseReinstall)
+            {
+                var installPath = _updateCheckService.GetCurrentInstallPath();
+                LaunchInstaller($"--reinstall --path \"{installPath}\"");
+                System.Windows.Application.Current?.Shutdown();
+                return true;
+            }
+
+            // If user canceled/exited, exit app safely to prevent running corrupt files
             System.Windows.Application.Current?.Shutdown();
             return true;
         }
-
-        // If user canceled/exited, exit app safely to prevent running corrupt files
-        System.Windows.Application.Current?.Shutdown();
-        return true;
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed while checking for interrupted installation. Proceeding with normal startup.");
+            return false;
+        }
     }
 
     /// <summary>

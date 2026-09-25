@@ -23,15 +23,21 @@ public sealed class TrayService : IDisposable
         };
 
         // Load icon from the embedded resource
-        var iconUri = new Uri("pack://application:,,,/OctalPulse;component/Assets/OctalPulse.ico");
-        var streamInfo = System.Windows.Application.GetResourceStream(iconUri);
-        if (streamInfo != null)
+        try
         {
-            _notifyIcon.Icon = new Icon(streamInfo.Stream);
+            var iconUri = new Uri("pack://application:,,,/OctalPulse;component/Assets/OctalPulse.ico");
+            var streamInfo = System.Windows.Application.GetResourceStream(iconUri);
+            if (streamInfo != null)
+            {
+                _notifyIcon.Icon = new Icon(streamInfo.Stream);
+            }
+            else
+            {
+                _notifyIcon.Icon = SystemIcons.Application;
+            }
         }
-        else
+        catch
         {
-            // Fallback to system icon
             _notifyIcon.Icon = SystemIcons.Application;
         }
 

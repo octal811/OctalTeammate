@@ -6,8 +6,8 @@
         xmlns:conv="clr-namespace:OctalPulse.Installer.Converters"
         xmlns:vm="clr-namespace:OctalPulse.Installer.ViewModels"
         mc:Ignorable="d"
-        Title="OctalPulse Setup"
-        Width="580" Height="440"
+        Title="OctalPulse Setup &amp; Updates"
+        Width="640" Height="480"
         WindowStartupLocation="CenterScreen"
         WindowStyle="None"
         ResizeMode="NoResize"
@@ -18,7 +18,7 @@
         TextOptions.TextRenderingMode="ClearType">
 
     <WindowChrome.WindowChrome>
-        <WindowChrome CaptionHeight="36"
+        <WindowChrome CaptionHeight="38"
                       ResizeBorderThickness="0"
                       GlassFrameThickness="0"
                       CornerRadius="0" />
@@ -30,8 +30,8 @@
 
         <!-- TitleBar Button Style -->
         <Style x:Key="TitleBarBtn" TargetType="Button">
-            <Setter Property="Width" Value="40" />
-            <Setter Property="Height" Value="36" />
+            <Setter Property="Width" Value="42" />
+            <Setter Property="Height" Value="38" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Foreground" Value="#9CA3AF" />
@@ -53,8 +53,8 @@
         </Style>
 
         <Style x:Key="TitleBarCloseBtn" TargetType="Button">
-            <Setter Property="Width" Value="40" />
-            <Setter Property="Height" Value="36" />
+            <Setter Property="Width" Value="42" />
+            <Setter Property="Height" Value="38" />
             <Setter Property="Background" Value="Transparent" />
             <Setter Property="BorderThickness" Value="0" />
             <Setter Property="Foreground" Value="#9CA3AF" />
@@ -116,7 +116,7 @@
             <Setter Property="FontWeight" Value="SemiBold" />
             <Setter Property="FontSize" Value="13" />
             <Setter Property="Height" Value="38" />
-            <Setter Property="Padding" Value="18,0" />
+            <Setter Property="Padding" Value="16,0" />
             <Setter Property="BorderThickness" Value="1" />
             <Setter Property="BorderBrush" Value="#374151" />
             <Setter Property="Cursor" Value="Hand" />
@@ -140,25 +140,28 @@
             </Setter>
         </Style>
 
-        <!-- Danger Button Style -->
-        <Style x:Key="DangerButton" TargetType="Button">
-            <Setter Property="Background" Value="#EF4444" />
-            <Setter Property="Foreground" Value="#FFFFFF" />
-            <Setter Property="FontWeight" Value="SemiBold" />
-            <Setter Property="FontSize" Value="13" />
-            <Setter Property="Height" Value="38" />
-            <Setter Property="Padding" Value="20,0" />
-            <Setter Property="BorderThickness" Value="0" />
+        <!-- Action Card Button (Used for 2 main choices) -->
+        <Style x:Key="ActionCardButton" TargetType="Button">
+            <Setter Property="Background" Value="#111827" />
+            <Setter Property="BorderBrush" Value="#2D3748" />
+            <Setter Property="BorderThickness" Value="1" />
             <Setter Property="Cursor" Value="Hand" />
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="6">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}" />
+                        <Border x:Name="bd" Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="8" Padding="16">
+                            <ContentPresenter />
                         </Border>
                         <ControlTemplate.Triggers>
                             <Trigger Property="IsMouseOver" Value="True">
-                                <Setter TargetName="border" Property="Background" Value="#DC2626" />
+                                <Setter TargetName="bd" Property="Background" Value="#1A2234" />
+                                <Setter TargetName="bd" Property="BorderBrush" Value="#6366F1" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="#151C2C" />
                             </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
@@ -170,11 +173,11 @@
     <Border BorderBrush="#2D3748" BorderThickness="1">
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="36" />
+                <RowDefinition Height="38" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <!-- ── Custom Window Title Bar ── -->
+            <!-- ── Title Bar ── -->
             <Border Grid.Row="0" Background="#111827" BorderBrush="#2D3748" BorderThickness="0,0,0,1">
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -184,8 +187,8 @@
                     </Grid.ColumnDefinitions>
 
                     <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center" Margin="14,0,0,0">
-                        <Image Source="pack://application:,,,/Assets/OctalPulse.png" Width="18" Height="18" Stretch="Uniform" />
-                        <TextBlock Text="OctalPulse Setup &amp; Update" FontSize="12" FontWeight="SemiBold" Foreground="#F9FAFB" Margin="8,0,0,0" VerticalAlignment="Center" />
+                        <Image Source="pack://application:,,,/Assets/OctalPulse.png" Width="20" Height="20" Stretch="Uniform" />
+                        <TextBlock Text="OctalPulse Setup &amp; Updates" FontSize="12" FontWeight="SemiBold" Foreground="#F9FAFB" Margin="8,0,0,0" VerticalAlignment="Center" />
                     </StackPanel>
 
                     <StackPanel Grid.Column="2" Orientation="Horizontal">
@@ -200,10 +203,12 @@
             </Border>
 
             <!-- ── Main Content Area ── -->
-            <Grid Grid.Row="1" Margin="28">
+            <Grid Grid.Row="1" Margin="28,20,28,24">
 
-                <!-- 1. WELCOME / FIRST INSTALL STEP -->
-                <Grid Visibility="{Binding CurrentStep, Converter={StaticResource StepToVis}, ConverterParameter=Welcome}">
+                <!-- ════════════════════════════════════════════════════════════ -->
+                <!-- 1. APP NOT FOUND STEP (2 Prominent Buttons)                   -->
+                <!-- ════════════════════════════════════════════════════════════ -->
+                <Grid Visibility="{Binding CurrentStep, Converter={StaticResource StepToVis}, ConverterParameter=AppNotFound}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
                         <RowDefinition Height="*" />
@@ -211,24 +216,112 @@
                     </Grid.RowDefinitions>
 
                     <!-- Header -->
-                    <StackPanel Grid.Row="0" Margin="0,0,0,20">
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                            <Border Width="38" Height="38" CornerRadius="8" Background="#266366F1" Margin="0,0,14,0">
-                                <Image Source="pack://application:,,,/Assets/OctalPulse.png" Width="24" Height="24" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                    <StackPanel Grid.Row="0" Margin="0,0,0,16">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                            <Border Width="36" Height="36" CornerRadius="8" Background="#266366F1" Margin="0,0,12,0">
+                                <Image Source="pack://application:,,,/Assets/OctalPulse.png" Width="22" Height="22" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
                             <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="Install OctalPulse Desktop" FontSize="18" FontWeight="Bold" Foreground="#F9FAFB" />
-                                <TextBlock Text="Enterprise Project &amp; Track Management Platform" FontSize="12" Foreground="#9CA3AF" />
+                                <TextBlock Text="OctalPulse Setup" FontSize="18" FontWeight="Bold" Foreground="#F9FAFB" />
+                                <TextBlock Text="Application not detected at previous location" FontSize="12" Foreground="#F59E0B" FontWeight="SemiBold" />
                             </StackPanel>
                         </StackPanel>
-                        <TextBlock Text="Choose the installation directory where application files will be installed. User databases and credentials will remain protected in your user profile." 
-                                   FontSize="12" Foreground="#9CA3AF" TextWrapping="Wrap" LineHeight="18" />
+                        <TextBlock Text="OctalPulse could not be located at the expected directory, or this is your first time setting it up. How would you like to proceed?" 
+                                   FontSize="12" Foreground="#9CA3AF" TextWrapping="Wrap" LineHeight="17" />
                     </StackPanel>
 
-                    <!-- Path Picker Card -->
+                    <!-- Validation error alert if previous locate attempt failed -->
+                    <StackPanel Grid.Row="1">
+                        <Border Background="#26EF4444" BorderBrush="#EF4444" BorderThickness="1" CornerRadius="6" Padding="12,8" Margin="0,0,0,12"
+                                Visibility="{Binding HasValidationError, Converter={StaticResource BoolToVis}}">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="✕" Foreground="#EF4444" FontWeight="Bold" Margin="0,0,8,0" />
+                                <TextBlock Text="{Binding ValidationMessage}" Foreground="#FCA5A5" FontSize="12" TextWrapping="Wrap" Width="510" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- The 2 Choice Buttons / Cards -->
+                        <Grid Margin="0,4,0,0">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto" />
+                                <RowDefinition Height="12" />
+                                <RowDefinition Height="Auto" />
+                            </Grid.RowDefinitions>
+
+                            <!-- Choice 1: Install New Copy -->
+                            <Button Grid.Row="0" Style="{StaticResource ActionCardButton}" Command="{Binding GoToInstallNewCommand}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="44" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6" Background="#266366F1" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <TextBlock Text="📥" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
+                                        <TextBlock Text="1. Install OctalPulse (First-Time Download)" FontSize="14" FontWeight="Bold" Foreground="#FFFFFF" />
+                                        <TextBlock Text="Choose an installation directory and download the latest release from GitHub." FontSize="11" Foreground="#9CA3AF" Margin="0,2,0,0" />
+                                    </StackPanel>
+
+                                    <Border Grid.Column="2" Background="#6366F1" CornerRadius="4" Padding="10,6" VerticalAlignment="Center">
+                                        <TextBlock Text="Install App" FontSize="11" FontWeight="Bold" Foreground="#FFFFFF" />
+                                    </Border>
+                                </Grid>
+                            </Button>
+
+                            <!-- Choice 2: Locate Existing Moved App Folder -->
+                            <Button Grid.Row="2" Style="{StaticResource ActionCardButton}" Command="{Binding LocateAppFolderCommand}">
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="44" />
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <Border Grid.Column="0" Width="36" Height="36" CornerRadius="6" Background="#2610B981" HorizontalAlignment="Left" VerticalAlignment="Center">
+                                        <TextBlock Text="📂" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                    </Border>
+
+                                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
+                                        <TextBlock Text="2. Locate Existing App Folder" FontSize="14" FontWeight="Bold" Foreground="#FFFFFF" />
+                                        <TextBlock Text="Already have OctalPulse? Browse and select its folder to re-link and check for updates." FontSize="11" Foreground="#9CA3AF" Margin="0,2,0,0" />
+                                    </StackPanel>
+
+                                    <Border Grid.Column="2" Background="#1F2937" BorderBrush="#374151" BorderThickness="1" CornerRadius="4" Padding="10,6" VerticalAlignment="Center">
+                                        <TextBlock Text="Browse Folder" FontSize="11" FontWeight="Bold" Foreground="#F9FAFB" />
+                                    </Border>
+                                </Grid>
+                            </Button>
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- Footer -->
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+                        <Button Style="{StaticResource SecondaryButton}" Content="Exit" Command="{Binding ExitInstallerCommand}" Width="90" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- ════════════════════════════════════════════════════════════ -->
+                <!-- 2. SELECT INSTALL FOLDER STEP (Path Picker)                  -->
+                <!-- ════════════════════════════════════════════════════════════ -->
+                <Grid Visibility="{Binding CurrentStep, Converter={StaticResource StepToVis}, ConverterParameter=SelectInstallFolder}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Margin="0,0,0,20">
+                        <TextBlock Text="Choose Installation Directory" FontSize="18" FontWeight="Bold" Foreground="#F9FAFB" Margin="0,0,0,4" />
+                        <TextBlock Text="Select the folder where OctalPulse Desktop application will be installed." FontSize="12" Foreground="#9CA3AF" />
+                    </StackPanel>
+
                     <Border Grid.Row="1" Background="#111827" BorderBrush="#2D3748" BorderThickness="1" CornerRadius="8" Padding="18" VerticalAlignment="Top">
                         <StackPanel>
-                            <TextBlock Text="Destination Directory" FontSize="12" FontWeight="SemiBold" Foreground="#F9FAFB" Margin="0,0,0,8" />
+                            <TextBlock Text="Destination Path" FontSize="12" FontWeight="SemiBold" Foreground="#F9FAFB" Margin="0,0,0,8" />
                             <Grid Margin="0,0,0,10">
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
@@ -237,20 +330,142 @@
                                 <TextBox Grid.Column="0" Text="{Binding InstallDirectory, UpdateSourceTrigger=PropertyChanged}" 
                                          Height="36" Background="#1F2937" Foreground="#F9FAFB" BorderBrush="#374151" BorderThickness="1" 
                                          Padding="10,0" VerticalContentAlignment="Center" FontSize="12" Margin="0,0,10,0" />
-                                <Button Grid.Column="1" Style="{StaticResource SecondaryButton}" Content="Browse..." Command="{Binding BrowseFolderCommand}" Height="36" />
+                                <Button Grid.Column="1" Style="{StaticResource SecondaryButton}" Content="Browse..." Command="{Binding BrowseNewInstallFolderCommand}" Height="36" />
                             </Grid>
-                            <TextBlock Text="Recommended per-user location: %LocalAppData%\OctalPulse" FontSize="11" Foreground="#6B7280" />
+                            <TextBlock Text="Recommended default: %LocalAppData%\OctalPulse" FontSize="11" Foreground="#6B7280" />
                         </StackPanel>
                     </Border>
 
-                    <!-- Actions -->
                     <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
-                        <Button Style="{StaticResource SecondaryButton}" Content="Cancel" Command="{Binding ExitInstallerCommand}" Width="90" Margin="0,0,10,0" />
+                        <Button Style="{StaticResource SecondaryButton}" Content="Back" Command="{Binding BackToAppNotFoundCommand}" Width="90" Margin="0,0,10,0" />
                         <Button Style="{StaticResource PrimaryButton}" Content="Install Now" Command="{Binding StartInstallCommand}" Width="130" />
                     </StackPanel>
                 </Grid>
 
-                <!-- 2. WORKING / PROGRESS STEP -->
+                <!-- ════════════════════════════════════════════════════════════ -->
+                <!-- 3. CHECKING UPDATES STEP                                     -->
+                <!-- ════════════════════════════════════════════════════════════ -->
+                <Grid Visibility="{Binding CurrentStep, Converter={StaticResource StepToVis}, ConverterParameter=CheckingUpdates}">
+                    <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <ProgressBar Width="36" Height="36" IsIndeterminate="True" Margin="0,0,0,16" />
+                        <TextBlock Text="{Binding StatusMessage}" FontSize="16" FontWeight="Bold" Foreground="#F9FAFB" HorizontalAlignment="Center" Margin="0,0,0,6" />
+                        <TextBlock Text="{Binding SubStatusMessage}" FontSize="12" Foreground="#9CA3AF" HorizontalAlignment="Center" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- ════════════════════════════════════════════════════════════ -->
+                <!-- 4. UPDATE AVAILABLE STEP                                     -->
+                <!-- ════════════════════════════════════════════════════════════ -->
+                <Grid Visibility="{Binding CurrentStep, Converter={StaticResource StepToVis}, ConverterParameter=UpdateAvailable}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Margin="0,0,0,16">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                            <Border Width="36" Height="36" CornerRadius="8" Background="#266366F1" Margin="0,0,12,0">
+                                <TextBlock Text="✨" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="New Update Available!" FontSize="18" FontWeight="Bold" Foreground="#F9FAFB" />
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="v" FontSize="12" Foreground="#6366F1" FontWeight="Bold" />
+                                    <TextBlock Text="{Binding TargetVersion}" FontSize="12" Foreground="#6366F1" FontWeight="Bold" Margin="0,0,12,0" />
+                                    <TextBlock Text="(Installed: v" FontSize="12" Foreground="#9CA3AF" />
+                                    <TextBlock Text="{Binding InstalledVersion}" FontSize="12" Foreground="#9CA3AF" />
+                                    <TextBlock Text=")" FontSize="12" Foreground="#9CA3AF" />
+                                </StackPanel>
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Border Grid.Row="1" Background="#111827" BorderBrush="#2D3748" BorderThickness="1" CornerRadius="8" Padding="16">
+                        <StackPanel>
+                            <Grid Margin="0,0,0,10">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="Release: " FontSize="12" Foreground="#6B7280" />
+                                    <TextBlock Text="{Binding ReleaseTitle}" FontSize="12" FontWeight="SemiBold" Foreground="#F9FAFB" />
+                                </StackPanel>
+                                <TextBlock Text="{Binding PackageSizeDisplay}" FontSize="11" Foreground="#9CA3AF" HorizontalAlignment="Right" />
+                            </Grid>
+
+                            <Border Background="#1F2937" CornerRadius="6" Padding="12" Height="110" Margin="0,0,0,10">
+                                <ScrollViewer VerticalScrollBarVisibility="Auto">
+                                    <TextBlock Text="{Binding ReleaseNotes}" FontSize="12" Foreground="#E5E7EB" TextWrapping="Wrap" />
+                                </ScrollViewer>
+                            </Border>
+
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="App path: " FontSize="11" Foreground="#6B7280" />
+                                <TextBlock Text="{Binding InstallDirectory}" FontSize="11" Foreground="#9CA3AF" TextTrimming="CharacterEllipsis" Width="430" />
+                            </StackPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <Grid Grid.Row="2" Margin="0,16,0,0">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                            <Button Style="{StaticResource SecondaryButton}" Content="Change Path" Command="{Binding LocateAppFolderCommand}" Height="36" Padding="12,0" Margin="0,0,8,0" />
+                            <Button Style="{StaticResource SecondaryButton}" Content="Launch Current" Command="{Binding LaunchApplicationCommand}" Height="36" Padding="12,0" />
+                        </StackPanel>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Download &amp; Update" Command="{Binding StartUpdateCommand}" HorizontalAlignment="Right" Width="170" />
+                    </Grid>
+                </Grid>
+
+                <!-- ════════════════════════════════════════════════════════════ -->
+                <!-- 5. UP TO DATE STEP                                           -->
+                <!-- ════════════════════════════════════════════════════════════ -->
+                <Grid Visibility="{Binding CurrentStep, Converter={StaticResource StepToVis}, ConverterParameter=UpToDate}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Margin="0,0,0,16">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                            <Border Width="36" Height="36" CornerRadius="8" Background="#2610B981" Margin="0,0,12,0">
+                                <TextBlock Text="✓" FontSize="20" FontWeight="Bold" Foreground="#10B981" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="You are up to date!" FontSize="18" FontWeight="Bold" Foreground="#F9FAFB" />
+                                <TextBlock Text="OctalPulse is running the latest version" FontSize="12" Foreground="#10B981" FontWeight="SemiBold" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Border Grid.Row="1" Background="#111827" BorderBrush="#2D3748" BorderThickness="1" CornerRadius="8" Padding="18" VerticalAlignment="Top">
+                        <StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                                <TextBlock Text="Current Version: " FontSize="13" Foreground="#9CA3AF" />
+                                <TextBlock Text="{Binding InstalledVersion}" FontSize="13" FontWeight="Bold" Foreground="#6366F1" />
+                            </StackPanel>
+                            <StackPanel Orientation="Horizontal" Margin="0,0,0,14">
+                                <TextBlock Text="Application Path: " FontSize="12" Foreground="#6B7280" />
+                                <TextBlock Text="{Binding InstallDirectory}" FontSize="12" Foreground="#F9FAFB" TextTrimming="CharacterEllipsis" Width="410" />
+                            </StackPanel>
+
+                            <Border Background="#1F2937" CornerRadius="6" Padding="12">
+                                <TextBlock Text="The installer is keeping watch on GitHub Releases and your local desktop app. No new updates are pending." 
+                                           FontSize="11" Foreground="#9CA3AF" TextWrapping="Wrap" LineHeight="16" />
+                            </Border>
+                        </StackPanel>
+                    </Border>
+
+                    <Grid Grid.Row="2" Margin="0,16,0,0">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
+                            <Button Style="{StaticResource SecondaryButton}" Content="Change Path" Command="{Binding LocateAppFolderCommand}" Height="36" Padding="12,0" Margin="0,0,8,0" />
+                            <Button Style="{StaticResource SecondaryButton}" Content="Check Again" Command="{Binding CheckForUpdatesAgainstGitHubCommand}" Height="36" Padding="12,0" Margin="0,0,8,0" />
+                            <Button Style="{StaticResource SecondaryButton}" Content="Reinstall" Command="{Binding StartReinstallCommand}" Height="36" Padding="12,0" />
+                        </StackPanel>
+                        <Button Style="{StaticResource PrimaryButton}" Content="Launch OctalPulse" Command="{Binding LaunchApplicationCommand}" HorizontalAlignment="Right" Width="160" />
+                    </Grid>
+                </Grid>
+
+                <!-- ════════════════════════════════════════════════════════════ -->
+                <!-- 6. WORKING (Download / Extract / Replace) STEP               -->
+                <!-- ════════════════════════════════════════════════════════════ -->
                 <Grid Visibility="{Binding CurrentStep, Converter={StaticResource StepToVis}, ConverterParameter=Working}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -263,7 +478,6 @@
                         <TextBlock Text="{Binding SubStatusMessage}" FontSize="13" Foreground="#6366F1" FontWeight="SemiBold" />
                     </StackPanel>
 
-                    <!-- Progress Bar & Status Card -->
                     <Border Grid.Row="1" Background="#111827" BorderBrush="#2D3748" BorderThickness="1" CornerRadius="8" Padding="20" VerticalAlignment="Top">
                         <StackPanel>
                             <Grid Margin="0,0,0,8">
@@ -276,19 +490,26 @@
                             <Border Background="#1F2937" CornerRadius="6" Padding="12">
                                 <StackPanel Orientation="Horizontal">
                                     <TextBlock Text="🛡" FontSize="16" Foreground="#10B981" Margin="0,0,10,0" VerticalAlignment="Center" />
-                                    <TextBlock Text="The existing installation remains completely untouched until download &amp; verification succeed." 
-                                               FontSize="11" Foreground="#9CA3AF" TextWrapping="Wrap" Width="430" LineHeight="16" />
+                                    <TextBlock Text="Old version remains completely safe and untouched until download finishes. Resumable download is active." 
+                                               FontSize="11" Foreground="#9CA3AF" TextWrapping="Wrap" Width="480" LineHeight="16" />
                                 </StackPanel>
                             </Border>
                         </StackPanel>
                     </Border>
 
                     <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
-                        <Button Style="{StaticResource SecondaryButton}" Content="Cancel" Command="{Binding CancelOperationCommand}" IsEnabled="{Binding CanCancel}" Width="100" />
+                        <Button Style="{StaticResource SecondaryButton}" Content="Pause" Command="{Binding PauseDownloadCommand}" 
+                                Visibility="{Binding CanPause, Converter={StaticResource BoolToVis}}" Width="90" Margin="0,0,10,0" />
+                        <Button Style="{StaticResource SecondaryButton}" Content="Resume" Command="{Binding ResumeDownloadCommand}" 
+                                Visibility="{Binding IsPaused, Converter={StaticResource BoolToVis}}" Width="90" Margin="0,0,10,0" />
+                        <Button Style="{StaticResource SecondaryButton}" Content="Cancel" Command="{Binding CancelOperationCommand}" 
+                                IsEnabled="{Binding CanCancel}" Width="90" />
                     </StackPanel>
                 </Grid>
 
-                <!-- 3. DOWNLOAD FAILED STEP -->
+                <!-- ════════════════════════════════════════════════════════════ -->
+                <!-- 7. DOWNLOAD FAILED / PAUSED STEP                             -->
+                <!-- ════════════════════════════════════════════════════════════ -->
                 <Grid Visibility="{Binding CurrentStep, Converter={StaticResource StepToVis}, ConverterParameter=DownloadFailed}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -296,68 +517,35 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <StackPanel Grid.Row="0" Margin="0,0,0,20">
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                            <Border Width="38" Height="38" CornerRadius="8" Background="#26F59E0B" Margin="0,0,14,0">
+                    <StackPanel Grid.Row="0" Margin="0,0,0,18">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                            <Border Width="36" Height="36" CornerRadius="8" Background="#26F59E0B" Margin="0,0,12,0">
                                 <TextBlock Text="⚠" FontSize="20" Foreground="#F59E0B" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
                             <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="Download Failed" FontSize="18" FontWeight="Bold" Foreground="#F9FAFB" />
-                                <TextBlock Text="Your current version is still safe" FontSize="12" Foreground="#10B981" FontWeight="SemiBold" />
+                                <TextBlock Text="{Binding StatusMessage}" FontSize="18" FontWeight="Bold" Foreground="#F9FAFB" />
+                                <TextBlock Text="Your existing version is safe and untouched" FontSize="12" Foreground="#10B981" FontWeight="SemiBold" />
                             </StackPanel>
                         </StackPanel>
                     </StackPanel>
 
                     <Border Grid.Row="1" Background="#111827" BorderBrush="#2D3748" BorderThickness="1" CornerRadius="8" Padding="18" VerticalAlignment="Top">
                         <StackPanel>
-                            <TextBlock Text="The package could not be downloaded completely due to a network interruption or server issue." FontSize="12" Foreground="#9CA3AF" TextWrapping="Wrap" LineHeight="18" Margin="0,0,0,10" />
+                            <TextBlock Text="{Binding SubStatusMessage}" FontSize="12" Foreground="#F9FAFB" Margin="0,0,0,8" />
                             <TextBlock Text="{Binding ErrorMessage}" FontSize="11" Foreground="#EF4444" TextWrapping="Wrap" Margin="0,0,0,12" />
-                            <TextBlock Text="No existing files were modified or deleted. You can retry the download now." FontSize="12" Foreground="#F9FAFB" />
+                            <TextBlock Text="No application files were modified or deleted. You can resume or retry the download anytime." FontSize="11" Foreground="#9CA3AF" />
                         </StackPanel>
                     </Border>
 
                     <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
                         <Button Style="{StaticResource SecondaryButton}" Content="Cancel" Command="{Binding ExitInstallerCommand}" Width="90" Margin="0,0,10,0" />
-                        <Button Style="{StaticResource PrimaryButton}" Content="Retry" Command="{Binding RetryCommand}" Width="110" />
+                        <Button Style="{StaticResource PrimaryButton}" Content="Resume / Retry" Command="{Binding RetryCommand}" Width="140" />
                     </StackPanel>
                 </Grid>
 
-                <!-- 4. INTERRUPTED NOTICE STEP -->
-                <Grid Visibility="{Binding CurrentStep, Converter={StaticResource StepToVis}, ConverterParameter=InterruptedNotice}">
-                    <Grid.RowDefinitions>
-                        <RowDefinition Height="Auto" />
-                        <RowDefinition Height="*" />
-                        <RowDefinition Height="Auto" />
-                    </Grid.RowDefinitions>
-
-                    <StackPanel Grid.Row="0" Margin="0,0,0,20">
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                            <Border Width="38" Height="38" CornerRadius="8" Background="#26EF4444" Margin="0,0,14,0">
-                                <TextBlock Text="⚠" FontSize="20" Foreground="#EF4444" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                            </Border>
-                            <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="Update Was Interrupted" FontSize="18" FontWeight="Bold" Foreground="#F9FAFB" />
-                                <TextBlock Text="Reinstallation required" FontSize="12" Foreground="#EF4444" FontWeight="SemiBold" />
-                            </StackPanel>
-                        </StackPanel>
-                    </StackPanel>
-
-                    <Border Grid.Row="1" Background="#111827" BorderBrush="#2D3748" BorderThickness="1" CornerRadius="8" Padding="18" VerticalAlignment="Top">
-                        <StackPanel>
-                            <TextBlock Text="The previous update did not finish copying files. The application state is incomplete." FontSize="13" Foreground="#F9FAFB" Margin="0,0,0,8" />
-                            <TextBlock Text="To ensure stability, the installer will download the full current package and cleanly reinstall OctalPulse into:" FontSize="12" Foreground="#9CA3AF" TextWrapping="Wrap" LineHeight="18" Margin="0,0,0,8" />
-                            <TextBlock Text="{Binding InstallDirectory}" FontSize="12" FontWeight="SemiBold" Foreground="#6366F1" Margin="0,0,0,12" />
-                            <TextBlock Text="Your user database, personal settings, and tokens will remain completely intact." FontSize="11" Foreground="#10B981" />
-                        </StackPanel>
-                    </Border>
-
-                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
-                        <Button Style="{StaticResource SecondaryButton}" Content="Exit" Command="{Binding ExitInstallerCommand}" Width="90" Margin="0,0,10,0" />
-                        <Button Style="{StaticResource DangerButton}" Content="Reinstall Now" Command="{Binding StartReinstallCommand}" Width="140" />
-                    </StackPanel>
-                </Grid>
-
-                <!-- 5. COMPLETED STEP -->
+                <!-- ════════════════════════════════════════════════════════════ -->
+                <!-- 8. COMPLETED STEP                                            -->
+                <!-- ════════════════════════════════════════════════════════════ -->
                 <Grid Visibility="{Binding CurrentStep, Converter={StaticResource StepToVis}, ConverterParameter=Completed}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -365,13 +553,13 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <StackPanel Grid.Row="0" Margin="0,0,0,20">
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                            <Border Width="38" Height="38" CornerRadius="8" Background="#2610B981" Margin="0,0,14,0">
+                    <StackPanel Grid.Row="0" Margin="0,0,0,18">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                            <Border Width="36" Height="36" CornerRadius="8" Background="#2610B981" Margin="0,0,12,0">
                                 <TextBlock Text="✓" FontSize="20" FontWeight="Bold" Foreground="#10B981" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
                             <StackPanel VerticalAlignment="Center">
-                                <TextBlock Text="Installation Completed!" FontSize="18" FontWeight="Bold" Foreground="#F9FAFB" />
+                                <TextBlock Text="Setup Finished!" FontSize="18" FontWeight="Bold" Foreground="#F9FAFB" />
                                 <TextBlock Text="OctalPulse is ready to run" FontSize="12" Foreground="#10B981" FontWeight="SemiBold" />
                             </StackPanel>
                         </StackPanel>
@@ -380,10 +568,10 @@
                     <Border Grid.Row="1" Background="#111827" BorderBrush="#2D3748" BorderThickness="1" CornerRadius="8" Padding="18" VerticalAlignment="Top">
                         <StackPanel>
                             <TextBlock Text="{Binding SubStatusMessage}" FontSize="13" Foreground="#F9FAFB" FontWeight="SemiBold" Margin="0,0,0,6" />
-                            <TextBlock Text="All application files have been verified and updated. Temporary setup files have been cleaned up." FontSize="12" Foreground="#9CA3AF" TextWrapping="Wrap" LineHeight="18" Margin="0,0,0,12" />
+                            <TextBlock Text="All application files were replaced cleanly. Temporary files have been cleaned up." FontSize="12" Foreground="#9CA3AF" Margin="0,0,0,12" />
                             <StackPanel Orientation="Horizontal">
-                                <TextBlock Text="Location: " FontSize="11" Foreground="#6B7280" />
-                                <TextBlock Text="{Binding InstallDirectory}" FontSize="11" Foreground="#9CA3AF" TextTrimming="CharacterEllipsis" Width="380" />
+                                <TextBlock Text="Installed at: " FontSize="11" Foreground="#6B7280" />
+                                <TextBlock Text="{Binding InstallDirectory}" FontSize="11" Foreground="#9CA3AF" TextTrimming="CharacterEllipsis" Width="430" />
                             </StackPanel>
                         </StackPanel>
                     </Border>
@@ -394,7 +582,9 @@
                     </StackPanel>
                 </Grid>
 
-                <!-- 6. ERROR STEP -->
+                <!-- ════════════════════════════════════════════════════════════ -->
+                <!-- 9. ERROR STEP                                                -->
+                <!-- ════════════════════════════════════════════════════════════ -->
                 <Grid Visibility="{Binding CurrentStep, Converter={StaticResource StepToVis}, ConverterParameter=Error}">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto" />
@@ -402,9 +592,9 @@
                         <RowDefinition Height="Auto" />
                     </Grid.RowDefinitions>
 
-                    <StackPanel Grid.Row="0" Margin="0,0,0,20">
-                        <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
-                            <Border Width="38" Height="38" CornerRadius="8" Background="#26EF4444" Margin="0,0,14,0">
+                    <StackPanel Grid.Row="0" Margin="0,0,0,18">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                            <Border Width="36" Height="36" CornerRadius="8" Background="#26EF4444" Margin="0,0,12,0">
                                 <TextBlock Text="✕" FontSize="20" FontWeight="Bold" Foreground="#EF4444" HorizontalAlignment="Center" VerticalAlignment="Center" />
                             </Border>
                             <StackPanel VerticalAlignment="Center">
@@ -416,7 +606,6 @@
 
                     <Border Grid.Row="1" Background="#111827" BorderBrush="#2D3748" BorderThickness="1" CornerRadius="8" Padding="18" VerticalAlignment="Top">
                         <StackPanel>
-                            <TextBlock Text="The installer encountered an issue:" FontSize="12" Foreground="#9CA3AF" Margin="0,0,0,8" />
                             <TextBlock Text="{Binding ErrorMessage}" FontSize="12" Foreground="#EF4444" TextWrapping="Wrap" LineHeight="18" />
                         </StackPanel>
                     </Border>

@@ -38,27 +38,60 @@ public partial class MainWindow : Window
         Closed += MainWindow_Closed;
     }
 
+    private static void LogMW(string msg)
+    {
+        try
+        {
+            var logPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "OctalPulse", "startup_debug.log");
+            System.IO.File.AppendAllText(logPath, $"[{DateTime.Now:HH:mm:ss.fff}] [MainWindow] {msg}\n");
+        }
+        catch { }
+    }
+
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
-        // Initialize tray icon
-        _trayService.Initialize();
-        _trayService.ShowMainWindowRequested += OnShowMainWindowRequested;
-        _trayService.ExitRequested += OnExitRequested;
+        LogMW("MainWindow_Loaded started.");
+        try
+        {
+            // Initialize tray icon
+            LogMW("Initializing TrayService...");
+            _trayService.Initialize();
+            _trayService.ShowMainWindowRequested += OnShowMainWindowRequested;
+            _trayService.ExitRequested += OnExitRequested;
+            LogMW("TrayService initialized.");
 
-        // Wire hotkeys
-        _hotkeyService.HotkeyFired += OnHotkeyFired;
+            // Wire hotkeys
+            LogMW("Wiring hotkeys...");
+            _hotkeyService.HotkeyFired += OnHotkeyFired;
+            LogMW("Hotkeys wired.");
 
-        await _viewModel.InitializeAsync();
+            LogMW("Calling MainViewModel.InitializeAsync()...");
+            await _viewModel.InitializeAsync();
+            LogMW("MainViewModel.InitializeAsync() completed.");
+        }
+        catch (Exception ex)
+        {
+            LogMW($"ERROR in MainWindow_Loaded: {ex}");
+        }
     }
 
     private void Window_SourceInitialized(object? sender, EventArgs e)
     {
-        var handle = new WindowInteropHelper(this).Handle;
-        var hwndSource = HwndSource.FromHwnd(handle);
-        hwndSource?.AddHook(WndProc);
+        LogMW("Window_SourceInitialized started.");
+        try
+        {
+            var handle = new WindowInteropHelper(this).Handle;
+            var hwndSource = HwndSource.FromHwnd(handle);
+            hwndSource?.AddHook(WndProc);
 
-        // Attach global hotkeys to this window's message pump
-        _hotkeyService.Attach(hwndSource!);
+            // Attach global hotkeys to this window's message pump
+            _hotkeyService.Attach(hwndSource!);
+            LogMW("Window_SourceInitialized completed.");
+        }
+        catch (Exception ex)
+        {
+            LogMW($"ERROR in Window_SourceInitialized: {ex}");
+        }
     }
 
     private void MainWindow_Closed(object? sender, EventArgs e)
