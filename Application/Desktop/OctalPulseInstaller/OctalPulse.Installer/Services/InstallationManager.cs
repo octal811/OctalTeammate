@@ -339,6 +339,14 @@ public class InstallationManager
 
             foreach (var entry in archive.Entries.Where(e => !e.IsDirectory))
             {
+                var entryKey = entry.Key ?? string.Empty;
+                var fileName = Path.GetFileName(entryKey);
+                // Exclude any legacy installer binaries that were packaged inside older release archives
+                if (fileName.StartsWith("OctalPulse.Installer.", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
                 ct.ThrowIfCancellationRequested();
                 entry.WriteToDirectory(targetExtractedDir, new ExtractionOptions
                 {
@@ -425,8 +433,8 @@ public class InstallationManager
                 progress?.Report(($"Installing files ({i + 1}/{allNewFiles.Length})...", pct));
             }
 
-            // 5. Ensure OctalPulse.Installer.exe is copied alongside the app
-            CopyCurrentInstallerToInstallDir(installDir);
+            // 5. Clean up any legacy installer binaries from the app folder
+            CleanupLegacyInstallerFiles(installDir);
 
             // 6. Write final metadata
             var metadata = new InstallationMetadata
@@ -499,11 +507,16 @@ public class InstallationManager
     {
         if (!Directory.Exists(dir)) return;
 
+        var currentExe = Environment.ProcessPath ?? string.Empty;
+
         foreach (var file in Directory.GetFiles(dir))
         {
-            var name = Path.GetFileName(file);
-            // Don't delete running installer executable
-            if (name.Equals(InstallerExecutableName, StringComparison.OrdinalIgnoreCase)) continue;
+            // Only preserve if this file is the currently running process itself
+            if (!string.IsNullOrEmpty(currentExe) &&
+                string.Equals(Path.GetFullPath(file), Path.GetFullPath(currentExe), StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
 
             try { File.Delete(file); } catch { }
         }
@@ -532,24 +545,32 @@ public class InstallationManager
         }
     }
 
-    public void CopyCurrentInstallerToInstallDir(string installDir)
+    public static void CleanupLegacyInstallerFiles(string installDir)
     {
         try
         {
-            var currentExe = Environment.ProcessPath ?? Process.GetCurrentProcess().MainModule?.FileName;
-            if (!string.IsNullOrEmpty(currentExe) && File.Exists(currentExe))
+            if (!Directory.Exists(installDir)) return;
+            var currentExe = Environment.ProcessPath ?? string.Empty;
+
+            foreach (var file in Directory.GetFiles(installDir, "OctalPulse.Installer.*"))
             {
-                var targetExe = Path.Combine(installDir, InstallerExecutableName);
-                if (!string.Equals(Path.GetFullPath(currentExe), Path.GetFullPath(targetExe), StringComparison.OrdinalIgnoreCase))
+                if (!string.IsNullOrEmpty(currentExe) &&
+                    string.Equals(Path.GetFullPath(file), Path.GetFullPath(currentExe), StringComparison.OrdinalIgnoreCase))
                 {
-                    File.Copy(currentExe, targetExe, overwrite: true);
-                    InstallerLogger.Info($"Copied Installer to: {targetExe}");
+                    continue;
                 }
+
+                try
+                {
+                    File.Delete(file);
+                    InstallerLogger.Info($"Removed legacy installer binary: {file}");
+                }
+                catch { }
             }
         }
         catch (Exception ex)
         {
-            InstallerLogger.Warn($"Could not copy installer to destination directory: {ex.Message}");
+            InstallerLogger.Warn($"Failed to cleanup legacy installer files: {ex.Message}");
         }
     }
 
