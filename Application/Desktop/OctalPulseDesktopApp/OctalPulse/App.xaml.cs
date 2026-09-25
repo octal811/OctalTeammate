@@ -48,6 +48,7 @@ public partial class App : System.Windows.Application
                 services.AddSingleton<FloatWindowPositionStore>();
                 services.AddSingleton<FloatWindowService>();
                 services.AddSingleton<RealtimeNotificationService>();
+                services.AddSingleton<AppUpdateCoordinator>();
 
                 // ViewModels
                 services.AddTransient<MainViewModel>();
@@ -92,6 +93,13 @@ public partial class App : System.Windows.Application
         await _host.StartAsync();
         Services = _host.Services;
 
+        // Check if an update merge was interrupted in a previous run
+        var updateCoordinator = Services.GetRequiredService<AppUpdateCoordinator>();
+        if (updateCoordinator.CheckAndHandleInterruptedUpdate())
+        {
+            return;
+        }
+
         // Apply the saved theme (defaults to light on first run)
         var themeService = Services.GetRequiredService<ThemeService>();
         var localCache = Services.GetRequiredService<ILocalCacheService>();
@@ -108,6 +116,9 @@ public partial class App : System.Windows.Application
 
         var mainWindow = Services.GetRequiredService<MainWindow>();
         mainWindow.Show();
+
+        // Non-blocking background check for remote updates
+        updateCoordinator.StartBackgroundUpdateCheck();
     }
 
     protected override async void OnExit(ExitEventArgs e)

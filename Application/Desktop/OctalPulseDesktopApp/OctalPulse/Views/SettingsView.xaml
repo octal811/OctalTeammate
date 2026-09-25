@@ -281,13 +281,49 @@
             </Border>
 
 
-            <!-- ── SECTION 4: SYSTEM INFO ─────────────────────────────────── -->
+            <!-- ── SECTION 4: SYSTEM INFO & UPDATES ───────────────────────── -->
             <Border Style="{StaticResource Border.Card}" Padding="24">
                 <StackPanel>
-                    <TextBlock Text="About OctalPulse Desktop" Style="{StaticResource Text.Heading3}" Margin="0,0,0,4" />
-                    <TextBlock Text="OctalPulse Windows Desktop Client v1.0.0" FontSize="13" Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,0,0,6" />
+                    <Grid Margin="0,0,0,12">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0">
+                            <TextBlock Text="About OctalPulse Desktop" Style="{StaticResource Text.Heading3}" Margin="0,0,0,4" />
+                            <StackPanel Orientation="Horizontal" Margin="0,2,0,4">
+                                <TextBlock Text="Version " FontSize="14" Foreground="{DynamicResource Brush.TextSecondary}" />
+                                <TextBlock Text="{Binding VersionDisplay}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource Brush.Primary}" />
+                                <Border Background="{DynamicResource Brush.PrimarySoft}" CornerRadius="4" Padding="6,1" Margin="10,0,0,0">
+                                    <TextBlock Text="X1.X2.X3.X4" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource Brush.Primary}" />
+                                </Border>
+                            </StackPanel>
+                        </StackPanel>
+
+                        <Button Grid.Column="1" Style="{StaticResource Button.Primary}" Content="Check for Updates" 
+                                Command="{Binding CheckForUpdatesCommand}" Height="36" Padding="16,0"
+                                IsEnabled="{Binding IsCheckingUpdate, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
+                    </Grid>
+
+                    <!-- Version Meaning / Breakdown Card -->
+                    <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="8" Padding="14" Margin="0,0,0,14">
+                        <StackPanel>
+                            <TextBlock Text="{Binding VersionBreakdown}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,4" />
+                            <TextBlock Text="Version Scheme: [X1] Backend Provider Update • [X2] Desktop Feature • [X3] UI/UX &amp; Theme • [X4] Bug / Error Fixes" 
+                                       FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" />
+                        </StackPanel>
+                    </Border>
+
+                    <!-- Status Text / Progress -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8" Visibility="{Binding UpdateStatusText, Converter={StaticResource NullToVis}}">
+                        <ProgressBar Width="16" Height="16" IsIndeterminate="True" Style="{StaticResource ProgressBar.Modern}" 
+                                     Visibility="{Binding IsCheckingUpdate, Converter={StaticResource BoolToVis}}" Margin="0,0,8,0" />
+                        <TextBlock Text="{Binding UpdateStatusText}" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" VerticalAlignment="Center" />
+                    </StackPanel>
+
                     <TextBlock Text="Built with WPF, C# 13, and .NET 10 following Onion Architecture, Clean MVVM, SignalR Real-Time Collaboration, SQLite Local Cache, and Windows DPAPI." 
-                               FontSize="12" Foreground="{DynamicResource Brush.TextMuted}" LineHeight="18" TextWrapping="Wrap" />
+                               FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" LineHeight="16" TextWrapping="Wrap" />
                 </StackPanel>
             </Border>
         </StackPanel>

@@ -663,7 +663,7 @@
                                                 </Grid.RowDefinitions>
 
                                                 <!-- Level accent strip -->
-                                                <Border Grid.RowSpan="3" Width="4" HorizontalAlignment="Left" Background="{Binding AccentBrush}" />
+                                                <Border Grid.RowSpan="3" Height="138" Width="5" Margin="-3,0,0,0" HorizontalAlignment="Left" Background="{Binding AccentBrush}" />
 
                                                 <!-- Shine for higher tiers -->
                                                 <Border
