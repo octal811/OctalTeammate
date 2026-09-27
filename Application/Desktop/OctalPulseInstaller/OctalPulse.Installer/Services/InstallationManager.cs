@@ -33,13 +33,12 @@ public class InstallationManager
     public static string GetDefaultInstallDirectory()
     {
         var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        return Path.Combine(appData, "OctalPulse");
+        return Path.Combine(appData, "Programs", "OctalPulse");
     }
 
     public static string GetTempUpdateDirectory()
     {
-        var appData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
-        var dir = Path.Combine(appData, "OctalPulse", "UpdateTemp");
+        var dir = Path.Combine(Path.GetTempPath(), "OctalPulseUpdate");
         Directory.CreateDirectory(dir);
         return dir;
     }
@@ -202,26 +201,72 @@ public class InstallationManager
 
     #region Process & Download Management
 
-    public async Task<bool> WaitForApplicationExitAsync(TimeSpan timeout, IProgress<string>? progress = null, CancellationToken ct = default)
+    public async Task<bool> CloseAndTerminateApplicationProcessesAsync(IProgress<string>? progress = null, CancellationToken ct = default)
     {
         InstallerLogger.Info("Checking for running OctalPulse processes...");
-        var stopwatch = Stopwatch.StartNew();
+        var processes = Process.GetProcessesByName("OctalPulse");
+        if (processes.Length == 0) return true;
 
-        while (stopwatch.Elapsed < timeout)
+        progress?.Report("Closing running OctalPulse application...");
+        InstallerLogger.Info($"Found {processes.Length} running OctalPulse process(es). Requesting graceful exit...");
+
+        // 1. Request graceful close of main window
+        foreach (var p in processes)
         {
-            ct.ThrowIfCancellationRequested();
-            var processes = Process.GetProcessesByName("OctalPulse");
-            if (processes.Length == 0)
+            try
             {
-                return true;
+                if (!p.HasExited)
+                {
+                    p.CloseMainWindow();
+                }
             }
-
-            progress?.Report($"Waiting for OctalPulse to exit ({processes.Length} process active)...");
-            await Task.Delay(500, ct);
+            catch { }
         }
 
+        // Wait up to 3 seconds for graceful shutdown
+        for (int i = 0; i < 6; i++)
+        {
+            ct.ThrowIfCancellationRequested();
+            await Task.Delay(500, ct);
+            if (Process.GetProcessesByName("OctalPulse").Length == 0)
+            {
+                InstallerLogger.Info("OctalPulse exited gracefully.");
+                return true;
+            }
+        }
+
+        // 2. Force terminate if still running in background / tray
         var remaining = Process.GetProcessesByName("OctalPulse");
-        return remaining.Length == 0;
+        if (remaining.Length > 0)
+        {
+            progress?.Report("Terminating background OctalPulse process...");
+            InstallerLogger.Warn($"Force terminating {remaining.Length} background OctalPulse process(es)...");
+
+            foreach (var p in remaining)
+            {
+                try
+                {
+                    if (!p.HasExited)
+                    {
+                        p.Kill(true);
+                        p.WaitForExit(3000);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    InstallerLogger.Warn($"Failed to kill process {p.Id}: {ex.Message}");
+                }
+            }
+        }
+
+        await Task.Delay(500, ct);
+        var finalCheck = Process.GetProcessesByName("OctalPulse");
+        return finalCheck.Length == 0;
+    }
+
+    public async Task<bool> WaitForApplicationExitAsync(TimeSpan timeout, IProgress<string>? progress = null, CancellationToken ct = default)
+    {
+        return await CloseAndTerminateApplicationProcessesAsync(progress, ct);
     }
 
     /// <summary>
@@ -447,6 +492,12 @@ public class InstallationManager
             };
             WriteInstallationMetadata(installDir, metadata);
 
+            // 7. Ensure a persistent copy of the installer is available in global AppData
+            CopyInstallerToGlobalDirectory();
+
+            // 8. Create Start Menu and Desktop shortcuts, and register application
+            CreateShortcutsAndRegister(installDir, newVersion);
+
             progress?.Report(("Finalizing update...", 95));
 
             // 7. Cleanup backup folder on success
@@ -508,6 +559,7 @@ public class InstallationManager
         if (!Directory.Exists(dir)) return;
 
         var currentExe = Environment.ProcessPath ?? string.Empty;
+        var tempDir = GetTempUpdateDirectory();
 
         foreach (var file in Directory.GetFiles(dir))
         {
@@ -518,14 +570,36 @@ public class InstallationManager
                 continue;
             }
 
+            var fileName = Path.GetFileName(file);
+            // Protect user database, configurations, or logs if present
+            if (fileName.EndsWith(".db", StringComparison.OrdinalIgnoreCase) ||
+                fileName.EndsWith(".db-shm", StringComparison.OrdinalIgnoreCase) ||
+                fileName.EndsWith(".db-wal", StringComparison.OrdinalIgnoreCase) ||
+                fileName.Equals("float_positions.json", StringComparison.OrdinalIgnoreCase) ||
+                fileName.Equals("startup_debug.log", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
             try { File.Delete(file); } catch { }
         }
 
         foreach (var sub in Directory.GetDirectories(dir))
         {
             var name = Path.GetFileName(sub);
-            // Preserve user logs or local databases if any
-            if (name.Equals("logs", StringComparison.OrdinalIgnoreCase)) continue;
+            // Preserve user logs, SecureStore, or any UpdateTemp folder
+            if (name.Equals("logs", StringComparison.OrdinalIgnoreCase) ||
+                name.Equals("SecureStore", StringComparison.OrdinalIgnoreCase) ||
+                name.Equals("UpdateTemp", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            // Never delete the temporary working directory or its parents/children
+            if (IsSameOrSubdirectory(sub, tempDir))
+            {
+                continue;
+            }
 
             try { Directory.Delete(sub, true); } catch { }
         }
@@ -538,10 +612,171 @@ public class InstallationManager
         foreach (var file in Directory.GetFiles(sourceDir, "*", SearchOption.AllDirectories))
         {
             var rel = Path.GetRelativePath(sourceDir, file);
+            if (rel.StartsWith("logs" + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) ||
+                rel.StartsWith("UpdateTemp" + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
             var dest = Path.Combine(targetDir, rel);
             var folder = Path.GetDirectoryName(dest);
             if (!string.IsNullOrEmpty(folder)) Directory.CreateDirectory(folder);
             File.Copy(file, dest, true);
+        }
+    }
+
+    private static bool IsSameOrSubdirectory(string candidatePath, string basePath)
+    {
+        try
+        {
+            var fullCandidate = Path.GetFullPath(candidatePath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+            var fullBase = Path.GetFullPath(basePath).TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+
+            return fullCandidate.Equals(fullBase, StringComparison.OrdinalIgnoreCase) ||
+                   fullBase.StartsWith(fullCandidate + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase) ||
+                   fullCandidate.StartsWith(fullBase + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase);
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    private void CopyInstallerToGlobalDirectory()
+    {
+        try
+        {
+            var currentExe = Environment.ProcessPath;
+            if (!string.IsNullOrEmpty(currentExe) && File.Exists(currentExe))
+            {
+                var globalDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "OctalPulse");
+                Directory.CreateDirectory(globalDir);
+                var targetPath = Path.Combine(globalDir, InstallerExecutableName);
+                if (!string.Equals(Path.GetFullPath(currentExe), Path.GetFullPath(targetPath), StringComparison.OrdinalIgnoreCase))
+                {
+                    File.Copy(currentExe, targetPath, overwrite: true);
+                    InstallerLogger.Info($"Copied installer to global directory: {targetPath}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            InstallerLogger.Warn($"Failed to copy installer to global directory: {ex.Message}");
+        }
+    }
+
+    public static void CreateShortcutsAndRegister(string installDir, string version)
+    {
+        try
+        {
+            var targetExe = Path.Combine(installDir, MainExecutableName);
+            if (!File.Exists(targetExe)) return;
+
+            // 1. Start Menu Shortcut (overwrites existing OctalPulse.lnk in place, no duplicate)
+            var startMenuDir = Environment.GetFolderPath(Environment.SpecialFolder.Programs);
+            if (Directory.Exists(startMenuDir))
+            {
+                var startMenuPath = Path.Combine(startMenuDir, "OctalPulse.lnk");
+                CleanDuplicateShortcuts(startMenuDir, startMenuPath);
+                CreateShortcut(startMenuPath, targetExe, installDir, "OctalPulse Desktop Application");
+            }
+
+            // 2. Desktop Shortcut (overwrites existing OctalPulse.lnk in place, no duplicate)
+            var desktopDir = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+            if (Directory.Exists(desktopDir))
+            {
+                var desktopPath = Path.Combine(desktopDir, "OctalPulse.lnk");
+                CleanDuplicateShortcuts(desktopDir, desktopPath);
+                CreateShortcut(desktopPath, targetExe, installDir, "OctalPulse Desktop Application");
+            }
+
+            // 3. Register in Windows Programs & Features
+            RegisterWindowsUninstall(installDir, targetExe, version);
+        }
+        catch (Exception ex)
+        {
+            InstallerLogger.Warn($"Failed to create shortcuts or register app: {ex.Message}");
+        }
+    }
+
+    private static void CleanDuplicateShortcuts(string directory, string primaryShortcutPath)
+    {
+        try
+        {
+            if (!Directory.Exists(directory)) return;
+
+            var primaryName = Path.GetFileName(primaryShortcutPath);
+            foreach (var file in Directory.GetFiles(directory, "OctalPulse*.lnk"))
+            {
+                var fileName = Path.GetFileName(file);
+                // Clean any stray duplicates like "OctalPulse - Shortcut.lnk", "OctalPulse (1).lnk", etc.
+                if (!string.Equals(fileName, primaryName, StringComparison.OrdinalIgnoreCase))
+                {
+                    try
+                    {
+                        File.Delete(file);
+                        InstallerLogger.Info($"Removed duplicate shortcut: {file}");
+                    }
+                    catch { }
+                }
+            }
+        }
+        catch { }
+    }
+
+    public static void CreateShortcut(string shortcutPath, string targetPath, string workingDir, string description = "")
+    {
+        try
+        {
+            var shellType = Type.GetTypeFromProgID("WScript.Shell");
+            if (shellType == null) return;
+
+            dynamic shell = Activator.CreateInstance(shellType)!;
+            dynamic shortcut = shell.CreateShortcut(shortcutPath);
+            shortcut.TargetPath = targetPath;
+            shortcut.WorkingDirectory = workingDir;
+            shortcut.Description = description;
+            shortcut.IconLocation = targetPath + ",0";
+            shortcut.Save();
+
+            InstallerLogger.Info($"Shortcut created successfully: {shortcutPath}");
+        }
+        catch (Exception ex)
+        {
+            InstallerLogger.Warn($"Failed to create shortcut at {shortcutPath}: {ex.Message}");
+        }
+    }
+
+    public static void RegisterWindowsUninstall(string installDir, string targetExe, string version)
+    {
+        try
+        {
+            using var key = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\OctalPulse");
+            if (key != null)
+            {
+                key.SetValue("DisplayName", "OctalPulse");
+                key.SetValue("DisplayVersion", version);
+                key.SetValue("DisplayIcon", targetExe + ",0");
+                key.SetValue("Publisher", "OctalPulse");
+                key.SetValue("InstallLocation", installDir);
+                var installerGlobal = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "OctalPulse", InstallerExecutableName);
+                if (File.Exists(installerGlobal))
+                {
+                    key.SetValue("UninstallString", $"\"{installerGlobal}\" --uninstall");
+                    key.SetValue("QuietUninstallString", $"\"{installerGlobal}\" --uninstall");
+                }
+                else
+                {
+                    key.SetValue("UninstallString", $"\"{targetExe}\" --uninstall");
+                }
+                key.SetValue("NoRepair", 1);
+                key.SetValue("NoModify", 1);
+                InstallerLogger.Info("Windows Uninstall registry entry updated successfully.");
+            }
+        }
+        catch (Exception ex)
+        {
+            InstallerLogger.Warn($"Failed to register in Windows Uninstall registry: {ex.Message}");
         }
     }
 
@@ -600,6 +835,116 @@ public class InstallationManager
         {
             InstallerLogger.Error("Failed to launch application", ex);
             return false;
+        }
+    }
+
+    public async Task<bool> UninstallApplicationAsync(
+        string installDir,
+        bool removeUserData,
+        IProgress<(string status, double percent)>? progress = null,
+        CancellationToken ct = default)
+    {
+        InstallerLogger.Info($"Starting uninstallation of OctalPulse. InstallDir={installDir}, RemoveUserData={removeUserData}");
+
+        try
+        {
+            // 1. Force close and terminate any running OctalPulse processes
+            progress?.Report(("Closing running OctalPulse processes...", 15));
+            var processProgress = new Progress<string>(s => progress?.Report((s, 20)));
+            await CloseAndTerminateApplicationProcessesAsync(processProgress, ct);
+
+            // 2. Remove Shortcuts
+            progress?.Report(("Removing shortcuts...", 40));
+            try
+            {
+                var startMenuShortcut = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Programs), "OctalPulse.lnk");
+                if (File.Exists(startMenuShortcut))
+                {
+                    File.Delete(startMenuShortcut);
+                    InstallerLogger.Info($"Deleted Start Menu shortcut: {startMenuShortcut}");
+                }
+
+                var desktopShortcut = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "OctalPulse.lnk");
+                if (File.Exists(desktopShortcut))
+                {
+                    File.Delete(desktopShortcut);
+                    InstallerLogger.Info($"Deleted Desktop shortcut: {desktopShortcut}");
+                }
+
+                CleanDuplicateShortcuts(Environment.GetFolderPath(Environment.SpecialFolder.Programs), startMenuShortcut);
+                CleanDuplicateShortcuts(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), desktopShortcut);
+            }
+            catch (Exception ex)
+            {
+                InstallerLogger.Warn($"Failed to remove shortcuts during uninstall: {ex.Message}");
+            }
+
+            // 3. Delete Application Installation Folder
+            progress?.Report(("Removing application files...", 65));
+            try
+            {
+                if (Directory.Exists(installDir))
+                {
+                    CleanDirectory(installDir);
+                    try { Directory.Delete(installDir, true); } catch { }
+                    InstallerLogger.Info($"Removed application directory: {installDir}");
+                }
+            }
+            catch (Exception ex)
+            {
+                InstallerLogger.Warn($"Failed to completely remove installDir: {ex.Message}");
+            }
+
+            // 4. Optionally remove User Data & Settings (%LocalAppData%\OctalPulse)
+            if (removeUserData)
+            {
+                progress?.Report(("Removing user data and settings...", 80));
+                try
+                {
+                    var appData = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "OctalPulse");
+                    if (Directory.Exists(appData))
+                    {
+                        var currentExe = Environment.ProcessPath ?? string.Empty;
+                        foreach (var file in Directory.GetFiles(appData, "*", SearchOption.AllDirectories))
+                        {
+                            if (!string.IsNullOrEmpty(currentExe) && string.Equals(Path.GetFullPath(file), Path.GetFullPath(currentExe), StringComparison.OrdinalIgnoreCase))
+                                continue;
+                            try { File.Delete(file); } catch { }
+                        }
+                        foreach (var sub in Directory.GetDirectories(appData))
+                        {
+                            try { Directory.Delete(sub, true); } catch { }
+                        }
+                        InstallerLogger.Info("Removed user data directory.");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    InstallerLogger.Warn($"Failed to remove user data directory: {ex.Message}");
+                }
+            }
+
+            // 5. Remove Registry Entries
+            progress?.Report(("Removing registry entries...", 90));
+            try
+            {
+                Registry.CurrentUser.DeleteSubKeyTree(@"Software\Microsoft\Windows\CurrentVersion\Uninstall\OctalPulse", false);
+                Registry.CurrentUser.DeleteSubKeyTree(RegistrySubKey, false);
+                InstallerLogger.Info("Removed registry entries.");
+            }
+            catch (Exception ex)
+            {
+                InstallerLogger.Warn($"Failed to remove registry keys: {ex.Message}");
+            }
+
+            progress?.Report(("OctalPulse uninstalled successfully.", 100));
+            InstallerLogger.Info("OctalPulse uninstallation completed successfully.");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            InstallerLogger.Error("Uninstall failed with error", ex);
+            throw;
         }
     }
 

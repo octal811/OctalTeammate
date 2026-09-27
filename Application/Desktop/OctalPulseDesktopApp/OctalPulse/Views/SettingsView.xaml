@@ -240,12 +240,12 @@
                             <TextBox Grid.Column="0" Text="{Binding GeminiApiKeyInput, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Tag="AIzaSy..." Margin="0,0,12,0" />
                             <Button Grid.Column="1" Style="{StaticResource Button.Primary}" Content="Connect Gemini" Command="{Binding ConnectGeminiCommand}" Height="42" Padding="20,0" />
                         </Grid>
-                        <TextBlock Text="Obtain a free or paid API key at Google AI Studio (aistudio.google.com). Default model: gemini-1.5-flash." FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" />
+                        <TextBlock Text="Obtain a free or paid API key at Google AI Studio (aistudio.google.com). After connecting, you can choose which Gemini model Octo uses." FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" TextWrapping="Wrap" />
                     </StackPanel>
 
                     <!-- Connected State -->
                     <StackPanel Visibility="{Binding IsGeminiConnected, Converter={StaticResource BoolToVis}}">
-                        <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="10" Padding="16">
+                        <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="10" Padding="16" Margin="0,0,0,16">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -275,6 +275,53 @@
 
                                 <Button Grid.Column="2" Style="{StaticResource Button.Danger}" Content="Disconnect" Command="{Binding DisconnectGeminiCommand}" Height="34" Padding="14,0" />
                             </Grid>
+                        </Border>
+
+                        <!-- ── Model Selector ─────────────────────────────────── -->
+                        <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="10" Padding="18" Margin="0,0,0,0">
+                            <StackPanel>
+                                <!-- Header row -->
+                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                                    <TextBlock Text="⚙️" FontSize="14" VerticalAlignment="Center" Margin="0,0,6,0" />
+                                    <TextBlock Text="Gemini Model" FontSize="13" FontWeight="SemiBold"
+                                               Foreground="{DynamicResource Brush.TextPrimary}" VerticalAlignment="Center" />
+                                </StackPanel>
+
+                                <!-- Description -->
+                                <TextBlock Text="Choose which Gemini model Octo uses. Newer models are smarter but may count against your quota faster."
+                                           FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" TextWrapping="Wrap" Margin="0,0,0,12" />
+
+                                <!-- Dropdown + Apply button -->
+                                <Grid>
+                                    <Grid.ColumnDefinitions>
+                                        <ColumnDefinition Width="*" />
+                                        <ColumnDefinition Width="12" />
+                                        <ColumnDefinition Width="Auto" />
+                                    </Grid.ColumnDefinitions>
+
+                                    <!-- ComboBox with curated model list -->
+                                    <ComboBox Grid.Column="0"
+                                              ItemsSource="{Binding AvailableGeminiModels}"
+                                              SelectedItem="{Binding GeminiModelInput, Mode=TwoWay}"
+                                              Style="{StaticResource ComboBox.Modern}"
+                                              Height="42" />
+
+                                    <!-- Apply button -->
+                                    <Button Grid.Column="2"
+                                            Style="{StaticResource Button.Primary}"
+                                            Content="💾  Apply"
+                                            Command="{Binding SaveGeminiModelCommand}"
+                                            Height="42" Padding="20,0" />
+                                </Grid>
+
+                                <!-- Active model badge -->
+                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                                    <TextBlock Text="Active: " FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" VerticalAlignment="Center" />
+                                    <Border Background="{DynamicResource Brush.PrimarySoft}" CornerRadius="5" Padding="8,3">
+                                        <TextBlock Text="{Binding GeminiModel}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Primary}" />
+                                    </Border>
+                                </StackPanel>
+                            </StackPanel>
                         </Border>
                     </StackPanel>
                 </StackPanel>

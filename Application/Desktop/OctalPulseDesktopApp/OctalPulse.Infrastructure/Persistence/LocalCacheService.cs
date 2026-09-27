@@ -35,6 +35,16 @@ public class LocalCacheService : ILocalCacheService
             );
             CREATE UNIQUE INDEX IF NOT EXISTS "IX_SavedAccounts_Email" ON "SavedAccounts" ("Email");
             """);
+
+        // Safe migration: add GeminiModel column to UserPreferences if it doesn't exist yet.
+        try
+        {
+            db.Database.ExecuteSqlRaw("ALTER TABLE \"Preferences\" ADD COLUMN \"GeminiModel\" TEXT NOT NULL DEFAULT '';");
+        }
+        catch
+        {
+            // Column already exists — ignore.
+        }
     }
 
     public async Task<LocalSession?> GetActiveSessionAsync()
@@ -112,6 +122,7 @@ public class LocalCacheService : ILocalCacheService
             existing.IsSidebarCollapsed = preferences.IsSidebarCollapsed;
             existing.NotificationsEnabled = preferences.NotificationsEnabled;
             existing.AutoReconnectSignalR = preferences.AutoReconnectSignalR;
+            existing.GeminiModel = preferences.GeminiModel;
         }
         else
         {

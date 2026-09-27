@@ -14,6 +14,9 @@ public class GeminiClient : IGeminiClient
     private readonly ILogger<GeminiClient> _logger;
     private static string? _cachedResolvedModel;
 
+    /// <summary>Clears the cached resolved model so the next call will re-resolve (useful when user changes model in Settings).</summary>
+    public static void InvalidateModelCache() => _cachedResolvedModel = null;
+
     private static readonly JsonSerializerOptions JsonOptions = new()
     {
         PropertyNamingPolicy = JsonNamingPolicy.CamelCase,

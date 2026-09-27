@@ -11,7 +11,8 @@ public enum InstallerMode
 {
     FirstInstall,
     Update,
-    Reinstall
+    Reinstall,
+    Uninstall
 }
 
 public enum InstallerStep
@@ -25,7 +26,9 @@ public enum InstallerStep
     DownloadFailed,       // Interrupted download with Resume / Retry
     InterruptedNotice,    // Interrupted previous install recovery
     Completed,            // Finished, "Launch OctalPulse"
-    Error                 // General error screen
+    Error,                // General error screen
+    UninstallConfirmation,// Confirmation prompt before uninstalling
+    Uninstalled           // Finished uninstalling
 }
 
 public partial class InstallerViewModel : ObservableObject
@@ -36,6 +39,9 @@ public partial class InstallerViewModel : ObservableObject
 
     [ObservableProperty]
     private InstallerStep _currentStep = InstallerStep.CheckingUpdates;
+
+    [ObservableProperty]
+    private bool _removeUserDataOnUninstall;
 
     [ObservableProperty]
     private string _installDirectory = string.Empty;
@@ -106,6 +112,7 @@ public partial class InstallerViewModel : ObservableObject
         string? customUrl = null;
         bool isUpdate = false;
         bool isReinstall = false;
+        bool isUninstall = false;
 
         for (int i = 0; i < args.Length; i++)
         {
@@ -114,6 +121,8 @@ public partial class InstallerViewModel : ObservableObject
                 isUpdate = true;
             else if (arg.Equals("--reinstall", StringComparison.OrdinalIgnoreCase))
                 isReinstall = true;
+            else if (arg.Equals("--uninstall", StringComparison.OrdinalIgnoreCase))
+                isUninstall = true;
             else if (arg.Equals("--path", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Length)
                 customPath = args[++i].Trim('"', '\'');
             else if (arg.Equals("--version", StringComparison.OrdinalIgnoreCase) && i + 1 < args.Length)
@@ -135,6 +144,13 @@ public partial class InstallerViewModel : ObservableObject
         if (!string.IsNullOrEmpty(customUrl))
         {
             DownloadUrl = customUrl;
+        }
+
+        if (isUninstall)
+        {
+            Mode = InstallerMode.Uninstall;
+            CurrentStep = InstallerStep.UninstallConfirmation;
+            return;
         }
 
         if (isReinstall)
@@ -306,8 +322,28 @@ public partial class InstallerViewModel : ObservableObject
 
         if (dialog.ShowDialog() == true)
         {
-            InstallDirectory = dialog.FolderName;
+            var selected = dialog.FolderName;
+            if (!string.IsNullOrWhiteSpace(selected))
+            {
+                selected = EnsureAppSubfolder(selected);
+                InstallDirectory = selected;
+            }
         }
+    }
+
+    private static string EnsureAppSubfolder(string path)
+    {
+        var trimmed = path.TrimEnd(Path.DirectorySeparatorChar, Path.AltDirectorySeparatorChar);
+        var folderName = Path.GetFileName(trimmed);
+
+        // If the selected folder does not end with "OctalPulse" or "app", append "OctalPulse"
+        if (!string.Equals(folderName, "OctalPulse", StringComparison.OrdinalIgnoreCase) &&
+            !string.Equals(folderName, "app", StringComparison.OrdinalIgnoreCase))
+        {
+            return Path.Combine(trimmed, "OctalPulse");
+        }
+
+        return trimmed;
     }
 
     [RelayCommand]
@@ -324,6 +360,12 @@ public partial class InstallerViewModel : ObservableObject
     private async Task StartInstallAsync()
     {
         Mode = InstallerMode.FirstInstall;
+
+        if (!string.IsNullOrWhiteSpace(InstallDirectory))
+        {
+            InstallDirectory = EnsureAppSubfolder(InstallDirectory);
+        }
+
         await StartUpdateOrInstallProcessAsync();
     }
 
@@ -412,6 +454,64 @@ public partial class InstallerViewModel : ObservableObject
         System.Windows.Application.Current.Shutdown();
     }
 
+    [RelayCommand]
+    private void GoToUninstall()
+    {
+        Mode = InstallerMode.Uninstall;
+        CurrentStep = InstallerStep.UninstallConfirmation;
+    }
+
+    [RelayCommand]
+    private void CancelUninstall()
+    {
+        if (_manager.ValidateAppFolder(InstallDirectory, out var ver, out _))
+        {
+            InstalledVersion = ver;
+            CurrentStep = InstallerStep.UpToDate;
+        }
+        else
+        {
+            CurrentStep = InstallerStep.AppNotFound;
+        }
+    }
+
+    [RelayCommand]
+    private async Task StartUninstallAsync()
+    {
+        Mode = InstallerMode.Uninstall;
+        CurrentStep = InstallerStep.Working;
+        StatusMessage = "Uninstalling OctalPulse...";
+        SubStatusMessage = "Removing files and shortcuts...";
+        ProgressPercent = 0;
+        IsIndeterminate = false;
+        CanCancel = false;
+        CanPause = false;
+        ErrorMessage = string.Empty;
+
+        _cts = new CancellationTokenSource();
+        var ct = _cts.Token;
+
+        var progress = new Progress<(string status, double percent)>(p =>
+        {
+            SubStatusMessage = p.status;
+            ProgressPercent = p.percent;
+        });
+
+        try
+        {
+            await _manager.UninstallApplicationAsync(InstallDirectory, RemoveUserDataOnUninstall, progress, ct);
+            CurrentStep = InstallerStep.Uninstalled;
+            StatusMessage = "OctalPulse Uninstalled";
+            SubStatusMessage = "OctalPulse has been successfully removed from your computer.";
+        }
+        catch (Exception ex)
+        {
+            InstallerLogger.Error("Uninstall failed", ex);
+            ErrorMessage = $"Failed to uninstall OctalPulse: {ex.Message}";
+            CurrentStep = InstallerStep.Error;
+        }
+    }
+
     public async Task StartUpdateOrInstallProcessAsync()
     {
         CurrentStep = InstallerStep.Working;
@@ -434,15 +534,15 @@ public partial class InstallerViewModel : ObservableObject
 
         try
         {
-            // ── Step 1: Wait for running app to exit ──
-            StatusMessage = "Waiting for OctalPulse to exit...";
-            SubStatusMessage = "Checking if OctalPulse is currently running...";
+            // ── Step 1: Ensure all running app instances are closed cleanly ──
+            StatusMessage = "Closing running OctalPulse processes...";
+            SubStatusMessage = "Ensuring OctalPulse is not running...";
             var progressText = new Progress<string>(msg => SubStatusMessage = msg);
 
-            bool exited = await _manager.WaitForApplicationExitAsync(TimeSpan.FromSeconds(30), progressText, ct);
+            bool exited = await _manager.CloseAndTerminateApplicationProcessesAsync(progressText, ct);
             if (!exited)
             {
-                ErrorMessage = "OctalPulse is still running. Please close the app and try again.";
+                ErrorMessage = "Could not close running OctalPulse process. Please close the app and try again.";
                 CurrentStep = InstallerStep.Error;
                 return;
             }

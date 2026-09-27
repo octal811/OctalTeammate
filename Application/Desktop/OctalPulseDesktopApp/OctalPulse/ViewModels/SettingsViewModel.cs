@@ -5,6 +5,7 @@ using OctalPulse.Application.Abstractions;
 using OctalPulse.Application.Contracts;
 using OctalPulse.Application.Services;
 using OctalPulse.Domain.Entities;
+using OctalPulse.Infrastructure.Gemini;
 using OctalPulse.Services;
 
 namespace OctalPulse.ViewModels;
@@ -48,7 +49,11 @@ public partial class SettingsViewModel : ObservableObject, INavigationAware
     private bool _isGeminiConnected;
 
     [ObservableProperty]
-    private string _geminiModel = "gemini-1.5-flash";
+    private string _geminiModel = string.Empty;
+
+    /// <summary>The model the user is typing / has selected in the dropdown.</summary>
+    [ObservableProperty]
+    private string _geminiModelInput = string.Empty;
 
     [ObservableProperty]
     private string _geminiMaskedKeyDisplay = string.Empty;
@@ -56,6 +61,18 @@ public partial class SettingsViewModel : ObservableObject, INavigationAware
     [ObservableProperty]
     private bool _isBusy;
 
+    // Curated Gemini models from 1.5 → 3.8 (no live fetch needed)
+    public ObservableCollection<string> AvailableGeminiModels { get; } = new()
+    {
+        "gemini-1.5-flash",
+        "gemini-1.5-flash-8b",
+        "gemini-1.5-pro",
+        "gemini-2.0-flash-lite",
+        "gemini-2.0-flash",
+        "gemini-2.5-flash",
+        "gemini-2.5-pro",
+        "gemini-3.8-flash"
+    };
     public ObservableCollection<GitHubRepoInfo> Repositories { get; } = new();
 
     public SettingsViewModel(
@@ -116,15 +133,16 @@ public partial class SettingsViewModel : ObservableObject, INavigationAware
             if (IsGeminiConnected && storedGeminiKey!.Length > 8)
             {
                 GeminiMaskedKeyDisplay = $"{storedGeminiKey[..4]}...{storedGeminiKey[^4..]}";
-                var bestModel = await _geminiClient.ResolveBestModelAsync(storedGeminiKey);
-                if (!string.IsNullOrEmpty(bestModel))
-                {
-                    GeminiModel = bestModel;
-                }
+
+                // Load user's saved model preference
+                var savedModel = pref.GeminiModel;
+                GeminiModelInput = string.IsNullOrWhiteSpace(savedModel) ? "gemini-2.0-flash" : savedModel;
+                GeminiModel = GeminiModelInput;
             }
             else
             {
                 GeminiMaskedKeyDisplay = IsGeminiConnected ? "••••••••" : string.Empty;
+                GeminiModelInput = string.Empty;
             }
         }
         catch (Exception ex)
@@ -253,6 +271,11 @@ public partial class SettingsViewModel : ObservableObject, INavigationAware
             IsGeminiConnected = true;
             GeminiApiKeyInput = string.Empty;
 
+            // Pre-select gemini-2.0-flash as the safe default on first connect
+            if (string.IsNullOrWhiteSpace(GeminiModelInput))
+                GeminiModelInput = "gemini-2.0-flash";
+            await SaveGeminiModelCoreAsync();
+
             _dialogService.ShowToast("Gemini Connected", "Google Gemini connected successfully! Octo AI Supporter is ready to assist.", ToastType.Success);
         }
         catch (Exception ex)
@@ -275,7 +298,31 @@ public partial class SettingsViewModel : ObservableObject, INavigationAware
 
         IsGeminiConnected = false;
         GeminiMaskedKeyDisplay = string.Empty;
+        GeminiModelInput = string.Empty;
+        GeminiClient.InvalidateModelCache();
 
         _dialogService.ShowToast("Gemini Disconnected", "Google Gemini API key removed.", ToastType.Info);
+    }
+
+    // ── Model management ──────────────────────────────────────────────────
+
+    [RelayCommand]
+    private async Task SaveGeminiModelAsync()
+    {
+        await SaveGeminiModelCoreAsync();
+        _dialogService.ShowToast("Model Saved", $"Octo will now use: {GeminiModelInput}", ToastType.Success);
+    }
+
+    private async Task SaveGeminiModelCoreAsync()
+    {
+        if (string.IsNullOrWhiteSpace(GeminiModelInput)) return;
+
+        var trimmed = GeminiModelInput.Trim();
+        GeminiModel = trimmed;
+        GeminiClient.InvalidateModelCache();   // Force re-resolve with new choice
+
+        var pref = await _localCache.GetPreferencesAsync();
+        pref.GeminiModel = trimmed;
+        await _localCache.SavePreferencesAsync(pref);
     }
 }

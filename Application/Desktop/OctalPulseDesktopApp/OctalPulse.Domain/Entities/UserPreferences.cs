@@ -8,4 +8,10 @@ public class UserPreferences
     public bool IsSidebarCollapsed { get; set; } = false;
     public bool NotificationsEnabled { get; set; } = true;
     public bool AutoReconnectSignalR { get; set; } = true;
+
+    /// <summary>
+    /// The Gemini model name chosen by the user (e.g., "gemini-2.0-flash").
+    /// Empty string means "auto-resolve best available model".
+    /// </summary>
+    public string GeminiModel { get; set; } = string.Empty;
 }

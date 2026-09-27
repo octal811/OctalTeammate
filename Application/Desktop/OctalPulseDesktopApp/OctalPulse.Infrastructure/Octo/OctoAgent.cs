@@ -11,6 +11,7 @@ public class OctoAgent : IOctoAgent
     private readonly IGeminiClient _geminiClient;
     private readonly IOctoToolRegistry _toolRegistry;
     private readonly ISecureStorageService _secureStorage;
+    private readonly ILocalCacheService _localCache;
     private readonly IUserSession _userSession;
     private readonly ILogger<OctoAgent> _logger;
 
@@ -21,12 +22,14 @@ public class OctoAgent : IOctoAgent
         IGeminiClient geminiClient,
         IOctoToolRegistry toolRegistry,
         ISecureStorageService secureStorage,
+        ILocalCacheService localCache,
         IUserSession userSession,
         ILogger<OctoAgent> logger)
     {
         _geminiClient = geminiClient;
         _toolRegistry = toolRegistry;
         _secureStorage = secureStorage;
+        _localCache = localCache;
         _userSession = userSession;
         _logger = logger;
     }
@@ -50,6 +53,10 @@ public class OctoAgent : IOctoAgent
         }
 
         statusCallback?.Invoke("Octo is thinking...");
+
+        // Resolve the user's preferred model (empty = auto-detect best available)
+        var pref = await _localCache.GetPreferencesAsync();
+        var preferredModel = string.IsNullOrWhiteSpace(pref.GeminiModel) ? string.Empty : pref.GeminiModel.Trim();
 
         try
         {
@@ -101,7 +108,7 @@ public class OctoAgent : IOctoAgent
                 cancellationToken.ThrowIfCancellationRequested();
                 rounds++;
 
-                var response = await _geminiClient.GenerateContentAsync(request, apiKey, cancellationToken: cancellationToken);
+                var response = await _geminiClient.GenerateContentAsync(request, apiKey, preferredModel, cancellationToken);
 
                 if (response.Error != null)
                 {

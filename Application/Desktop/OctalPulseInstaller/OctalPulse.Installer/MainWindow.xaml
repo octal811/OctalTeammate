@@ -140,6 +140,41 @@
             </Setter>
         </Style>
 
+        <!-- Danger Button Style -->
+        <Style x:Key="DangerButton" TargetType="Button">
+            <Setter Property="Background" Value="#DC2626" />
+            <Setter Property="Foreground" Value="#FFFFFF" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Height" Value="38" />
+            <Setter Property="Padding" Value="16,0" />
+            <Setter Property="BorderThickness" Value="0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" Margin="{TemplateBinding Padding}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#B91C1C" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="Background" Value="#991B1B" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Danger Outline Button Style -->
+        <Style x:Key="DangerOutlineButton" TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+            <Setter Property="Foreground" Value="#EF4444" />
+            <Setter Property="BorderBrush" Value="#7F1D1D" />
+        </Style>
+
         <!-- Action Card Button (Used for 2 main choices) -->
         <Style x:Key="ActionCardButton" TargetType="Button">
             <Setter Property="Background" Value="#111827" />
@@ -286,8 +321,8 @@
                                     </Border>
 
                                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="10,0,0,0">
-                                        <TextBlock Text="2. Locate Existing App Folder" FontSize="14" FontWeight="Bold" Foreground="#FFFFFF" />
-                                        <TextBlock Text="Already have OctalPulse? Browse and select its folder to re-link and check for updates." FontSize="11" Foreground="#9CA3AF" Margin="0,2,0,0" />
+                                        <TextBlock Text="2. Locate Existing App Folder" FontSize="12" FontWeight="Bold" Foreground="#FFFFFF" />
+                                        <TextBlock Text="Already have OctalPulse? Browse and select its folder to re-link and check for updates." FontSize="9" Foreground="#9CA3AF" Margin="0,2,0,0" />
                                     </StackPanel>
 
                                     <Border Grid.Column="2" Background="#1F2937" BorderBrush="#374151" BorderThickness="1" CornerRadius="4" Padding="10,6" VerticalAlignment="Center">
@@ -332,7 +367,7 @@
                                          Padding="10,0" VerticalContentAlignment="Center" FontSize="12" Margin="0,0,10,0" />
                                 <Button Grid.Column="1" Style="{StaticResource SecondaryButton}" Content="Browse..." Command="{Binding BrowseNewInstallFolderCommand}" Height="36" />
                             </Grid>
-                            <TextBlock Text="Recommended default: %LocalAppData%\OctalPulse" FontSize="11" Foreground="#6B7280" />
+                            <TextBlock Text="Recommended default: %LocalAppData%\Programs\OctalPulse" FontSize="11" Foreground="#6B7280" />
                         </StackPanel>
                     </Border>
 
@@ -457,7 +492,8 @@
                         <StackPanel Orientation="Horizontal" HorizontalAlignment="Left">
                             <Button Style="{StaticResource SecondaryButton}" Content="Change Path" Command="{Binding LocateAppFolderCommand}" Height="36" Padding="12,0" Margin="0,0,8,0" />
                             <Button Style="{StaticResource SecondaryButton}" Content="Check Again" Command="{Binding CheckForUpdatesAgainstGitHubCommand}" Height="36" Padding="12,0" Margin="0,0,8,0" />
-                            <Button Style="{StaticResource SecondaryButton}" Content="Reinstall" Command="{Binding StartReinstallCommand}" Height="36" Padding="12,0" />
+                            <Button Style="{StaticResource SecondaryButton}" Content="Reinstall" Command="{Binding StartReinstallCommand}" Height="36" Padding="12,0" Margin="0,0,8,0" />
+                            <Button Style="{StaticResource DangerOutlineButton}" Content="Uninstall" Command="{Binding GoToUninstallCommand}" Height="36" Padding="12,0" />
                         </StackPanel>
                         <Button Style="{StaticResource PrimaryButton}" Content="Launch OctalPulse" Command="{Binding LaunchApplicationCommand}" HorizontalAlignment="Right" Width="160" />
                     </Grid>
@@ -613,6 +649,85 @@
                     <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
                         <Button Style="{StaticResource SecondaryButton}" Content="Exit" Command="{Binding ExitInstallerCommand}" Width="90" Margin="0,0,10,0" />
                         <Button Style="{StaticResource PrimaryButton}" Content="Try Again" Command="{Binding RetryCommand}" Width="120" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- ════════════════════════════════════════════════════════════ -->
+                <!-- 11. UNINSTALL CONFIRMATION STEP                              -->
+                <!-- ════════════════════════════════════════════════════════════ -->
+                <Grid Visibility="{Binding CurrentStep, Converter={StaticResource StepToVis}, ConverterParameter=UninstallConfirmation}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Margin="0,0,0,16">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                            <Border Width="36" Height="36" CornerRadius="8" Background="#26EF4444" Margin="0,0,12,0">
+                                <TextBlock Text="🗑" FontSize="18" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Uninstall OctalPulse" FontSize="18" FontWeight="Bold" Foreground="#F9FAFB" />
+                                <TextBlock Text="Remove OctalPulse from this computer" FontSize="12" Foreground="#EF4444" FontWeight="SemiBold" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Border Grid.Row="1" Background="#111827" BorderBrush="#2D3748" BorderThickness="1" CornerRadius="8" Padding="18" VerticalAlignment="Top">
+                        <StackPanel>
+                            <TextBlock Text="Are you sure you want to uninstall OctalPulse?" FontSize="13" FontWeight="SemiBold" Foreground="#F9FAFB" Margin="0,0,0,8" />
+                            <TextBlock Text="This will remove application files and shortcuts from:" FontSize="12" Foreground="#9CA3AF" Margin="0,0,0,4" />
+                            <Border Background="#1F2937" CornerRadius="4" Padding="10,6" Margin="0,0,0,16">
+                                <TextBlock Text="{Binding InstallDirectory}" FontSize="11" Foreground="#6366F1" TextTrimming="CharacterEllipsis" />
+                            </Border>
+
+                            <CheckBox IsChecked="{Binding RemoveUserDataOnUninstall}" Margin="0,0,0,6">
+                                <CheckBox.Content>
+                                    <TextBlock Text="Also remove my local database, settings, and saved accounts" FontSize="12" Foreground="#D1D5DB" />
+                                </CheckBox.Content>
+                            </CheckBox>
+                            <TextBlock Text="Leave unchecked if you plan to reinstall OctalPulse in the future and keep your data." FontSize="10" Foreground="#6B7280" Margin="22,0,0,0" />
+                        </StackPanel>
+                    </Border>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+                        <Button Style="{StaticResource SecondaryButton}" Content="Cancel" Command="{Binding CancelUninstallCommand}" Width="90" Margin="0,0,10,0" />
+                        <Button Style="{StaticResource DangerButton}" Content="Uninstall Now" Command="{Binding StartUninstallCommand}" Width="130" />
+                    </StackPanel>
+                </Grid>
+
+                <!-- ════════════════════════════════════════════════════════════ -->
+                <!-- 12. UNINSTALLED STEP                                         -->
+                <!-- ════════════════════════════════════════════════════════════ -->
+                <Grid Visibility="{Binding CurrentStep, Converter={StaticResource StepToVis}, ConverterParameter=Uninstalled}">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <StackPanel Grid.Row="0" Margin="0,0,0,16">
+                        <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
+                            <Border Width="36" Height="36" CornerRadius="8" Background="#2610B981" Margin="0,0,12,0">
+                                <TextBlock Text="✓" FontSize="20" FontWeight="Bold" Foreground="#10B981" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                            </Border>
+                            <StackPanel VerticalAlignment="Center">
+                                <TextBlock Text="Uninstall Complete" FontSize="18" FontWeight="Bold" Foreground="#F9FAFB" />
+                                <TextBlock Text="OctalPulse was successfully removed" FontSize="12" Foreground="#10B981" FontWeight="SemiBold" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+
+                    <Border Grid.Row="1" Background="#111827" BorderBrush="#2D3748" BorderThickness="1" CornerRadius="8" Padding="18" VerticalAlignment="Top">
+                        <StackPanel>
+                            <TextBlock Text="OctalPulse and its shortcuts have been removed from your system." FontSize="13" Foreground="#E5E7EB" Margin="0,0,0,8" />
+                            <TextBlock Text="Thank you for using OctalPulse. You can run this installer anytime to reinstall." FontSize="11" Foreground="#9CA3AF" LineHeight="16" />
+                        </StackPanel>
+                    </Border>
+
+                    <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,16,0,0">
+                        <Button Style="{StaticResource PrimaryButton}" Content="Close" Command="{Binding ExitInstallerCommand}" Width="100" />
                     </StackPanel>
                 </Grid>
 
