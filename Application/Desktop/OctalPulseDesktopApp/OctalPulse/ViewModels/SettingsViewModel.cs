@@ -378,6 +378,11 @@ public partial class SettingsViewModel : ObservableObject, INavigationAware
                 _floatWindowService?.Toggle(FloatWindowType.Calendar);
                 _dialogService.ShowToast("Calendar", "Toggled floating Calendar & Deadlines (Alt + C).", ToastType.Info);
                 break;
+
+            case "notes":
+                _floatWindowService?.Toggle(FloatWindowType.Notes);
+                _dialogService.ShowToast("Notes & Ideas", "Toggled private offline Notes drawer (Alt + O).", ToastType.Info);
+                break;
         }
     }
 }

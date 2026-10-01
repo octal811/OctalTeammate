@@ -151,6 +151,9 @@ public partial class MainWindow : Window
                 case GlobalHotkeyService.HK_MEDIA:
                     _floatWindowService.Toggle(FloatWindowType.Media);
                     break;
+                case GlobalHotkeyService.HK_NOTES:
+                    _floatWindowService.Toggle(FloatWindowType.Notes);
+                    break;
             }
         });
     }

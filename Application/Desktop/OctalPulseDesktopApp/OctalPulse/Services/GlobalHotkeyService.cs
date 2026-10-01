@@ -20,6 +20,7 @@ public sealed class GlobalHotkeyService : IDisposable
     public const int HK_STOPWATCH = 4;
     public const int HK_CALENDAR = 5;
     public const int HK_MEDIA = 6;
+    public const int HK_NOTES = 7;
 
     // Virtual key codes
     private const uint VK_W = 0x57;
@@ -28,6 +29,7 @@ public sealed class GlobalHotkeyService : IDisposable
     private const uint VK_T = 0x54;
     private const uint VK_C = 0x43;
     private const uint VK_M = 0x4D;
+    private const uint VK_O = 0x4F;
 
     private IntPtr _hwnd = IntPtr.Zero;
     private HwndSource? _source;
@@ -63,6 +65,7 @@ public sealed class GlobalHotkeyService : IDisposable
         RegisterHotKey(_hwnd, HK_STOPWATCH,    MOD_ALT | MOD_NOREPEAT, VK_T);
         RegisterHotKey(_hwnd, HK_CALENDAR,     MOD_ALT | MOD_NOREPEAT, VK_C);
         RegisterHotKey(_hwnd, HK_MEDIA,        MOD_ALT | MOD_NOREPEAT, VK_M);
+        RegisterHotKey(_hwnd, HK_NOTES,        MOD_ALT | MOD_NOREPEAT, VK_O);
 
         _registered = true;
     }
@@ -77,6 +80,7 @@ public sealed class GlobalHotkeyService : IDisposable
         UnregisterHotKey(_hwnd, HK_STOPWATCH);
         UnregisterHotKey(_hwnd, HK_CALENDAR);
         UnregisterHotKey(_hwnd, HK_MEDIA);
+        UnregisterHotKey(_hwnd, HK_NOTES);
 
         _registered = false;
     }

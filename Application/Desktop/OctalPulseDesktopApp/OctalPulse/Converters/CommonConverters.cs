@@ -273,3 +273,108 @@ public class RelativeUrlToImageSourceConverter : IValueConverter
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => Binding.DoNothing;
 }
 
+public class NoteCardColorConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        var hex = value as string ?? "#FFFFFF";
+        var param = parameter as string ?? "bg";
+
+        System.Windows.Media.Color color;
+        try
+        {
+            color = (System.Windows.Media.Color)System.Windows.Media.ColorConverter.ConvertFromString(hex);
+        }
+        catch
+        {
+            color = System.Windows.Media.Colors.White;
+        }
+
+        bool isDark = false;
+        if (System.Windows.Application.Current?.Resources["Brush.Background"] is SolidColorBrush bgBrush)
+        {
+            var lum = (bgBrush.Color.R * 0.299 + bgBrush.Color.G * 0.587 + bgBrush.Color.B * 0.114);
+            isDark = lum < 128;
+        }
+
+        if (param.Equals("border", StringComparison.OrdinalIgnoreCase))
+        {
+            if (isDark)
+            {
+                if (hex.Equals("#FFFFFF", StringComparison.OrdinalIgnoreCase))
+                    return new SolidColorBrush(Color.FromArgb(80, 148, 163, 184));
+                return new SolidColorBrush(Color.FromArgb(140, color.R, color.G, color.B));
+            }
+            else
+            {
+                if (hex.Equals("#FFFFFF", StringComparison.OrdinalIgnoreCase))
+                    return new SolidColorBrush(Color.FromRgb(226, 232, 240));
+                return new SolidColorBrush(Color.FromArgb(180, (byte)(color.R * 0.75), (byte)(color.G * 0.75), (byte)(color.B * 0.75)));
+            }
+        }
+        else if (param.Equals("text", StringComparison.OrdinalIgnoreCase))
+        {
+            if (isDark)
+            {
+                return new SolidColorBrush(Color.FromRgb(248, 250, 252));
+            }
+            else
+            {
+                var lum = (color.R * 0.299 + color.G * 0.587 + color.B * 0.114);
+                return lum < 140 ? new SolidColorBrush(Color.FromRgb(248, 250, 252)) : new SolidColorBrush(Color.FromRgb(15, 23, 42));
+            }
+        }
+        else if (param.Equals("subtext", StringComparison.OrdinalIgnoreCase))
+        {
+            if (isDark)
+            {
+                return new SolidColorBrush(Color.FromRgb(148, 163, 184));
+            }
+            else
+            {
+                var lum = (color.R * 0.299 + color.G * 0.587 + color.B * 0.114);
+                return lum < 140 ? new SolidColorBrush(Color.FromRgb(203, 213, 225)) : new SolidColorBrush(Color.FromRgb(100, 116, 139));
+            }
+        }
+        else if (param.Equals("accent", StringComparison.OrdinalIgnoreCase))
+        {
+            return new SolidColorBrush(color);
+        }
+
+        // Default: "bg" (background)
+        if (isDark)
+        {
+            if (hex.Equals("#FFFFFF", StringComparison.OrdinalIgnoreCase))
+            {
+                return new SolidColorBrush(Color.FromRgb(24, 32, 47));
+            }
+            byte r = (byte)(22 + (color.R * 0.16));
+            byte g = (byte)(28 + (color.G * 0.16));
+            byte b = (byte)(42 + (color.B * 0.16));
+            return new SolidColorBrush(Color.FromRgb(r, g, b));
+        }
+        else
+        {
+            if (hex.Equals("#FFFFFF", StringComparison.OrdinalIgnoreCase))
+                return new SolidColorBrush(Colors.White);
+            return new SolidColorBrush(color);
+        }
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture) => Binding.DoNothing;
+}
+
+public class EqualityToBooleanConverter : IValueConverter
+{
+    public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return string.Equals(value?.ToString(), parameter?.ToString(), StringComparison.OrdinalIgnoreCase);
+    }
+
+    public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
+    {
+        return value is bool b && b ? (parameter?.ToString() ?? Binding.DoNothing) : Binding.DoNothing;
+    }
+}
+
+

@@ -9,7 +9,8 @@ public enum FloatWindowType
     MinorTasks,
     Stopwatch,
     Calendar,
-    Media
+    Media,
+    Notes
 }
 
 /// <summary>
@@ -25,6 +26,7 @@ public sealed class FloatWindowService
     private StopwatchFloatWindow? _stopwatch;
     private CalendarFloatWindow? _calendar;
     private MediaFloatWindow? _media;
+    private NotesFloatWindow? _notes;
 
     public FloatWindowService(IServiceProvider services)
     {
@@ -52,6 +54,7 @@ public sealed class FloatWindowService
             _stopwatch?.Hide();
             _calendar?.Hide();
             _media?.Hide();
+            _notes?.Hide();
         });
     }
 
@@ -64,6 +67,7 @@ public sealed class FloatWindowService
             FloatWindowType.Stopwatch   => _stopwatch   ??= (StopwatchFloatWindow)  _services.GetService(typeof(StopwatchFloatWindow))!,
             FloatWindowType.Calendar    => _calendar    ??= (CalendarFloatWindow)   _services.GetService(typeof(CalendarFloatWindow))!,
             FloatWindowType.Media       => _media       ??= (MediaFloatWindow)      _services.GetService(typeof(MediaFloatWindow))!,
+            FloatWindowType.Notes       => _notes       ??= (NotesFloatWindow)      _services.GetService(typeof(NotesFloatWindow))!,
             _ => throw new ArgumentOutOfRangeException(nameof(type))
         };
     }

@@ -25,9 +25,10 @@ public static class DependencyInjection
         services.AddSingleton<UserSession>();
         services.AddSingleton<IUserSession>(sp => sp.GetRequiredService<UserSession>());
 
-        // Persistence (SQLite)
+        // Persistence (SQLite & Offline Notes)
         services.AddDbContextFactory<LocalAppDbContext>();
         services.AddSingleton<ILocalCacheService, LocalCacheService>();
+        services.AddSingleton<INotesStorageService, NotesStorageService>();
 
         // HTTP & API
         services.AddTransient<AuthDelegatingHandler>();

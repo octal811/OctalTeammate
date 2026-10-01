@@ -92,6 +92,7 @@ public partial class App : System.Windows.Application
                     services.AddSingleton<MinorTasksFloatViewModel>();
                     services.AddSingleton<CalendarFloatViewModel>();
                     services.AddSingleton<MediaFloatViewModel>();
+                    services.AddSingleton<NotesFloatViewModel>();
                     // StopwatchViewModel already singleton above — shared with float window
 
                     // Windows
@@ -103,6 +104,7 @@ public partial class App : System.Windows.Application
                     services.AddSingleton<StopwatchFloatWindow>();
                     services.AddSingleton<CalendarFloatWindow>();
                     services.AddSingleton<MediaFloatWindow>();
+                    services.AddSingleton<NotesFloatWindow>();
                 })
                 .Build();
 
