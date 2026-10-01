@@ -328,27 +328,254 @@
             </Border>
 
 
-            <!-- ── SECTION 4: SYSTEM INFO & UPDATES ───────────────────────── -->
+            <!-- ── SECTION 4: FLOATING WINDOWS & SHORTCUT GUIDE (CHEAT SHEET) ── -->
+            <Border Style="{StaticResource Border.Card}" Padding="24" Margin="0,0,0,24">
+                <StackPanel>
+                    <!-- Header -->
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                        <Border Width="28" Height="28" CornerRadius="6" Background="{DynamicResource Brush.PrimarySoft}" Margin="0,0,10,0">
+                            <Path Data="{StaticResource Icon.Dashboard}" Fill="{DynamicResource Brush.Primary}" Width="15" Height="15" Stretch="Uniform" />
+                        </Border>
+                        <TextBlock Text="Floating Windows &amp; Hotkeys Guide" Style="{StaticResource Text.Heading3}" VerticalAlignment="Center" />
+                    </StackPanel>
+                    <TextBlock Text="Global keyboard shortcuts allow you to instantly summon or toggle floating widgets and overlay boards from anywhere in Windows, even when OctalPulse is minimized or another application has focus." 
+                               Style="{StaticResource Text.Subtitle}" TextWrapping="Wrap" LineHeight="20" Margin="0,0,0,18" />
+
+                    <!-- Pro Tip Banner -->
+                    <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="8" Padding="14,12" Margin="0,0,0,16" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Border Grid.Column="0" Width="26" Height="26" CornerRadius="13" Background="{DynamicResource Brush.PrimarySoft}" Margin="0,0,12,0" VerticalAlignment="Center">
+                                <Path Data="{StaticResource Icon.Sparkles}" Fill="{DynamicResource Brush.Primary}" Width="13" Height="13" Stretch="Uniform" />
+                            </Border>
+                            <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" TextWrapping="Wrap">
+                                <Run Text="⚡ Global Windows Hotkeys:" FontWeight="Bold" Foreground="{DynamicResource Brush.Primary}" />
+                                <Run Text=" Press any combination below from any game, browser, or code editor to pop open its floating overlay. You can also click Test Open to preview any window now." />
+                            </TextBlock>
+                        </Grid>
+                    </Border>
+
+                    <!-- Shortcut Cheat Sheet Cards -->
+                    <StackPanel>
+                        <!-- 1. Alt + W: Main Window -->
+                        <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="10" Padding="14,12" Margin="0,0,0,8" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="8" Background="{DynamicResource Brush.PrimarySoft}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                    <Path Data="{StaticResource Icon.Dashboard}" Fill="{DynamicResource Brush.Primary}" Width="18" Height="18" Stretch="Uniform" />
+                                </Border>
+
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,16,0">
+                                    <TextBlock Text="Main Workspace Window" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
+                                    <TextBlock Text="Restores and brings the primary OctalPulse hub to the foreground from tray or background." FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                </StackPanel>
+
+                                <!-- Key Badge -->
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Background="{DynamicResource Brush.Card}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1.5" CornerRadius="6" Padding="9,4">
+                                        <TextBlock Text="ALT" FontSize="11" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="{DynamicResource Brush.TextPrimary}" />
+                                    </Border>
+                                    <TextBlock Text="+" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource Brush.TextMuted}" Margin="6,0" VerticalAlignment="Center" />
+                                    <Border Background="{DynamicResource Brush.PrimarySoft}" BorderBrush="{DynamicResource Brush.Primary}" BorderThickness="1.5" CornerRadius="6" Padding="9,4">
+                                        <TextBlock Text="W" FontSize="11" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="{DynamicResource Brush.Primary}" />
+                                    </Border>
+                                </StackPanel>
+
+                                <Button Grid.Column="3" Style="{StaticResource Button.Ghost}" Content="Open" Command="{Binding ToggleFloatWindowCommand}" CommandParameter="main" Height="32" Padding="12,0" Margin="14,0,0,0" VerticalAlignment="Center" />
+                            </Grid>
+                        </Border>
+
+                        <!-- 2. Alt + N: Minor Tasks Board -->
+                        <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="10" Padding="14,12" Margin="0,0,0,8" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="8" Background="{DynamicResource Brush.PrimarySoft}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                    <Path Data="{StaticResource Icon.Tasks}" Fill="{DynamicResource Brush.Primary}" Width="18" Height="18" Stretch="Uniform" />
+                                </Border>
+
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,16,0">
+                                    <TextBlock Text="Minor Tasks Board" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
+                                    <TextBlock Text="Compact floating sticky checklist to quickly add, review, and check off agile subtasks." FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Background="{DynamicResource Brush.Card}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1.5" CornerRadius="6" Padding="9,4">
+                                        <TextBlock Text="ALT" FontSize="11" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="{DynamicResource Brush.TextPrimary}" />
+                                    </Border>
+                                    <TextBlock Text="+" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource Brush.TextMuted}" Margin="6,0" VerticalAlignment="Center" />
+                                    <Border Background="{DynamicResource Brush.PrimarySoft}" BorderBrush="{DynamicResource Brush.Primary}" BorderThickness="1.5" CornerRadius="6" Padding="9,4">
+                                        <TextBlock Text="N" FontSize="11" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="{DynamicResource Brush.Primary}" />
+                                    </Border>
+                                </StackPanel>
+
+                                <Button Grid.Column="3" Style="{StaticResource Button.Ghost}" Content="Toggle" Command="{Binding ToggleFloatWindowCommand}" CommandParameter="minortasks" Height="32" Padding="12,0" Margin="14,0,0,0" VerticalAlignment="Center" />
+                            </Grid>
+                        </Border>
+
+                        <!-- 3. Alt + J: Major Tasks Board -->
+                        <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="10" Padding="14,12" Margin="0,0,0,8" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="8" Background="{DynamicResource Brush.PrimarySoft}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                    <Path Data="{StaticResource Icon.Briefcase}" Fill="{DynamicResource Brush.Primary}" Width="18" Height="18" Stretch="Uniform" />
+                                </Border>
+
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,16,0">
+                                    <TextBlock Text="Major Tasks Board" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
+                                    <TextBlock Text="Floating agile kanban board with sprint milestones, priority indicators, and track items." FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Background="{DynamicResource Brush.Card}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1.5" CornerRadius="6" Padding="9,4">
+                                        <TextBlock Text="ALT" FontSize="11" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="{DynamicResource Brush.TextPrimary}" />
+                                    </Border>
+                                    <TextBlock Text="+" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource Brush.TextMuted}" Margin="6,0" VerticalAlignment="Center" />
+                                    <Border Background="{DynamicResource Brush.PrimarySoft}" BorderBrush="{DynamicResource Brush.Primary}" BorderThickness="1.5" CornerRadius="6" Padding="10,4">
+                                        <TextBlock Text="J" FontSize="11" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="{DynamicResource Brush.Primary}" />
+                                    </Border>
+                                </StackPanel>
+
+                                <Button Grid.Column="3" Style="{StaticResource Button.Ghost}" Content="Toggle" Command="{Binding ToggleFloatWindowCommand}" CommandParameter="majortasks" Height="32" Padding="12,0" Margin="14,0,0,0" VerticalAlignment="Center" />
+                            </Grid>
+                        </Border>
+
+                        <!-- 4. Alt + M: Media -->
+                        <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="10" Padding="14,12" Margin="0,0,0,8" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="8" Background="{DynamicResource Brush.PrimarySoft}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                    <Path Data="{StaticResource Icon.Media}" Fill="{DynamicResource Brush.Primary}" Width="18" Height="18" Stretch="Uniform" />
+                                </Border>
+
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,16,0">
+                                    <TextBlock Text="Media Player" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
+                                    <TextBlock Text="Floating lightweight music controller and audio stream player for productive sessions." FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Background="{DynamicResource Brush.Card}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1.5" CornerRadius="6" Padding="9,4">
+                                        <TextBlock Text="ALT" FontSize="11" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="{DynamicResource Brush.TextPrimary}" />
+                                    </Border>
+                                    <TextBlock Text="+" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource Brush.TextMuted}" Margin="6,0" VerticalAlignment="Center" />
+                                    <Border Background="{DynamicResource Brush.PrimarySoft}" BorderBrush="{DynamicResource Brush.Primary}" BorderThickness="1.5" CornerRadius="6" Padding="9,4">
+                                        <TextBlock Text="M" FontSize="11" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="{DynamicResource Brush.Primary}" />
+                                    </Border>
+                                </StackPanel>
+
+                                <Button Grid.Column="3" Style="{StaticResource Button.Ghost}" Content="Toggle" Command="{Binding ToggleFloatWindowCommand}" CommandParameter="media" Height="32" Padding="12,0" Margin="14,0,0,0" VerticalAlignment="Center" />
+                            </Grid>
+                        </Border>
+
+                        <!-- 5. Alt + T: Stopwatch -->
+                        <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="10" Padding="14,12" Margin="0,0,0,8" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="8" Background="{DynamicResource Brush.PrimarySoft}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                    <Path Data="{StaticResource Icon.Stopwatch}" Fill="{DynamicResource Brush.Primary}" Width="18" Height="18" Stretch="Uniform" />
+                                </Border>
+
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,16,0">
+                                    <TextBlock Text="Stopwatch &amp; Focus Timer" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
+                                    <TextBlock Text="Floating high-precision stopwatch with lap counter and quick pomodoro focus tracking." FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Background="{DynamicResource Brush.Card}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1.5" CornerRadius="6" Padding="9,4">
+                                        <TextBlock Text="ALT" FontSize="11" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="{DynamicResource Brush.TextPrimary}" />
+                                    </Border>
+                                    <TextBlock Text="+" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource Brush.TextMuted}" Margin="6,0" VerticalAlignment="Center" />
+                                    <Border Background="{DynamicResource Brush.PrimarySoft}" BorderBrush="{DynamicResource Brush.Primary}" BorderThickness="1.5" CornerRadius="6" Padding="9,4">
+                                        <TextBlock Text="T" FontSize="11" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="{DynamicResource Brush.Primary}" />
+                                    </Border>
+                                </StackPanel>
+
+                                <Button Grid.Column="3" Style="{StaticResource Button.Ghost}" Content="Toggle" Command="{Binding ToggleFloatWindowCommand}" CommandParameter="stopwatch" Height="32" Padding="12,0" Margin="14,0,0,0" VerticalAlignment="Center" />
+                            </Grid>
+                        </Border>
+
+                        <!-- 6. Alt + C: Calendar -->
+                        <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="10" Padding="14,12" Margin="0,0,0,0" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="8" Background="{DynamicResource Brush.PrimarySoft}" Margin="0,0,14,0" VerticalAlignment="Center">
+                                    <Path Data="{StaticResource Icon.Calendar}" Fill="{DynamicResource Brush.Primary}" Width="18" Height="18" Stretch="Uniform" />
+                                </Border>
+
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,16,0">
+                                    <TextBlock Text="Calendar &amp; Deadlines" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
+                                    <TextBlock Text="Floating sprint calendar view highlighting project deadlines, team releases, and meetings." FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                </StackPanel>
+
+                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Border Background="{DynamicResource Brush.Card}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1.5" CornerRadius="6" Padding="9,4">
+                                        <TextBlock Text="ALT" FontSize="11" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="{DynamicResource Brush.TextPrimary}" />
+                                    </Border>
+                                    <TextBlock Text="+" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource Brush.TextMuted}" Margin="6,0" VerticalAlignment="Center" />
+                                    <Border Background="{DynamicResource Brush.PrimarySoft}" BorderBrush="{DynamicResource Brush.Primary}" BorderThickness="1.5" CornerRadius="6" Padding="9,4">
+                                        <TextBlock Text="C" FontSize="11" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="{DynamicResource Brush.Primary}" />
+                                    </Border>
+                                </StackPanel>
+
+                                <Button Grid.Column="3" Style="{StaticResource Button.Ghost}" Content="Toggle" Command="{Binding ToggleFloatWindowCommand}" CommandParameter="calendar" Height="32" Padding="12,0" Margin="14,0,0,0" VerticalAlignment="Center" />
+                            </Grid>
+                        </Border>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+
+
+            <!-- ── SECTION 5: SYSTEM INFO & UPDATES ───────────────────────── -->
             <Border Style="{StaticResource Border.Card}" Padding="24">
                 <StackPanel>
-                    <Grid Margin="0,0,0,12">
-                        <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="*" />
-                            <ColumnDefinition Width="Auto" />
-                        </Grid.ColumnDefinitions>
-
-                        <StackPanel Grid.Column="0">
-                            <TextBlock Text="About OctalPulse Desktop" Style="{StaticResource Text.Heading3}" Margin="0,0,0,4" />
-                            <StackPanel Orientation="Horizontal" Margin="0,2,0,4">
-                                <TextBlock Text="Version " FontSize="14" Foreground="{DynamicResource Brush.TextSecondary}" />
-                                <TextBlock Text="{Binding VersionDisplay}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource Brush.Primary}" />
-                                <Border Background="{DynamicResource Brush.PrimarySoft}" CornerRadius="4" Padding="6,1" Margin="10,0,0,0">
-                                    <TextBlock Text="X1.X2.X3.X4" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource Brush.Primary}" />
-                                </Border>
-                            </StackPanel>
+                    <StackPanel Margin="0,0,0,14">
+                        <TextBlock Text="About OctalPulse Desktop" Style="{StaticResource Text.Heading3}" Margin="0,0,0,4" />
+                        <StackPanel Orientation="Horizontal" Margin="0,2,0,4">
+                            <TextBlock Text="Version " FontSize="14" Foreground="{DynamicResource Brush.TextSecondary}" />
+                            <TextBlock Text="{Binding VersionDisplay}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource Brush.Primary}" />
+                            <Border Background="{DynamicResource Brush.PrimarySoft}" CornerRadius="4" Padding="8,5" Margin="10,0,0,0">
+                                <TextBlock Text="X1.X2.X3.X4" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource Brush.Primary}" />
+                            </Border>
                         </StackPanel>
-
-                    </Grid>
+                    </StackPanel>
 
                     <!-- Version Meaning / Breakdown Card -->
                     <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="8" Padding="14" Margin="0,0,0,14">

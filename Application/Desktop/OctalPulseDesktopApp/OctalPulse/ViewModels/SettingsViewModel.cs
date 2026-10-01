@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Windows;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OctalPulse.Application.Abstractions;
@@ -20,6 +21,7 @@ public partial class SettingsViewModel : ObservableObject, INavigationAware
     private readonly IDialogService _dialogService;
     private readonly IUpdateCheckService _updateCheckService;
     private readonly AppUpdateCoordinator _updateCoordinator;
+    private readonly FloatWindowService? _floatWindowService;
 
     private const string GitHubTokenSecretKey = "OctalPulse_GitHubToken";
     private const string GeminiApiKeySecretKey = "OctalPulse_GeminiApiKey";
@@ -83,7 +85,8 @@ public partial class SettingsViewModel : ObservableObject, INavigationAware
         IGeminiClient geminiClient,
         IDialogService dialogService,
         IUpdateCheckService updateCheckService,
-        AppUpdateCoordinator updateCoordinator)
+        AppUpdateCoordinator updateCoordinator,
+        FloatWindowService? floatWindowService = null)
     {
         _themeService = themeService;
         _localCache = localCache;
@@ -93,6 +96,7 @@ public partial class SettingsViewModel : ObservableObject, INavigationAware
         _dialogService = dialogService;
         _updateCheckService = updateCheckService;
         _updateCoordinator = updateCoordinator;
+        _floatWindowService = floatWindowService;
 
         _currentTheme = _themeService.CurrentTheme;
     }
@@ -324,5 +328,56 @@ public partial class SettingsViewModel : ObservableObject, INavigationAware
         var pref = await _localCache.GetPreferencesAsync();
         pref.GeminiModel = trimmed;
         await _localCache.SavePreferencesAsync(pref);
+    }
+
+    // ── Floating Windows & Shortcuts ─────────────────────────────────────
+
+    [RelayCommand]
+    private void ToggleFloatWindow(string? windowType)
+    {
+        if (string.IsNullOrWhiteSpace(windowType)) return;
+
+        switch (windowType.ToLowerInvariant())
+        {
+            case "main":
+                System.Windows.Application.Current?.Dispatcher.Invoke(() =>
+                {
+                    var mainWin = System.Windows.Application.Current.MainWindow;
+                    if (mainWin != null)
+                    {
+                        mainWin.Show();
+                        mainWin.WindowState = WindowState.Normal;
+                        mainWin.Activate();
+                        mainWin.Focus();
+                    }
+                });
+                _dialogService.ShowToast("Main Window", "Main Hub brought to foreground (Alt + W).", ToastType.Info);
+                break;
+
+            case "minortasks":
+                _floatWindowService?.Toggle(FloatWindowType.MinorTasks);
+                _dialogService.ShowToast("Minor Tasks Board", "Toggled floating Minor Tasks checklist (Alt + N).", ToastType.Info);
+                break;
+
+            case "majortasks":
+                _floatWindowService?.Toggle(FloatWindowType.MajorTasks);
+                _dialogService.ShowToast("Major Tasks Board", "Toggled floating Major Tasks board (Alt + J).", ToastType.Info);
+                break;
+
+            case "media":
+                _floatWindowService?.Toggle(FloatWindowType.Media);
+                _dialogService.ShowToast("Media Player", "Toggled floating Media player (Alt + M).", ToastType.Info);
+                break;
+
+            case "stopwatch":
+                _floatWindowService?.Toggle(FloatWindowType.Stopwatch);
+                _dialogService.ShowToast("Stopwatch", "Toggled floating Stopwatch timer (Alt + T).", ToastType.Info);
+                break;
+
+            case "calendar":
+                _floatWindowService?.Toggle(FloatWindowType.Calendar);
+                _dialogService.ShowToast("Calendar", "Toggled floating Calendar & Deadlines (Alt + C).", ToastType.Info);
+                break;
+        }
     }
 }

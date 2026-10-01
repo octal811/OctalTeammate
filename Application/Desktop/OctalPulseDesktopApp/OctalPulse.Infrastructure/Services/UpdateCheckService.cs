@@ -1,5 +1,6 @@
 using System.IO;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Net.Http.Json;
 using System.Text.Json;
 using Microsoft.Extensions.Configuration;
@@ -33,31 +34,28 @@ public class UpdateCheckService : IUpdateCheckService
         var currentVersion = AppVersionInfo.Current;
         _logger.LogInformation("Update check started. Current version: {CurrentVersion}", currentVersion.DisplayString);
 
-        var manifestUrl = _configuration["Update:ManifestUrl"]
-            ?? "https://raw.githubusercontent.com/octal811/OctalTeammate/main/releases/update.json";
-
         try
         {
-            using var request = new HttpRequestMessage(HttpMethod.Get, manifestUrl);
-            request.Headers.UserAgent.ParseAdd("OctalPulse-AutoUpdater/1.0");
+            UpdateManifest? manifest = null;
 
-            using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
-            if (!response.IsSuccessStatusCode)
+            // 1. If explicit ManifestUrl is configured, try it first
+            var customManifestUrl = _configuration["Update:ManifestUrl"];
+            if (!string.IsNullOrWhiteSpace(customManifestUrl))
             {
-                var errorMsg = $"Failed to retrieve update manifest from {manifestUrl} (Status: {response.StatusCode})";
-                _logger.LogWarning(errorMsg);
-                return new UpdateCheckResult
-                {
-                    IsUpdateAvailable = false,
-                    CurrentVersion = currentVersion,
-                    ErrorMessage = errorMsg
-                };
+                manifest = await TryFetchManifestUrlAsync(customManifestUrl, cancellationToken);
             }
 
-            var manifest = await response.Content.ReadFromJsonAsync<UpdateManifest>(cancellationToken: cancellationToken);
+            // 2. Query GitHub Releases API directly (same repository source as installer)
             if (manifest == null || string.IsNullOrWhiteSpace(manifest.Version))
             {
-                var errorMsg = "Update manifest was empty or invalid.";
+                var owner = _configuration["Update:GitHubOwner"] ?? "octal811";
+                var repo = _configuration["Update:GitHubRepo"] ?? "OctalTeammate";
+                manifest = await FetchFromGitHubReleasesAsync(owner, repo, cancellationToken);
+            }
+
+            if (manifest == null || string.IsNullOrWhiteSpace(manifest.Version))
+            {
+                var errorMsg = "Could not retrieve latest release information from GitHub or update server.";
                 _logger.LogWarning(errorMsg);
                 return new UpdateCheckResult
                 {
@@ -100,6 +98,115 @@ public class UpdateCheckService : IUpdateCheckService
                 CurrentVersion = currentVersion,
                 ErrorMessage = ex.Message
             };
+        }
+    }
+
+    private async Task<UpdateManifest?> TryFetchManifestUrlAsync(string manifestUrl, CancellationToken cancellationToken)
+    {
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, manifestUrl);
+            request.Headers.UserAgent.ParseAdd("OctalPulse-AutoUpdater/1.0");
+
+            using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
+            if (!response.IsSuccessStatusCode) return null;
+
+            return await response.Content.ReadFromJsonAsync<UpdateManifest>(cancellationToken: cancellationToken);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogDebug(ex, "Failed to fetch manifest from {Url}", manifestUrl);
+            return null;
+        }
+    }
+
+    private async Task<UpdateManifest?> FetchFromGitHubReleasesAsync(string owner, string repo, CancellationToken ct)
+    {
+        try
+        {
+            var url = $"https://api.github.com/repos/{owner}/{repo}/releases";
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/vnd.github.v3+json"));
+            request.Headers.UserAgent.ParseAdd("OctalPulse-DesktopApp/1.0");
+
+            using var response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, ct);
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("GitHub Releases API returned status {Status}", response.StatusCode);
+                return null;
+            }
+
+            using var doc = await JsonDocument.ParseAsync(await response.Content.ReadAsStreamAsync(ct), cancellationToken: ct);
+            if (doc.RootElement.ValueKind != JsonValueKind.Array || doc.RootElement.GetArrayLength() == 0)
+                return null;
+
+            // Find the latest non-draft release
+            JsonElement targetRelease = default;
+            bool found = false;
+            foreach (var rel in doc.RootElement.EnumerateArray())
+            {
+                if (rel.TryGetProperty("draft", out var draftProp) && draftProp.GetBoolean())
+                    continue;
+
+                targetRelease = rel;
+                found = true;
+                break;
+            }
+
+            if (!found)
+                targetRelease = doc.RootElement[0];
+
+            var tagName = targetRelease.TryGetProperty("tag_name", out var tagProp) ? tagProp.GetString() : null;
+            if (string.IsNullOrWhiteSpace(tagName))
+                return null;
+
+            var cleanVer = tagName.Trim().TrimStart('v', 'V');
+            var notes = targetRelease.TryGetProperty("body", out var bodyProp) ? bodyProp.GetString() : null;
+
+            // Find distribution asset (.rar, .zip, .7z)
+            string downloadUrl = string.Empty;
+            if (targetRelease.TryGetProperty("assets", out var assetsProp) && assetsProp.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var asset in assetsProp.EnumerateArray())
+                {
+                    var name = asset.TryGetProperty("name", out var nameProp) ? nameProp.GetString() : string.Empty;
+                    var urlProp = asset.TryGetProperty("browser_download_url", out var bUrl) ? bUrl.GetString() : string.Empty;
+                    if (!string.IsNullOrEmpty(name) && !string.IsNullOrEmpty(urlProp))
+                    {
+                        if (name.EndsWith(".rar", StringComparison.OrdinalIgnoreCase) ||
+                            name.EndsWith(".zip", StringComparison.OrdinalIgnoreCase) ||
+                            name.EndsWith(".7z", StringComparison.OrdinalIgnoreCase))
+                        {
+                            downloadUrl = urlProp;
+                            break;
+                        }
+                    }
+                }
+
+                if (string.IsNullOrEmpty(downloadUrl) && assetsProp.GetArrayLength() > 0)
+                {
+                    downloadUrl = assetsProp[0].TryGetProperty("browser_download_url", out var bUrl) ? bUrl.GetString() ?? "" : "";
+                }
+            }
+
+            DateTime? releasedAt = null;
+            if (targetRelease.TryGetProperty("published_at", out var pubProp) && pubProp.TryGetDateTime(out var dt))
+            {
+                releasedAt = dt;
+            }
+
+            return new UpdateManifest
+            {
+                Version = cleanVer,
+                DownloadUrl = downloadUrl,
+                ReleaseNotes = notes,
+                ReleasedAt = releasedAt
+            };
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to query GitHub releases.");
+            return null;
         }
     }
 

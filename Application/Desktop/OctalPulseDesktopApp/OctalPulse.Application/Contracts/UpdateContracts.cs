@@ -1,4 +1,6 @@
+using System.IO;
 using System.Reflection;
+using System.Text.Json;
 
 namespace OctalPulse.Application.Contracts;
 
@@ -46,14 +48,110 @@ public sealed class AppVersionInfo : IComparable<AppVersionInfo>
         return new AppVersionInfo(new Version(major, minor, build, rev));
     }
 
+    private static AppVersionInfo? _cachedCurrent;
+    private static readonly object _versionLock = new();
+
     public static AppVersionInfo Current
     {
         get
         {
-            var asm = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
-            var ver = asm.GetName().Version;
-            return ver != null ? new AppVersionInfo(ver) : new AppVersionInfo(new Version(1, 0, 0, 0));
+            if (_cachedCurrent != null)
+                return _cachedCurrent;
+
+            lock (_versionLock)
+            {
+                _cachedCurrent ??= ResolveCurrentVersion();
+                return _cachedCurrent;
+            }
         }
+    }
+
+    public static void InvalidateCache()
+    {
+        lock (_versionLock)
+        {
+            _cachedCurrent = null;
+        }
+    }
+
+    private static AppVersionInfo ResolveCurrentVersion()
+    {
+        AppVersionInfo? fromInstallMeta = null;
+        AppVersionInfo? fromAssembly = null;
+
+        // 1. Try reading from installation.json (local app dir first, then LocalAppData\OctalPulse)
+        try
+        {
+            var candidates = new[]
+            {
+                Path.Combine(AppContext.BaseDirectory, "installation.json"),
+                Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "OctalPulse", "installation.json")
+            };
+
+            foreach (var metaPath in candidates)
+            {
+                if (File.Exists(metaPath))
+                {
+                    var json = File.ReadAllText(metaPath);
+                    using var doc = JsonDocument.Parse(json);
+                    if (doc.RootElement.TryGetProperty("Version", out var verProp) ||
+                        doc.RootElement.TryGetProperty("version", out verProp))
+                    {
+                        var verStr = verProp.GetString();
+                        if (!string.IsNullOrWhiteSpace(verStr))
+                        {
+                            var parsed = FromString(verStr);
+                            if (parsed.Version > new Version(1, 0, 0, 0))
+                            {
+                                fromInstallMeta = parsed;
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        catch { }
+
+        // 2. Try reading from Entry Assembly / Executing Assembly
+        try
+        {
+            var asm = Assembly.GetEntryAssembly() ?? Assembly.GetExecutingAssembly();
+            var infoVerAttr = asm.GetCustomAttribute<AssemblyInformationalVersionAttribute>();
+            if (!string.IsNullOrWhiteSpace(infoVerAttr?.InformationalVersion))
+            {
+                var raw = infoVerAttr.InformationalVersion.Split('+')[0];
+                var parsed = FromString(raw);
+                if (parsed.Version > new Version(1, 0, 0, 0))
+                {
+                    fromAssembly = parsed;
+                }
+            }
+
+            if (fromAssembly == null)
+            {
+                var ver = asm.GetName().Version;
+                if (ver != null && ver > new Version(1, 0, 0, 0))
+                {
+                    fromAssembly = new AppVersionInfo(ver);
+                }
+            }
+        }
+        catch { }
+
+        // Pick highest valid version detected
+        if (fromInstallMeta != null && fromAssembly != null)
+        {
+            return fromAssembly.CompareTo(fromInstallMeta) > 0 ? fromAssembly : fromInstallMeta;
+        }
+
+        if (fromInstallMeta != null)
+            return fromInstallMeta;
+
+        if (fromAssembly != null)
+            return fromAssembly;
+
+        return new AppVersionInfo(new Version(1, 0, 0, 0));
     }
 
     public static Version NormalizeVersion(Version v)
