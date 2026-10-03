@@ -1,0 +1,81 @@
+<ResourceDictionary xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- Theme: Glasses — Frosted grey & silver glass with 40% translucent background -->
+
+    <!-- Surfaces (Semi-transparent ~40% alpha: 0x66 = 102/255 = 40% opacity) -->
+    <Color x:Key="Color.Background">#661A222D</Color>
+    <Color x:Key="Color.Surface">#66242F3D</Color>
+    <Color x:Key="Color.SurfaceElevated">#80334155</Color>
+    <Color x:Key="Color.SurfaceHover">#99475569</Color>
+    <Color x:Key="Color.CardBackground">#66283545</Color>
+
+    <!-- Metallic Silver Accents -->
+    <Color x:Key="Color.Primary">#CBD5E1</Color>
+    <Color x:Key="Color.PrimaryHover">#F1F5F9</Color>
+    <Color x:Key="Color.PrimaryForeground">#0F172A</Color>
+
+    <!-- Typography -->
+    <Color x:Key="Color.TextPrimary">#F8FAFC</Color>
+    <Color x:Key="Color.TextSecondary">#CBD5E1</Color>
+    <Color x:Key="Color.TextMuted">#94A3B8</Color>
+
+    <!-- Frosted Borders -->
+    <Color x:Key="Color.Border">#66CBD5E1</Color>
+    <Color x:Key="Color.BorderFocused">#E2E8F0</Color>
+
+    <!-- Status Indicators -->
+    <Color x:Key="Color.Success">#34D399</Color>
+    <Color x:Key="Color.Warning">#FBBF24</Color>
+    <Color x:Key="Color.Danger">#F87171</Color>
+    <Color x:Key="Color.Info">#38BDF8</Color>
+
+    <!-- Brushes -->
+    <SolidColorBrush x:Key="Brush.Background"      Color="{StaticResource Color.Background}" />
+    <SolidColorBrush x:Key="Brush.Surface"         Color="{StaticResource Color.Surface}" />
+    <SolidColorBrush x:Key="Brush.SurfaceElevated" Color="{StaticResource Color.SurfaceElevated}" />
+    <SolidColorBrush x:Key="Brush.SurfaceHover"    Color="{StaticResource Color.SurfaceHover}" />
+    <SolidColorBrush x:Key="Brush.CardBackground"  Color="{StaticResource Color.CardBackground}" />
+
+    <!-- Silver Gradient Primary Brush -->
+    <LinearGradientBrush x:Key="Brush.Primary" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#E2E8F0" Offset="0.0" />
+        <GradientStop Color="#94A3B8" Offset="1.0" />
+    </LinearGradientBrush>
+
+    <LinearGradientBrush x:Key="Brush.PrimaryHover" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#FFFFFF" Offset="0.0" />
+        <GradientStop Color="#CBD5E1" Offset="1.0" />
+    </LinearGradientBrush>
+
+    <SolidColorBrush x:Key="Brush.PrimaryForeground" Color="{StaticResource Color.PrimaryForeground}" />
+
+    <SolidColorBrush x:Key="Brush.TextPrimary"   Color="{StaticResource Color.TextPrimary}" />
+    <SolidColorBrush x:Key="Brush.TextSecondary" Color="{StaticResource Color.TextSecondary}" />
+    <SolidColorBrush x:Key="Brush.TextMuted"     Color="{StaticResource Color.TextMuted}" />
+
+    <!-- Frosted Glass Gradient Border -->
+    <LinearGradientBrush x:Key="Brush.Border" StartPoint="0,0" EndPoint="1,1">
+        <GradientStop Color="#80E2E8F0" Offset="0.0" />
+        <GradientStop Color="#4094A3B8" Offset="0.5" />
+        <GradientStop Color="#80CBD5E1" Offset="1.0" />
+    </LinearGradientBrush>
+
+    <SolidColorBrush x:Key="Brush.BorderFocused" Color="{StaticResource Color.BorderFocused}" />
+
+    <SolidColorBrush x:Key="Brush.Success" Color="{StaticResource Color.Success}" />
+    <SolidColorBrush x:Key="Brush.Warning" Color="{StaticResource Color.Warning}" />
+    <SolidColorBrush x:Key="Brush.Danger"  Color="{StaticResource Color.Danger}" />
+    <SolidColorBrush x:Key="Brush.Info"    Color="{StaticResource Color.Info}" />
+
+    <!-- Frosted Glass Soft Reflection / Glow -->
+    <DropShadowEffect x:Key="Effect.CardGlow"
+                      BlurRadius="14"
+                      Direction="0"
+                      Opacity="0.22"
+                      ShadowDepth="0"
+                      Color="#E2E8F0" />
+
+    <Thickness x:Key="Theme.BorderThickness">1</Thickness>
+
+</ResourceDictionary>

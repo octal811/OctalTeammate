@@ -2,6 +2,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using OctalPulse.Application.Contracts;
 using OctalPulse.Application.Services;
+using OctalPulse.Domain.Entities;
 using OctalPulse.Domain.Enums;
 
 namespace OctalPulse.Infrastructure.Services;
@@ -101,7 +102,11 @@ public partial class FastAddParserService : IFastAddParserService
             else if (root.ValueKind == JsonValueKind.Object)
             {
                 // Look for common array properties
-                if (TryGetProperty(root, out var prop, "majorTasks", "majortasks", "tasks", "cards", "items", "plan", "data"))
+                if (forcedScope == FastAddScope.Notes && TryGetProperty(root, out var notesProp, "notes", "userNotes", "usernotes", "personalNotes", "mynotes", "myNotes", "items", "data"))
+                {
+                    itemsArray = notesProp;
+                }
+                else if (TryGetProperty(root, out var prop, "majorTasks", "majortasks", "tasks", "cards", "items", "plan", "data"))
                 {
                     itemsArray = prop;
                 }
@@ -110,24 +115,29 @@ public partial class FastAddParserService : IFastAddParserService
                     itemsArray = minorProp;
                     forcedScope ??= FastAddScope.MinorTasks;
                 }
+                else if (TryGetProperty(root, out var generalNotesProp, "notes", "userNotes", "usernotes", "personalNotes", "mynotes", "myNotes"))
+                {
+                    itemsArray = generalNotesProp;
+                    forcedScope ??= FastAddScope.Notes;
+                }
                 else
                 {
                     // Single object treated as single-item array
-                    result.Errors.Add("Expected a JSON array of tasks or an object with 'tasks' / 'majorTasks' property.");
+                    result.Errors.Add("Expected a JSON array of items or an object with 'tasks' / 'notes' property.");
                     result.IsValid = false;
                     return result;
                 }
             }
             else
             {
-                result.Errors.Add("JSON root must be an array of tasks or an object containing a tasks list.");
+                result.Errors.Add("JSON root must be an array of items or an object containing an items list.");
                 result.IsValid = false;
                 return result;
             }
 
             if (itemsArray.ValueKind != JsonValueKind.Array)
             {
-                result.Errors.Add("The tasks collection found in JSON is not an array.");
+                result.Errors.Add("The items collection found in JSON is not an array.");
                 result.IsValid = false;
                 return result;
             }
@@ -135,7 +145,7 @@ public partial class FastAddParserService : IFastAddParserService
             var count = itemsArray.GetArrayLength();
             if (count == 0)
             {
-                result.Errors.Add("The tasks array is empty. Please provide at least one task.");
+                result.Errors.Add("The items array is empty. Please provide at least one item.");
                 result.IsValid = false;
                 return result;
             }
@@ -148,9 +158,13 @@ public partial class FastAddParserService : IFastAddParserService
             {
                 ParseMajorTasks(itemsArray, result);
             }
-            else
+            else if (detectedScope == FastAddScope.MinorTasks)
             {
                 ParseMinorTasks(itemsArray, result);
+            }
+            else
+            {
+                ParseNotes(itemsArray, result);
             }
 
             result.IsValid = result.Errors.Count == 0;
@@ -165,6 +179,13 @@ public partial class FastAddParserService : IFastAddParserService
             if (elem.ValueKind != JsonValueKind.Object)
                 continue;
 
+            // If an element contains cardColor, listOfLinks, or noteType properties, it's Notes
+            if (HasProperty(elem, "cardColor", "card_color", "cardcolor", "listOfLinks", "listoflinks", "relatedToProject", "related_to_project") ||
+                (TryGetString(elem, out var typeVal, "type") && (typeVal != null && (typeVal.Equals("Reminder", StringComparison.OrdinalIgnoreCase) || typeVal.Equals("Research", StringComparison.OrdinalIgnoreCase)))))
+            {
+                return FastAddScope.Notes;
+            }
+
             // If an element contains minorTasks or subtasks, or priority, it's major tasks
             if (HasProperty(elem, "minorTasks", "minortasks", "subtasks", "priority", "dueDate", "due_date"))
             {
@@ -172,7 +193,7 @@ public partial class FastAddParserService : IFastAddParserService
             }
 
             // If an element only has jobType or target or notes
-            if (HasProperty(elem, "jobType", "job_type", "target", "notes") && !HasProperty(elem, "priority", "dueDate"))
+            if (HasProperty(elem, "jobType", "job_type", "target") && !HasProperty(elem, "priority", "dueDate"))
             {
                 return FastAddScope.MinorTasks;
             }
@@ -507,5 +528,312 @@ public partial class FastAddParserService : IFastAddParserService
 
         value = 0;
         return false;
+    }
+
+    private static readonly HashSet<string> AllowedColorPalette = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "#FFFFFF", // Pure White
+        "#FEF08A", // Sunlight Yellow
+        "#A7F3D0", // Mint Emerald
+        "#BAE6FD", // Sky Ice
+        "#DDD6FE", // Soft Lilac
+        "#FECDD3", // Coral Rose
+        "#FED7AA", // Warm Peach
+        "#99F6E4", // Bright Aqua
+        "#E2E8F0", // Slate Silver
+        "#334155"  // Obsidian Navy
+    };
+
+    private static readonly Dictionary<string, string> ColorNameToHex = new(StringComparer.OrdinalIgnoreCase)
+    {
+        { "white", "#FFFFFF" },
+        { "pure white", "#FFFFFF" },
+        { "yellow", "#FEF08A" },
+        { "sunlight yellow", "#FEF08A" },
+        { "mint", "#A7F3D0" },
+        { "emerald", "#A7F3D0" },
+        { "mint emerald", "#A7F3D0" },
+        { "green", "#A7F3D0" },
+        { "sky", "#BAE6FD" },
+        { "ice", "#BAE6FD" },
+        { "sky ice", "#BAE6FD" },
+        { "blue", "#BAE6FD" },
+        { "lilac", "#DDD6FE" },
+        { "soft lilac", "#DDD6FE" },
+        { "purple", "#DDD6FE" },
+        { "violet", "#DDD6FE" },
+        { "coral", "#FECDD3" },
+        { "rose", "#FECDD3" },
+        { "coral rose", "#FECDD3" },
+        { "pink", "#FECDD3" },
+        { "peach", "#FED7AA" },
+        { "warm peach", "#FED7AA" },
+        { "orange", "#FED7AA" },
+        { "aqua", "#99F6E4" },
+        { "bright aqua", "#99F6E4" },
+        { "cyan", "#99F6E4" },
+        { "teal", "#99F6E4" },
+        { "slate", "#E2E8F0" },
+        { "silver", "#E2E8F0" },
+        { "slate silver", "#E2E8F0" },
+        { "gray", "#E2E8F0" },
+        { "grey", "#E2E8F0" },
+        { "obsidian", "#334155" },
+        { "navy", "#334155" },
+        { "obsidian navy", "#334155" },
+        { "dark", "#334155" }
+    };
+
+    private static void ParseNotes(JsonElement array, FastAddValidationResult result)
+    {
+        var index = 0;
+        foreach (var elem in array.EnumerateArray())
+        {
+            index++;
+            if (elem.ValueKind != JsonValueKind.Object)
+            {
+                result.Errors.Add($"Item #{index} in JSON array is not a valid note object.");
+                continue;
+            }
+
+            var note = new FastAddNoteDto();
+
+            // 1. Title (Required)
+            if (TryGetProperty(elem, out var titleProp, "title", "name", "noteTitle", "note_title", "header"))
+            {
+                if (titleProp.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(titleProp.GetString()))
+                {
+                    note.Title = titleProp.GetString()!.Trim();
+                }
+                else
+                {
+                    result.Errors.Add($"Note #{index} 'title' must be a non-empty text string.");
+                }
+            }
+            else
+            {
+                result.Errors.Add($"Note #{index} is missing the required 'title' field.");
+            }
+
+            var noteDisplay = string.IsNullOrWhiteSpace(note.Title) ? $"#{index}" : $"'{note.Title}'";
+
+            // 2. Description (Optional / Nullable)
+            if (TryGetProperty(elem, out var descProp, "description", "desc", "content", "body", "text"))
+            {
+                if (descProp.ValueKind == JsonValueKind.String)
+                {
+                    note.Description = string.IsNullOrWhiteSpace(descProp.GetString()) ? null : descProp.GetString()!.Trim();
+                }
+                else if (descProp.ValueKind == JsonValueKind.Null)
+                {
+                    note.Description = null;
+                }
+                else
+                {
+                    note.Description = descProp.ToString();
+                    result.Warnings.Add($"Note {noteDisplay}: 'description' was not a string ({descProp.ValueKind}). Converted to text.");
+                }
+            }
+
+            // 3. Type (Optional, default Task)
+            if (TryGetProperty(elem, out var typeProp, "type", "noteType", "category"))
+            {
+                if (typeProp.ValueKind == JsonValueKind.String)
+                {
+                    var typeStr = typeProp.GetString()?.Trim() ?? string.Empty;
+                    note.Type = typeStr;
+                    note.ResolvedType = ParseNoteType(typeStr, noteDisplay, result.Warnings);
+                }
+                else if (typeProp.ValueKind == JsonValueKind.Number && typeProp.TryGetInt32(out var typeInt))
+                {
+                    note.ResolvedType = typeInt switch
+                    {
+                        0 => NoteType.Reminder,
+                        1 => NoteType.Task,
+                        2 => NoteType.Research,
+                        _ => NoteType.Task
+                    };
+                }
+                else if (typeProp.ValueKind != JsonValueKind.Null)
+                {
+                    result.Warnings.Add($"Note {noteDisplay}: 'type' is not a valid text string (found {typeProp.ValueKind}). Defaulted to 'Task'.");
+                    note.ResolvedType = NoteType.Task;
+                }
+            }
+            else
+            {
+                note.ResolvedType = NoteType.Task;
+            }
+
+            // 4. CardColor (Optional, must be in available 10 colors palette)
+            if (TryGetProperty(elem, out var colorProp, "cardColor", "cardcolor", "color", "card_color", "bg", "background"))
+            {
+                if (colorProp.ValueKind == JsonValueKind.String)
+                {
+                    var colorStr = colorProp.GetString()?.Trim();
+                    note.CardColor = colorStr;
+                    note.ResolvedCardColor = ValidateAndResolveColor(colorStr, noteDisplay, result.Warnings);
+                }
+                else if (colorProp.ValueKind != JsonValueKind.Null)
+                {
+                    result.Warnings.Add($"Note {noteDisplay}: 'cardColor' is not a text string (found {colorProp.ValueKind}). Fallback to Pure White (#FFFFFF) applied.");
+                    note.ResolvedCardColor = "#FFFFFF";
+                }
+                else
+                {
+                    note.ResolvedCardColor = "#FFFFFF";
+                }
+            }
+            else
+            {
+                note.ResolvedCardColor = "#FFFFFF";
+            }
+
+            // 5. DurationDate (Optional / Nullable)
+            if (TryGetProperty(elem, out var dateProp, "durationDate", "durationdate", "date", "dueDate", "due_date", "reminderDate"))
+            {
+                if (dateProp.ValueKind == JsonValueKind.String)
+                {
+                    var dateStr = dateProp.GetString()?.Trim();
+                    note.DurationDate = dateStr;
+                    if (!string.IsNullOrWhiteSpace(dateStr))
+                    {
+                        if (DateTime.TryParse(dateStr, out var parsedDate))
+                        {
+                            note.ResolvedDurationDate = parsedDate;
+                        }
+                        else
+                        {
+                            result.Warnings.Add($"Note {noteDisplay}: Could not parse DurationDate '{dateStr}' (expected YYYY-MM-DD). Date omitted.");
+                        }
+                    }
+                }
+                else if (dateProp.ValueKind != JsonValueKind.Null)
+                {
+                    result.Warnings.Add($"Note {noteDisplay}: 'durationDate' is not a date string (found {dateProp.ValueKind}). Date omitted.");
+                }
+            }
+
+            // 6. RelatedToProject (Optional / Nullable)
+            if (TryGetProperty(elem, out var projProp, "relatedToProject", "project", "relatedProject", "projectName"))
+            {
+                if (projProp.ValueKind == JsonValueKind.String)
+                {
+                    var p = projProp.GetString()?.Trim();
+                    note.RelatedToProject = string.IsNullOrWhiteSpace(p) ? null : p;
+                }
+                else if (projProp.ValueKind != JsonValueKind.Null)
+                {
+                    result.Warnings.Add($"Note {noteDisplay}: 'relatedToProject' is not a text string (found {projProp.ValueKind}). Project tag omitted.");
+                }
+            }
+
+            // 7. ListOfLinks (Optional array of URL strings)
+            if (TryGetProperty(elem, out var linksProp, "listOfLinks", "links", "urls", "linkList", "listOfLink"))
+            {
+                if (linksProp.ValueKind == JsonValueKind.Array)
+                {
+                    foreach (var linkElem in linksProp.EnumerateArray())
+                    {
+                        if (linkElem.ValueKind == JsonValueKind.String)
+                        {
+                            var link = linkElem.GetString()?.Trim();
+                            if (!string.IsNullOrWhiteSpace(link))
+                            {
+                                if (!link.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
+                                    !link.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+                                {
+                                    link = "https://" + link;
+                                }
+                                if (!note.ListOfLinks.Contains(link))
+                                    note.ListOfLinks.Add(link);
+                            }
+                        }
+                        else
+                        {
+                            result.Warnings.Add($"Note {noteDisplay}: Link item was not a string ({linkElem.ValueKind}). Skipped.");
+                        }
+                    }
+                }
+                else if (linksProp.ValueKind == JsonValueKind.String)
+                {
+                    var singleLink = linksProp.GetString()?.Trim();
+                    if (!string.IsNullOrWhiteSpace(singleLink))
+                    {
+                        if (!singleLink.StartsWith("http://", StringComparison.OrdinalIgnoreCase) &&
+                            !singleLink.StartsWith("https://", StringComparison.OrdinalIgnoreCase))
+                        {
+                            singleLink = "https://" + singleLink;
+                        }
+                        note.ListOfLinks.Add(singleLink);
+                    }
+                }
+                else if (linksProp.ValueKind != JsonValueKind.Null)
+                {
+                    result.Warnings.Add($"Note {noteDisplay}: 'listOfLinks' must be an array of URL strings (found {linksProp.ValueKind}).");
+                }
+            }
+
+            // 8. Checked (Optional boolean)
+            if (TryGetProperty(elem, out var checkedProp, "checked", "isDone", "isCompleted", "completed", "done"))
+            {
+                if (checkedProp.ValueKind == JsonValueKind.True)
+                {
+                    note.Checked = true;
+                }
+                else if (checkedProp.ValueKind == JsonValueKind.False)
+                {
+                    note.Checked = false;
+                }
+                else if (checkedProp.ValueKind == JsonValueKind.String && bool.TryParse(checkedProp.GetString(), out var boolVal))
+                {
+                    note.Checked = boolVal;
+                }
+                else if (checkedProp.ValueKind != JsonValueKind.Null)
+                {
+                    result.Warnings.Add($"Note {noteDisplay}: 'checked' was not a boolean value (found {checkedProp.ValueKind}). Defaulted to false.");
+                }
+            }
+
+            result.Notes.Add(note);
+        }
+    }
+
+    private static NoteType ParseNoteType(string typeStr, string noteDisplay, List<string> warnings)
+    {
+        var normalized = typeStr.Trim().ToLowerInvariant();
+        return normalized switch
+        {
+            "task" or "todo" or "action" => NoteType.Task,
+            "reminder" or "alert" or "notice" => NoteType.Reminder,
+            "research" or "idea" or "reference" or "study" => NoteType.Research,
+            _ => WarnAndDefaultNoteType(typeStr, noteDisplay, warnings)
+        };
+    }
+
+    private static NoteType WarnAndDefaultNoteType(string input, string noteDisplay, List<string> warnings)
+    {
+        warnings.Add($"Note {noteDisplay}: Unknown note type '{input}'. Defaulted to 'Task' (valid types: Task, Reminder, Research).");
+        return NoteType.Task;
+    }
+
+    private static string ValidateAndResolveColor(string? input, string noteDisplay, List<string> warnings)
+    {
+        if (string.IsNullOrWhiteSpace(input))
+            return "#FFFFFF";
+
+        var trimmed = input.Trim();
+
+        // 1. Direct hex match in allowed palette
+        if (AllowedColorPalette.TryGetValue(trimmed, out var exactHex))
+            return exactHex;
+
+        // 2. Color name match in known palette names
+        if (ColorNameToHex.TryGetValue(trimmed, out var mappedHex))
+            return mappedHex;
+
+        // 3. Invalid or unapproved color
+        warnings.Add($"Note {noteDisplay}: Color '{input}' is not one of the 10 available palette colors. Fallback to Pure White (#FFFFFF) applied.");
+        return "#FFFFFF";
     }
 }

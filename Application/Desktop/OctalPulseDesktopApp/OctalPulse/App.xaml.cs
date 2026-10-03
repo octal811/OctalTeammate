@@ -138,10 +138,15 @@ public partial class App : System.Windows.Application
                 {
                     var themeService = Services.GetRequiredService<ThemeService>();
                     var localCache = Services.GetRequiredService<ILocalCacheService>();
+                    var floatWindowService = Services.GetRequiredService<FloatWindowService>();
                     var preferences = await localCache.GetPreferencesAsync().ConfigureAwait(false);
                     if (!string.IsNullOrWhiteSpace(preferences?.Theme))
                     {
                         await Dispatcher.InvokeAsync(() => themeService.SetTheme(preferences.Theme));
+                    }
+                    if (preferences != null)
+                    {
+                        floatWindowService.InitializePreferences(preferences);
                     }
                 }
                 catch (Exception ex)

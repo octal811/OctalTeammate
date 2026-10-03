@@ -1,3 +1,4 @@
+using OctalPulse.Domain.Entities;
 using OctalPulse.Domain.Enums;
 
 namespace OctalPulse.Application.Contracts;
@@ -5,7 +6,8 @@ namespace OctalPulse.Application.Contracts;
 public enum FastAddTaskType
 {
     Major,
-    Minor
+    Minor,
+    Note
 }
 
 public enum FastAddExecutionStatus
@@ -20,7 +22,8 @@ public enum FastAddExecutionStatus
 public enum FastAddScope
 {
     MajorTasks,
-    MinorTasks
+    MinorTasks,
+    Notes
 }
 
 public class FastAddMajorTaskDto
@@ -56,6 +59,23 @@ public class FastAddMinorTaskDto
     public Guid? ParentMajorTaskId { get; set; }
 }
 
+public class FastAddNoteDto
+{
+    public string Title { get; set; } = string.Empty;
+    public string? Description { get; set; }
+    public string? Type { get; set; }
+    public string? CardColor { get; set; }
+    public string? DurationDate { get; set; }
+    public string? RelatedToProject { get; set; }
+    public List<string> ListOfLinks { get; set; } = new();
+    public bool Checked { get; set; }
+
+    // Resolved properties after validation
+    public NoteType ResolvedType { get; set; } = NoteType.Task;
+    public DateTime? ResolvedDurationDate { get; set; }
+    public string ResolvedCardColor { get; set; } = "#FFFFFF";
+}
+
 public class FastAddValidationResult
 {
     public bool IsValid { get; set; }
@@ -64,8 +84,13 @@ public class FastAddValidationResult
     public List<string> Warnings { get; set; } = new();
     public List<FastAddMajorTaskDto> MajorTasks { get; set; } = new();
     public List<FastAddMinorTaskDto> MinorTasks { get; set; } = new();
+    public List<FastAddNoteDto> Notes { get; set; } = new();
 
-    public int TotalTasksCount => DetectedScope == FastAddScope.MajorTasks
-        ? MajorTasks.Count + MajorTasks.Sum(m => m.MinorTasks.Count)
-        : MinorTasks.Count;
+    public int TotalTasksCount => DetectedScope switch
+    {
+        FastAddScope.MajorTasks => MajorTasks.Count + MajorTasks.Sum(m => m.MinorTasks.Count),
+        FastAddScope.MinorTasks => MinorTasks.Count,
+        FastAddScope.Notes => Notes.Count,
+        _ => 0
+    };
 }

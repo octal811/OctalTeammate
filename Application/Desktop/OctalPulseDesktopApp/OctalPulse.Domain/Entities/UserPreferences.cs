@@ -14,4 +14,16 @@ public class UserPreferences
     /// Empty string means "auto-resolve best available model".
     /// </summary>
     public string GeminiModel { get; set; } = string.Empty;
+
+    // Floating Window Always-on-Top (Over all windows) permissions
+    public bool FloatTopmostMajorTasks { get; set; } = false;
+    public bool FloatTopmostMinorTasks { get; set; } = false;
+    public bool FloatTopmostStopwatch { get; set; } = false;
+    public bool FloatTopmostCalendar { get; set; } = false;
+    public bool FloatTopmostMedia { get; set; } = false;
+    public bool FloatTopmostNotes { get; set; } = true; // Default true for notes drawer
+
+    // My Notes Window Dock Position: "Left", "Right", "Top", "Bottom" (Default: "Left")
+    public string NotesDockPosition { get; set; } = "Left";
 }
+

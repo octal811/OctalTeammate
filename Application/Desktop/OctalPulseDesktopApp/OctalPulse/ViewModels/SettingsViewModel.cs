@@ -63,6 +63,14 @@ public partial class SettingsViewModel : ObservableObject, INavigationAware
     [ObservableProperty]
     private bool _isBusy;
 
+    // Floating Window Always-on-Top (Over all windows) permissions
+    [ObservableProperty] private bool _floatTopmostMajorTasks;
+    [ObservableProperty] private bool _floatTopmostMinorTasks;
+    [ObservableProperty] private bool _floatTopmostStopwatch;
+    [ObservableProperty] private bool _floatTopmostCalendar;
+    [ObservableProperty] private bool _floatTopmostMedia;
+    [ObservableProperty] private bool _floatTopmostNotes = true;
+
     // Curated Gemini models from 1.5 → 3.8 (no live fetch needed)
     public ObservableCollection<string> AvailableGeminiModels { get; } = new()
     {
@@ -148,6 +156,16 @@ public partial class SettingsViewModel : ObservableObject, INavigationAware
                 GeminiMaskedKeyDisplay = IsGeminiConnected ? "••••••••" : string.Empty;
                 GeminiModelInput = string.Empty;
             }
+
+            // Load Float Window Topmost Permissions
+            FloatTopmostMajorTasks = pref.FloatTopmostMajorTasks;
+            FloatTopmostMinorTasks = pref.FloatTopmostMinorTasks;
+            FloatTopmostStopwatch = pref.FloatTopmostStopwatch;
+            FloatTopmostCalendar = pref.FloatTopmostCalendar;
+            FloatTopmostMedia = pref.FloatTopmostMedia;
+            FloatTopmostNotes = pref.FloatTopmostNotes;
+
+            _floatWindowService?.InitializePreferences(pref);
         }
         catch (Exception ex)
         {
@@ -384,5 +402,75 @@ public partial class SettingsViewModel : ObservableObject, INavigationAware
                 _dialogService.ShowToast("Notes & Ideas", "Toggled private offline Notes drawer (Alt + O).", ToastType.Info);
                 break;
         }
+    }
+
+    [RelayCommand]
+    private async Task ToggleFloatTopmostAsync(string windowKey)
+    {
+        var pref = await _localCache.GetPreferencesAsync();
+        bool newState;
+        string windowName;
+
+        switch (windowKey?.ToLowerInvariant())
+        {
+            case "majortasks":
+                FloatTopmostMajorTasks = !FloatTopmostMajorTasks;
+                newState = FloatTopmostMajorTasks;
+                pref.FloatTopmostMajorTasks = newState;
+                _floatWindowService?.SetTopmost(FloatWindowType.MajorTasks, newState);
+                windowName = "Major Tasks Board";
+                break;
+
+            case "minortasks":
+                FloatTopmostMinorTasks = !FloatTopmostMinorTasks;
+                newState = FloatTopmostMinorTasks;
+                pref.FloatTopmostMinorTasks = newState;
+                _floatWindowService?.SetTopmost(FloatWindowType.MinorTasks, newState);
+                windowName = "Minor Tasks Board";
+                break;
+
+            case "stopwatch":
+                FloatTopmostStopwatch = !FloatTopmostStopwatch;
+                newState = FloatTopmostStopwatch;
+                pref.FloatTopmostStopwatch = newState;
+                _floatWindowService?.SetTopmost(FloatWindowType.Stopwatch, newState);
+                windowName = "Stopwatch";
+                break;
+
+            case "calendar":
+                FloatTopmostCalendar = !FloatTopmostCalendar;
+                newState = FloatTopmostCalendar;
+                pref.FloatTopmostCalendar = newState;
+                _floatWindowService?.SetTopmost(FloatWindowType.Calendar, newState);
+                windowName = "Calendar";
+                break;
+
+            case "media":
+                FloatTopmostMedia = !FloatTopmostMedia;
+                newState = FloatTopmostMedia;
+                pref.FloatTopmostMedia = newState;
+                _floatWindowService?.SetTopmost(FloatWindowType.Media, newState);
+                windowName = "Media Player";
+                break;
+
+            case "notes":
+                FloatTopmostNotes = !FloatTopmostNotes;
+                newState = FloatTopmostNotes;
+                pref.FloatTopmostNotes = newState;
+                _floatWindowService?.SetTopmost(FloatWindowType.Notes, newState);
+                windowName = "Private Notes";
+                break;
+
+            default:
+                return;
+        }
+
+        await _localCache.SavePreferencesAsync(pref);
+
+        var modeDescription = newState
+            ? "will appear over all windows (Always On Top)."
+            : "will appear in the background like a standard window.";
+
+        _dialogService.ShowToast("Window Overlay Permission", $"{windowName} {modeDescription}", ToastType.Info);
     }
 }

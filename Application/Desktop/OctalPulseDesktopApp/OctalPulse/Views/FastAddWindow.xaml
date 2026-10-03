@@ -29,6 +29,7 @@
 
     <Window.Resources>
         <converters:BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <converters:NullToVisibilityConverter x:Key="NullToVis" />
         <converters:PriorityToBrushConverter x:Key="PriorityToBrush" />
         <converters:StatusToBrushConverter x:Key="StatusToBrush" />
 
@@ -212,6 +213,9 @@
                                                     <DataTrigger Binding="{Binding IsMinorTasksScope}" Value="True">
                                                         <Setter Property="Text" Value="Minor Tasks (Checklist)" />
                                                     </DataTrigger>
+                                                    <DataTrigger Binding="{Binding IsNotesScope}" Value="True">
+                                                        <Setter Property="Text" Value="Notes &amp; Ideas (Personal Drawer)" />
+                                                    </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
                                         </TextBlock.Style>
@@ -257,6 +261,40 @@
                                     FontWeight="Bold"
                                     Foreground="{DynamicResource Brush.Primary}"
                                     Text="{Binding TargetMajorTaskTitle}" />
+                            </StackPanel>
+
+                            <!--  Destination display for Personal Notes  -->
+                            <StackPanel
+                                Grid.Column="1"
+                                Orientation="Horizontal"
+                                Visibility="{Binding IsNotesScope, Converter={StaticResource BoolToVis}}">
+                                <TextBlock
+                                    Margin="0,0,8,0"
+                                    VerticalAlignment="Center"
+                                    FontSize="13"
+                                    FontWeight="SemiBold"
+                                    Foreground="{DynamicResource Brush.TextPrimary}"
+                                    Text="Target Destination:" />
+                                <Border
+                                    Padding="10,4"
+                                    Background="{DynamicResource Brush.SurfaceElevated}"
+                                    BorderBrush="{DynamicResource Brush.Border}"
+                                    BorderThickness="1"
+                                    CornerRadius="6">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock
+                                            Margin="0,0,6,0"
+                                            VerticalAlignment="Center"
+                                            FontSize="12"
+                                            Text="🔒" />
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            FontSize="12"
+                                            FontWeight="SemiBold"
+                                            Foreground="{DynamicResource Brush.Primary}"
+                                            Text="Personal Notes Drawer (100% Offline • Emergency Mirror Backup)" />
+                                    </StackPanel>
+                                </Border>
                             </StackPanel>
                         </Grid>
                     </Border>
@@ -334,6 +372,28 @@
                                             FontSize="11"
                                             FontWeight="SemiBold"
                                             Text="Copy Sub-tasks Prompt" />
+                                    </StackPanel>
+                                </Button>
+
+                                <Button
+                                    Height="28"
+                                    Margin="0,0,8,0"
+                                    Padding="10,0"
+                                    Command="{Binding CopyNotesPromptCommand}"
+                                    Style="{StaticResource Button.Secondary}"
+                                    ToolTip="Copy prompt for Personal Notes &amp; Ideas with curated color palette"
+                                    Visibility="{Binding IsNotesScope, Converter={StaticResource BoolToVis}}">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock
+                                            Margin="0,0,5,0"
+                                            VerticalAlignment="Center"
+                                            FontSize="11"
+                                            Text="📋" />
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            FontSize="11"
+                                            FontWeight="SemiBold"
+                                            Text="Copy Notes Prompt" />
                                     </StackPanel>
                                 </Button>
 
@@ -492,6 +552,99 @@
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>
                                 </ItemsControl>
+                            </Expander>
+                        </Border>
+
+                        <!--  Parsed Notes Preview Expander  -->
+                        <Border
+                            Margin="0,6,0,0"
+                            Padding="12,8"
+                            Background="{DynamicResource Brush.SurfaceElevated}"
+                            BorderBrush="{DynamicResource Brush.Border}"
+                            BorderThickness="1"
+                            CornerRadius="6"
+                            Visibility="{Binding HasNotes, Converter={StaticResource BoolToVis}}">
+                            <Expander
+                                Background="Transparent"
+                                BorderThickness="0"
+                                IsExpanded="True"
+                                Foreground="{DynamicResource Brush.TextPrimary}"
+                                Header="{Binding ParsedNotes.Count, StringFormat='📝 Parsed Personal Notes ({0})'}">
+                                <ScrollViewer MaxHeight="150" Margin="0,8,0,0" VerticalScrollBarVisibility="Auto">
+                                    <ItemsControl ItemsSource="{Binding ParsedNotes}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Border
+                                                    Margin="0,0,0,6"
+                                                    Padding="10,8"
+                                                    Background="{DynamicResource Brush.Surface}"
+                                                    BorderBrush="{DynamicResource Brush.Border}"
+                                                    BorderThickness="1"
+                                                    CornerRadius="6">
+                                                    <Grid>
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="Auto" />
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+                                                        <!-- Color swatch -->
+                                                        <Border
+                                                            Grid.Column="0"
+                                                            Width="16"
+                                                            Height="16"
+                                                            Margin="0,0,10,0"
+                                                            VerticalAlignment="Center"
+                                                            Background="{Binding ResolvedCardColor}"
+                                                            BorderBrush="{DynamicResource Brush.Border}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="4" />
+                                                        <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                            <TextBlock
+                                                                FontSize="12"
+                                                                FontWeight="SemiBold"
+                                                                Foreground="{DynamicResource Brush.TextPrimary}"
+                                                                Text="{Binding Title}" />
+                                                            <TextBlock
+                                                                FontSize="11"
+                                                                Foreground="{DynamicResource Brush.TextMuted}"
+                                                                Text="{Binding Description}"
+                                                                TextTrimming="CharacterEllipsis"
+                                                                Visibility="{Binding Description, Converter={StaticResource NullToVis}}" />
+                                                        </StackPanel>
+                                                        <StackPanel
+                                                            Grid.Column="2"
+                                                            VerticalAlignment="Center"
+                                                            Orientation="Horizontal">
+                                                            <Border
+                                                                Margin="0,0,6,0"
+                                                                Padding="6,2"
+                                                                Background="{DynamicResource Brush.SurfaceElevated}"
+                                                                BorderBrush="{DynamicResource Brush.Border}"
+                                                                BorderThickness="1"
+                                                                CornerRadius="4"
+                                                                Visibility="{Binding RelatedToProject, Converter={StaticResource NullToVis}}">
+                                                                <TextBlock
+                                                                    FontSize="10"
+                                                                    Foreground="{DynamicResource Brush.TextSecondary}"
+                                                                    Text="{Binding RelatedToProject}" />
+                                                            </Border>
+                                                            <Border
+                                                                Padding="6,2"
+                                                                Background="{DynamicResource Brush.PrimarySoft}"
+                                                                CornerRadius="4">
+                                                                <TextBlock
+                                                                    FontSize="10"
+                                                                    FontWeight="Bold"
+                                                                    Foreground="{DynamicResource Brush.Primary}"
+                                                                    Text="{Binding ResolvedType}" />
+                                                            </Border>
+                                                        </StackPanel>
+                                                    </Grid>
+                                                </Border>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                </ScrollViewer>
                             </Expander>
                         </Border>
                     </StackPanel>

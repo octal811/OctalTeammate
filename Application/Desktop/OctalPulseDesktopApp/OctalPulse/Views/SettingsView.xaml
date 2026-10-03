@@ -1,177 +1,461 @@
-<UserControl x:Class="OctalPulse.Views.SettingsView"
-             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
-             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
-             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
-             xmlns:converters="clr-namespace:OctalPulse.Converters"
-             mc:Ignorable="d" 
-             d:DesignHeight="900" d:DesignWidth="1000">
+<UserControl
+    x:Class="OctalPulse.Views.SettingsView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="clr-namespace:OctalPulse.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    d:DesignHeight="900"
+    d:DesignWidth="1000"
+    mc:Ignorable="d">
 
-<UserControl.Resources>
+    <UserControl.Resources>
         <converters:BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <converters:BooleanToVisibilityConverter x:Key="InvertBoolToVis" Invert="True" />
         <converters:NullToVisibilityConverter x:Key="NullToVis" />
     </UserControl.Resources>
 
-    <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled" Padding="32">
-        <StackPanel MaxWidth="800" HorizontalAlignment="Left">
-            <!-- Header -->
-            <TextBlock Text="Settings &amp; Integrations" Style="{StaticResource Text.Heading1}" Margin="0,0,0,4" />
-            <TextBlock Text="Manage desktop client preferences, security keys, and developer integrations." Style="{StaticResource Text.Subtitle}" Margin="0,0,0,28" />
+    <ScrollViewer
+        Padding="32"
+        HorizontalScrollBarVisibility="Disabled"
+        VerticalScrollBarVisibility="Auto">
+        <StackPanel MaxWidth="920" HorizontalAlignment="Left">
+            <!--  Header  -->
+            <TextBlock
+                Margin="0,0,0,4"
+                Style="{StaticResource Text.Heading1}"
+                Text="Settings &amp; Integrations" />
+            <TextBlock
+                Margin="0,0,0,28"
+                Style="{StaticResource Text.Subtitle}"
+                Text="Manage desktop client preferences, security keys, and developer integrations." />
 
-<!-- Loading Indicator -->
-            <ProgressBar IsIndeterminate="True" Style="{StaticResource ProgressBar.Modern}" Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}" Margin="0,0,0,20" />
+            <!--  Loading Indicator  -->
+            <ProgressBar
+                Margin="0,0,0,20"
+                IsIndeterminate="True"
+                Style="{StaticResource ProgressBar.Modern}"
+                Visibility="{Binding IsBusy, Converter={StaticResource BoolToVis}}" />
 
-            <!-- ── SECTION 1: APPEARANCE ─────────────────────────────────── -->
-            <Border Style="{StaticResource Border.Card}" Padding="24" Margin="0,0,0,24">
+            <!--  ── SECTION 1: APPEARANCE ───────────────────────────────────  -->
+            <Border
+                Margin="0,0,0,24"
+                Padding="24"
+                Style="{StaticResource Border.Card}">
                 <StackPanel>
-                    <TextBlock Text="Appearance &amp; Theme" Style="{StaticResource Text.Heading3}" Margin="0,0,4,0" />
-                    <TextBlock Text="Select your preferred desktop interface theme. Changes apply instantly without restarting." Style="{StaticResource Text.Subtitle}" Margin="0,0,0,18" />
+                    <TextBlock
+                        Margin="0,0,4,0"
+                        Style="{StaticResource Text.Heading3}"
+                        Text="Appearance &amp; Theme" />
+                    <TextBlock
+                        Margin="0,0,0,18"
+                        Style="{StaticResource Text.Subtitle}"
+                        Text="Select your preferred desktop interface theme. Changes apply instantly without restarting." />
 
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                        <!-- Dark Theme -->
-                        <Border CornerRadius="10" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" Margin="0,0,14,0" Cursor="Hand">
-                            <Button Style="{StaticResource Button.Ghost}" Command="{Binding SelectThemeCommand}" CommandParameter="Dark"
-                                    Width="160" Height="100" Padding="0">
+                    <WrapPanel Margin="0,0,0,4" Orientation="Horizontal">
+                        <!--  Dark Theme  -->
+                        <Border
+                            Margin="0,0,14,0"
+                            BorderBrush="{DynamicResource Brush.Border}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Cursor="Hand">
+                            <Button
+                                Width="160"
+                                Height="100"
+                                Padding="0"
+                                Command="{Binding SelectThemeCommand}"
+                                CommandParameter="Dark"
+                                Style="{StaticResource Button.Ghost}">
                                 <StackPanel HorizontalAlignment="Left" RenderTransformOrigin="0.5,0.5">
                                     <StackPanel.RenderTransform>
                                         <TransformGroup>
-                                            <ScaleTransform/>
-                                            <SkewTransform/>
-                                            <RotateTransform/>
-                                            <TranslateTransform X="50"/>
+                                            <ScaleTransform />
+                                            <SkewTransform />
+                                            <RotateTransform />
+                                            <TranslateTransform X="50" />
                                         </TransformGroup>
                                     </StackPanel.RenderTransform>
-                                    <Border Width="64" Height="40" CornerRadius="8" Margin="0,0,0,8" Background="#111827"
-                                            BorderBrush="#2D3748" BorderThickness="1.5">
-                                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
-                                            <Ellipse Width="8" Height="8" Fill="#6366F1" Margin="0,0,5,0" />
-                                            <Ellipse Width="8" Height="8" Fill="#10B981" />
+                                    <Border
+                                        Width="64"
+                                        Height="40"
+                                        Margin="0,0,0,8"
+                                        Background="#111827"
+                                        BorderBrush="#2D3748"
+                                        BorderThickness="1.5"
+                                        CornerRadius="8">
+                                        <StackPanel
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Orientation="Horizontal">
+                                            <Ellipse
+                                                Width="8"
+                                                Height="8"
+                                                Margin="0,0,5,0"
+                                                Fill="#6366F1" />
+                                            <Ellipse
+                                                Width="8"
+                                                Height="8"
+                                                Fill="#10B981" />
                                         </StackPanel>
                                     </Border>
-                                    <TextBlock Text="🌙  Dark" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" HorizontalAlignment="Center" Width="62" />
+                                    <TextBlock
+                                        Width="62"
+                                        HorizontalAlignment="Center"
+                                        FontSize="13"
+                                        FontWeight="SemiBold"
+                                        Foreground="{DynamicResource Brush.TextPrimary}"
+                                        Text="🌙  Dark" />
                                 </StackPanel>
                             </Button>
                         </Border>
 
-                        <!-- Light Theme -->
-                        <Border CornerRadius="10" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1" Margin="0,0,14,0" Cursor="Hand">
-                            <Button Style="{StaticResource Button.Ghost}" Command="{Binding SelectThemeCommand}" CommandParameter="Light"
-                                    Width="160" Height="100" Padding="0">
+                        <!--  Light Theme  -->
+                        <Border
+                            Margin="0,0,14,0"
+                            BorderBrush="{DynamicResource Brush.Border}"
+                            BorderThickness="1"
+                            CornerRadius="10"
+                            Cursor="Hand">
+                            <Button
+                                Width="160"
+                                Height="100"
+                                Padding="0"
+                                Command="{Binding SelectThemeCommand}"
+                                CommandParameter="Light"
+                                Style="{StaticResource Button.Ghost}">
                                 <StackPanel HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5">
                                     <StackPanel.RenderTransform>
                                         <TransformGroup>
-                                            <ScaleTransform/>
-                                            <SkewTransform/>
-                                            <RotateTransform/>
-                                            <TranslateTransform X="50"/>
+                                            <ScaleTransform />
+                                            <SkewTransform />
+                                            <RotateTransform />
+                                            <TranslateTransform X="50" />
                                         </TransformGroup>
                                     </StackPanel.RenderTransform>
-                                    <Border Width="64" Height="40" CornerRadius="8" Margin="0,0,0,8" Background="#F8FAFC"
-                                            BorderBrush="#E2E8F0" BorderThickness="1.5">
-                                        <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
-                                            <Ellipse Width="8" Height="8" Fill="#6366F1" Margin="0,0,5,0" />
-                                            <Ellipse Width="8" Height="8" Fill="#10B981" />
+                                    <Border
+                                        Width="64"
+                                        Height="40"
+                                        Margin="0,0,0,8"
+                                        Background="#F8FAFC"
+                                        BorderBrush="#E2E8F0"
+                                        BorderThickness="1.5"
+                                        CornerRadius="8">
+                                        <StackPanel
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Orientation="Horizontal">
+                                            <Ellipse
+                                                Width="8"
+                                                Height="8"
+                                                Margin="0,0,5,0"
+                                                Fill="#6366F1" />
+                                            <Ellipse
+                                                Width="8"
+                                                Height="8"
+                                                Fill="#10B981" />
                                         </StackPanel>
                                     </Border>
-                                    <TextBlock Text="☀️  Light" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" HorizontalAlignment="Center" Width="63" />
+                                    <TextBlock
+                                        Width="63"
+                                        HorizontalAlignment="Center"
+                                        FontSize="13"
+                                        FontWeight="SemiBold"
+                                        Foreground="{DynamicResource Brush.TextPrimary}"
+                                        Text="☀️  Light" />
                                 </StackPanel>
                             </Button>
                         </Border>
 
-                        <!-- OLED Dark Theme -->
-                        <Border CornerRadius="10" Margin="0,0,0,0" Cursor="Hand"
-                                BorderThickness="1.5">
+                        <!--  OLED Dark Theme  -->
+                        <Border
+                            Margin="0,0,0,0"
+                            BorderThickness="1.5"
+                            CornerRadius="10"
+                            Cursor="Hand">
                             <Border.BorderBrush>
                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                    <GradientStop Color="#FFFFFF" Offset="0" />
-                                    <GradientStop Color="#6366F1" Offset="0.5" />
-                                    <GradientStop Color="#FFFFFF" Offset="1" />
+                                    <GradientStop Offset="0" Color="#FFFFFF" />
+                                    <GradientStop Offset="0.5" Color="#6366F1" />
+                                    <GradientStop Offset="1" Color="#FFFFFF" />
                                 </LinearGradientBrush>
                             </Border.BorderBrush>
-                            <Button Style="{StaticResource Button.Ghost}" Command="{Binding SelectThemeCommand}" CommandParameter="OledDark"
-                                    Width="160" Height="100" Padding="0" Background="#000000">
+                            <Button
+                                Width="160"
+                                Height="100"
+                                Padding="0"
+                                Background="#000000"
+                                Command="{Binding SelectThemeCommand}"
+                                CommandParameter="OledDark"
+                                Style="{StaticResource Button.Ghost}">
                                 <StackPanel HorizontalAlignment="Center" RenderTransformOrigin="0.5,0.5">
                                     <StackPanel.RenderTransform>
                                         <TransformGroup>
-                                            <ScaleTransform/>
-                                            <SkewTransform/>
-                                            <RotateTransform/>
-                                            <TranslateTransform X="40"/>
+                                            <ScaleTransform />
+                                            <SkewTransform />
+                                            <RotateTransform />
+                                            <TranslateTransform X="40" />
                                         </TransformGroup>
                                     </StackPanel.RenderTransform>
-                                    <Border Width="64" Height="40" CornerRadius="8" Margin="0,0,0,8" Background="#000000">
+                                    <Border
+                                        Width="64"
+                                        Height="40"
+                                        Margin="0,0,0,8"
+                                        Background="#000000"
+                                        CornerRadius="8">
                                         <Border.BorderBrush>
                                             <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                                <GradientStop Color="#FFFFFF" Offset="0" />
-                                                <GradientStop Color="#6366F1" Offset="1" />
+                                                <GradientStop Offset="0" Color="#FFFFFF" />
+                                                <GradientStop Offset="1" Color="#6366F1" />
                                             </LinearGradientBrush>
                                         </Border.BorderBrush>
                                         <Border BorderThickness="1.5">
                                             <Border.BorderBrush>
                                                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                                                    <GradientStop Color="#FFFFFF" Offset="0" />
-                                                    <GradientStop Color="#6366F1" Offset="1" />
+                                                    <GradientStop Offset="0" Color="#FFFFFF" />
+                                                    <GradientStop Offset="1" Color="#6366F1" />
                                                 </LinearGradientBrush>
                                             </Border.BorderBrush>
                                             <Border CornerRadius="6">
-                                                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Orientation="Horizontal">
-                                                    <Ellipse Width="8" Height="8" Fill="#FFFFFF" Margin="0,0,5,0" />
-                                                    <Ellipse Width="8" Height="8" Fill="#818CF8" />
+                                                <StackPanel
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    Orientation="Horizontal">
+                                                    <Ellipse
+                                                        Width="8"
+                                                        Height="8"
+                                                        Margin="0,0,5,0"
+                                                        Fill="#FFFFFF" />
+                                                    <Ellipse
+                                                        Width="8"
+                                                        Height="8"
+                                                        Fill="#818CF8" />
                                                 </StackPanel>
                                             </Border>
                                         </Border>
                                     </Border>
-                                    <TextBlock Text="⬛ OLED Dark" FontSize="13" FontWeight="Bold" HorizontalAlignment="Center">
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontSize="13"
+                                        FontWeight="Bold"
+                                        Text="⬛ OLED Dark">
                                         <TextBlock.Foreground>
                                             <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                                <GradientStop Color="#FFFFFF" Offset="0" />
-                                                <GradientStop Color="#818CF8" Offset="1" />
+                                                <GradientStop Offset="0" Color="#FFFFFF" />
+                                                <GradientStop Offset="1" Color="#818CF8" />
                                             </LinearGradientBrush>
                                         </TextBlock.Foreground>
                                     </TextBlock>
                                 </StackPanel>
                             </Button>
                         </Border>
-                    </StackPanel>
 
-                    <!-- Active Theme Label -->
-                    <TextBlock Margin="0,12,0,0" FontSize="12" Foreground="{DynamicResource Brush.TextMuted}">
+                        <!--  Glasses Theme (Grey/Silver with 40% Translucent Background)  -->
+                        <Border
+                            Margin="14,0,0,0"
+                            BorderThickness="1.5"
+                            CornerRadius="10"
+                            Cursor="Hand">
+                            <Border.BorderBrush>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Offset="0" Color="#FFFFFF" />
+                                    <GradientStop Offset="0.5" Color="#94A3B8" />
+                                    <GradientStop Offset="1" Color="#CBD5E1" />
+                                </LinearGradientBrush>
+                            </Border.BorderBrush>
+                            <Button
+                                Width="160"
+                                Height="100"
+                                Padding="0"
+                                Background="#401A222D"
+                                Command="{Binding SelectThemeCommand}"
+                                CommandParameter="Glasses"
+                                Style="{StaticResource Button.Ghost}"
+                                ToolTip="Frosted grey &amp; silver glass with 40% translucent background">
+                                <StackPanel
+                                    Margin="48,0,0,0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                                    <Border
+                                        Width="64"
+                                        Height="40"
+                                        Margin="0,0,0,8"
+                                        Background="#59242F3D"
+                                        BorderBrush="#80CBD5E1"
+                                        BorderThickness="1.5"
+                                        CornerRadius="8">
+                                        <StackPanel
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Orientation="Horizontal">
+                                            <Ellipse
+                                                Width="8"
+                                                Height="8"
+                                                Margin="0,0,5,0"
+                                                Fill="#F8FAFC" />
+                                            <Ellipse
+                                                Width="8"
+                                                Height="8"
+                                                Fill="#94A3B8" />
+                                        </StackPanel>
+                                    </Border>
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontSize="13"
+                                        FontWeight="Bold"
+                                        Foreground="#E2E8F0"
+                                        Text="👓 Glasses" />
+                                </StackPanel>
+                            </Button>
+                        </Border>
+
+                        <!--  Heavy Glasses Theme (Deep Black & Silver with Low Translucency / Dark Sunglasses)  -->
+                        <Border
+                            Margin="14,0,0,0"
+                            BorderThickness="1.5"
+                            CornerRadius="10"
+                            Cursor="Hand">
+                            <Border.BorderBrush>
+                                <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                                    <GradientStop Offset="0" Color="#FFFFFF" />
+                                    <GradientStop Offset="0.5" Color="#475569" />
+                                    <GradientStop Offset="1" Color="#CBD5E1" />
+                                </LinearGradientBrush>
+                            </Border.BorderBrush>
+                            <Button
+                                Width="160"
+                                Height="100"
+                                Padding="0"
+                                Background="#CC080B10"
+                                Command="{Binding SelectThemeCommand}"
+                                CommandParameter="HeavyGlasses"
+                                Style="{StaticResource Button.Ghost}"
+                                ToolTip="Deep obsidian black &amp; sterling silver with ~80% opacity (dark tinted glasses)">
+                                <StackPanel
+                                    Margin="28,0,0,0"
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center">
+                                    <Border
+                                        Width="64"
+                                        Height="40"
+                                        Margin="0,0,0,8"
+                                        Background="#0F131A"
+                                        BorderBrush="#60CBD5E1"
+                                        BorderThickness="1.5"
+                                        CornerRadius="8">
+                                        <StackPanel
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Orientation="Horizontal">
+                                            <Ellipse
+                                                Width="8"
+                                                Height="8"
+                                                Margin="0,0,5,0"
+                                                Fill="#FFFFFF" />
+                                            <Ellipse
+                                                Width="8"
+                                                Height="8"
+                                                Fill="#CBD5E1" />
+                                        </StackPanel>
+                                    </Border>
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        FontSize="13"
+                                        FontWeight="Bold"
+                                        Foreground="#FFFFFF"
+                                        Text="🕶️ Heavy Glasses" />
+                                </StackPanel>
+                            </Button>
+                        </Border>
+                    </WrapPanel>
+
+                    <!--  Active Theme Label  -->
+                    <TextBlock
+                        Margin="0,12,0,0"
+                        FontSize="12"
+                        Foreground="{DynamicResource Brush.TextMuted}">
                         <Run Text="Active theme: " />
-                        <Run Text="{Binding CurrentTheme}" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Primary}" />
+                        <Run
+                            FontWeight="SemiBold"
+                            Foreground="{DynamicResource Brush.Primary}"
+                            Text="{Binding CurrentTheme}" />
                     </TextBlock>
                 </StackPanel>
             </Border>
 
 
-            <!-- ── SECTION 2: GITHUB INTEGRATION ──────────────────────────── -->
-            <Border Style="{StaticResource Border.Card}" Padding="24" Margin="0,0,0,24">
+            <!--  ── SECTION 2: GITHUB INTEGRATION ────────────────────────────  -->
+            <Border
+                Margin="0,0,0,24"
+                Padding="24"
+                Style="{StaticResource Border.Card}">
                 <StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                        <Border Width="28" Height="28" CornerRadius="6" Background="{DynamicResource Brush.SurfaceElevated}" Margin="0,0,10,0">
-                            <Path Data="{StaticResource Icon.GitHub}" Fill="{DynamicResource Brush.TextPrimary}" Width="16" Height="16" Stretch="Uniform" />
+                    <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
+                        <Border
+                            Width="28"
+                            Height="28"
+                            Margin="0,0,10,0"
+                            Background="{DynamicResource Brush.SurfaceElevated}"
+                            CornerRadius="6">
+                            <Path
+                                Width="16"
+                                Height="16"
+                                Data="{StaticResource Icon.GitHub}"
+                                Fill="{DynamicResource Brush.TextPrimary}"
+                                Stretch="Uniform" />
                         </Border>
-                        <TextBlock Text="GitHub Integration (DPAPI Protected)" Style="{StaticResource Text.Heading3}" VerticalAlignment="Center" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Style="{StaticResource Text.Heading3}"
+                            Text="GitHub Integration (DPAPI Protected)" />
                     </StackPanel>
-                    <TextBlock Text="Connect your GitHub account to associate repository commits, pull requests, and issues with project tasks. Your Personal Access Token is hardware-encrypted via Windows DPAPI and never stored in plaintext." 
-                               Style="{StaticResource Text.Subtitle}" TextWrapping="Wrap" LineHeight="20" Margin="0,0,0,20" />
+                    <TextBlock
+                        Margin="0,0,0,20"
+                        LineHeight="20"
+                        Style="{StaticResource Text.Subtitle}"
+                        Text="Connect your GitHub account to associate repository commits, pull requests, and issues with project tasks. Your Personal Access Token is hardware-encrypted via Windows DPAPI and never stored in plaintext."
+                        TextWrapping="Wrap" />
 
-                    <!-- Not Connected State -->
+                    <!--  Not Connected State  -->
                     <StackPanel Visibility="{Binding IsGitHubConnected, Converter={StaticResource BoolToVis}, ConverterParameter=invert}">
-                        <TextBlock Text="GitHub Personal Access Token" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <TextBlock
+                            Margin="0,0,0,6"
+                            FontSize="13"
+                            FontWeight="SemiBold"
+                            Foreground="{DynamicResource Brush.TextPrimary}"
+                            Text="GitHub Personal Access Token" />
                         <Grid Margin="0,0,0,12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <TextBox Grid.Column="0" Text="{Binding GitHubTokenInput, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Tag="ghp_xxxxxxxxxxxxxxxxxxxx" Margin="0,0,12,0" />
-                            <Button Grid.Column="1" Style="{StaticResource Button.Primary}" Content="Connect GitHub" Command="{Binding ConnectGitHubCommand}" Height="42" Padding="20,0" />
+                            <TextBox
+                                Grid.Column="0"
+                                Margin="0,0,12,0"
+                                Style="{StaticResource TextBox.Modern}"
+                                Tag="ghp_xxxxxxxxxxxxxxxxxxxx"
+                                Text="{Binding GitHubTokenInput, UpdateSourceTrigger=PropertyChanged}" />
+                            <Button
+                                Grid.Column="1"
+                                Height="42"
+                                Padding="20,0"
+                                Command="{Binding ConnectGitHubCommand}"
+                                Content="Connect GitHub"
+                                Style="{StaticResource Button.Primary}" />
                         </Grid>
-                        <TextBlock Text="Requires 'repo' and 'read:user' scopes." FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" />
+                        <TextBlock
+                            FontSize="11"
+                            Foreground="{DynamicResource Brush.TextMuted}"
+                            Text="Requires 'repo' and 'read:user' scopes." />
                     </StackPanel>
 
-                    <!-- Connected State -->
+                    <!--  Connected State  -->
                     <StackPanel Visibility="{Binding IsGitHubConnected, Converter={StaticResource BoolToVis}}">
-                        <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="10" Padding="16" Margin="0,0,0,18">
+                        <Border
+                            Margin="0,0,0,18"
+                            Padding="16"
+                            Background="{DynamicResource Brush.SurfaceElevated}"
+                            CornerRadius="10">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -179,34 +463,86 @@
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
-                                <!-- GitHub Avatar placeholder -->
-                                <Border Grid.Column="0" Width="42" Height="42" CornerRadius="21" Background="{DynamicResource Brush.Primary}" Margin="0,0,14,0">
-                                    <TextBlock Text="{Binding GitHubUser.Login[0]}" FontSize="16" FontWeight="Bold" Foreground="#FFFFFF" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <!--  GitHub Avatar placeholder  -->
+                                <Border
+                                    Grid.Column="0"
+                                    Width="42"
+                                    Height="42"
+                                    Margin="0,0,14,0"
+                                    Background="{DynamicResource Brush.Primary}"
+                                    CornerRadius="21">
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontSize="16"
+                                        FontWeight="Bold"
+                                        Foreground="#FFFFFF"
+                                        Text="{Binding GitHubUser.Login[0]}" />
                                 </Border>
 
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="{Binding GitHubUser.Login}" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,10,0" />
-                                        <Border Background="#2D10B981" CornerRadius="6" Padding="6,2">
-                                            <TextBlock Text="Connected" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource Brush.Success}" />
+                                        <TextBlock
+                                            Margin="0,0,10,0"
+                                            FontSize="15"
+                                            FontWeight="Bold"
+                                            Foreground="{DynamicResource Brush.TextPrimary}"
+                                            Text="{Binding GitHubUser.Login}" />
+                                        <Border
+                                            Padding="6,2"
+                                            Background="#2D10B981"
+                                            CornerRadius="6">
+                                            <TextBlock
+                                                FontSize="10"
+                                                FontWeight="Bold"
+                                                Foreground="{DynamicResource Brush.Success}"
+                                                Text="Connected" />
                                         </Border>
                                     </StackPanel>
-                                    <TextBlock Text="{Binding GitHubUser.Bio, FallbackValue='GitHub Developer'}" FontSize="12" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,2,0,0" />
+                                    <TextBlock
+                                        Margin="0,2,0,0"
+                                        FontSize="12"
+                                        Foreground="{DynamicResource Brush.TextMuted}"
+                                        Text="{Binding GitHubUser.Bio, FallbackValue='GitHub Developer'}" />
                                 </StackPanel>
 
-                                <Button Grid.Column="2" Style="{StaticResource Button.Danger}" Content="Disconnect" Command="{Binding DisconnectGitHubCommand}" Height="34" Padding="14,0" />
+                                <Button
+                                    Grid.Column="2"
+                                    Height="34"
+                                    Padding="14,0"
+                                    Command="{Binding DisconnectGitHubCommand}"
+                                    Content="Disconnect"
+                                    Style="{StaticResource Button.Danger}" />
                             </Grid>
                         </Border>
 
-                        <!-- Repositories List -->
-                        <TextBlock Text="Your Repositories" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,8" />
+                        <!--  Repositories List  -->
+                        <TextBlock
+                            Margin="0,0,0,8"
+                            FontSize="13"
+                            FontWeight="SemiBold"
+                            Foreground="{DynamicResource Brush.TextPrimary}"
+                            Text="Your Repositories" />
                         <ItemsControl ItemsSource="{Binding Repositories}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate>
-                                    <Border BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1" Padding="0,8">
+                                    <Border
+                                        Padding="0,8"
+                                        BorderBrush="{DynamicResource Brush.Border}"
+                                        BorderThickness="0,0,0,1">
                                         <Grid>
-                                            <TextBlock Text="{Binding FullName}" FontSize="13" Foreground="{DynamicResource Brush.Primary}" FontWeight="Medium" />
-                                            <TextBlock Text="{Binding Description}" FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" HorizontalAlignment="Right" Width="300" TextTrimming="CharacterEllipsis" />
+                                            <TextBlock
+                                                FontSize="13"
+                                                FontWeight="Medium"
+                                                Foreground="{DynamicResource Brush.Primary}"
+                                                Text="{Binding FullName}" />
+                                            <TextBlock
+                                                Width="300"
+                                                HorizontalAlignment="Right"
+                                                FontSize="11"
+                                                Foreground="{DynamicResource Brush.TextMuted}"
+                                                Text="{Binding Description}"
+                                                TextTrimming="CharacterEllipsis" />
                                         </Grid>
                                     </Border>
                                 </DataTemplate>
@@ -217,35 +553,79 @@
             </Border>
 
 
-            <!-- ── SECTION 3: GEMINI AI & OCTO SUPPORTER ──────────────────── -->
-            <Border Style="{StaticResource Border.Card}" Padding="24" Margin="0,0,0,24">
+            <!--  ── SECTION 3: GEMINI AI & OCTO SUPPORTER ────────────────────  -->
+            <Border
+                Margin="0,0,0,24"
+                Padding="24"
+                Style="{StaticResource Border.Card}">
                 <StackPanel>
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                        <Border Width="28" Height="28" CornerRadius="6" Background="{DynamicResource Brush.PrimarySoft}" Margin="0,0,10,0">
-                            <Path Data="{StaticResource Icon.Sparkles}" Fill="{DynamicResource Brush.Primary}" Width="16" Height="16" Stretch="Uniform" />
+                    <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
+                        <Border
+                            Width="28"
+                            Height="28"
+                            Margin="0,0,10,0"
+                            Background="{DynamicResource Brush.PrimarySoft}"
+                            CornerRadius="6">
+                            <Path
+                                Width="16"
+                                Height="16"
+                                Data="{StaticResource Icon.Sparkles}"
+                                Fill="{DynamicResource Brush.Primary}"
+                                Stretch="Uniform" />
                         </Border>
-                        <TextBlock Text="Google Gemini AI — Octo Supporter (DPAPI Protected)" Style="{StaticResource Text.Heading3}" VerticalAlignment="Center" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Style="{StaticResource Text.Heading3}"
+                            Text="Google Gemini AI — Octo Supporter (DPAPI Protected)" />
                     </StackPanel>
-                    <TextBlock Text="Connect your personal Google Gemini API key to empower Octo — your AI assistant that analyzes tasks, dependencies, priorities, and project progression. Your API key is encrypted via Windows DPAPI and stored only on this device. It is never transmitted to other users." 
-                               Style="{StaticResource Text.Subtitle}" TextWrapping="Wrap" LineHeight="20" Margin="0,0,0,20" />
+                    <TextBlock
+                        Margin="0,0,0,20"
+                        LineHeight="20"
+                        Style="{StaticResource Text.Subtitle}"
+                        Text="Connect your personal Google Gemini API key to empower Octo — your AI assistant that analyzes tasks, dependencies, priorities, and project progression. Your API key is encrypted via Windows DPAPI and stored only on this device. It is never transmitted to other users."
+                        TextWrapping="Wrap" />
 
-                    <!-- Not Connected State -->
+                    <!--  Not Connected State  -->
                     <StackPanel Visibility="{Binding IsGeminiConnected, Converter={StaticResource BoolToVis}, ConverterParameter=invert}">
-                        <TextBlock Text="Google Gemini API Key" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,6" />
+                        <TextBlock
+                            Margin="0,0,0,6"
+                            FontSize="13"
+                            FontWeight="SemiBold"
+                            Foreground="{DynamicResource Brush.TextPrimary}"
+                            Text="Google Gemini API Key" />
                         <Grid Margin="0,0,0,12">
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="*" />
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
-                            <TextBox Grid.Column="0" Text="{Binding GeminiApiKeyInput, UpdateSourceTrigger=PropertyChanged}" Style="{StaticResource TextBox.Modern}" Tag="AIzaSy..." Margin="0,0,12,0" />
-                            <Button Grid.Column="1" Style="{StaticResource Button.Primary}" Content="Connect Gemini" Command="{Binding ConnectGeminiCommand}" Height="42" Padding="20,0" />
+                            <TextBox
+                                Grid.Column="0"
+                                Margin="0,0,12,0"
+                                Style="{StaticResource TextBox.Modern}"
+                                Tag="AIzaSy..."
+                                Text="{Binding GeminiApiKeyInput, UpdateSourceTrigger=PropertyChanged}" />
+                            <Button
+                                Grid.Column="1"
+                                Height="42"
+                                Padding="20,0"
+                                Command="{Binding ConnectGeminiCommand}"
+                                Content="Connect Gemini"
+                                Style="{StaticResource Button.Primary}" />
                         </Grid>
-                        <TextBlock Text="Obtain a free or paid API key at Google AI Studio (aistudio.google.com). After connecting, you can choose which Gemini model Octo uses." FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" TextWrapping="Wrap" />
+                        <TextBlock
+                            FontSize="11"
+                            Foreground="{DynamicResource Brush.TextMuted}"
+                            Text="Obtain a free or paid API key at Google AI Studio (aistudio.google.com). After connecting, you can choose which Gemini model Octo uses."
+                            TextWrapping="Wrap" />
                     </StackPanel>
 
-                    <!-- Connected State -->
+                    <!--  Connected State  -->
                     <StackPanel Visibility="{Binding IsGeminiConnected, Converter={StaticResource BoolToVis}}">
-                        <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="10" Padding="16" Margin="0,0,0,16">
+                        <Border
+                            Margin="0,0,0,16"
+                            Padding="16"
+                            Background="{DynamicResource Brush.SurfaceElevated}"
+                            CornerRadius="10">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
@@ -253,45 +633,106 @@
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
-                                <Border Grid.Column="0" Width="42" Height="42" CornerRadius="21" Background="{DynamicResource Brush.PrimarySoft}" Margin="0,0,14,0">
-                                    <Path Data="{StaticResource Icon.Sparkles}" Fill="{DynamicResource Brush.Primary}" Width="20" Height="20" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                <Border
+                                    Grid.Column="0"
+                                    Width="42"
+                                    Height="42"
+                                    Margin="0,0,14,0"
+                                    Background="{DynamicResource Brush.PrimarySoft}"
+                                    CornerRadius="21">
+                                    <Path
+                                        Width="20"
+                                        Height="20"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Data="{StaticResource Icon.Sparkles}"
+                                        Fill="{DynamicResource Brush.Primary}"
+                                        Stretch="Uniform" />
                                 </Border>
 
                                 <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="Google Gemini Connected" FontSize="15" FontWeight="Bold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,10,0" />
-                                        <Border Background="#2D10B981" CornerRadius="6" Padding="6,2">
-                                            <TextBlock Text="Octo Ready" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource Brush.Success}" />
+                                        <TextBlock
+                                            Margin="0,0,10,0"
+                                            FontSize="15"
+                                            FontWeight="Bold"
+                                            Foreground="{DynamicResource Brush.TextPrimary}"
+                                            Text="Google Gemini Connected" />
+                                        <Border
+                                            Padding="6,2"
+                                            Background="#2D10B981"
+                                            CornerRadius="6">
+                                            <TextBlock
+                                                FontSize="10"
+                                                FontWeight="Bold"
+                                                Foreground="{DynamicResource Brush.Success}"
+                                                Text="Octo Ready" />
                                         </Border>
                                     </StackPanel>
-                                    <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
-                                        <TextBlock Text="Key: " FontSize="12" Foreground="{DynamicResource Brush.TextMuted}" />
-                                        <TextBlock Text="{Binding GeminiMaskedKeyDisplay}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextSecondary}" Margin="0,0,12,0" />
-                                        <Border Background="{DynamicResource Brush.Surface}" CornerRadius="4" Padding="6,1">
-                                            <TextBlock Text="{Binding GeminiModel}" FontSize="11" Foreground="{DynamicResource Brush.Primary}" />
+                                    <StackPanel Margin="0,4,0,0" Orientation="Horizontal">
+                                        <TextBlock
+                                            FontSize="12"
+                                            Foreground="{DynamicResource Brush.TextMuted}"
+                                            Text="Key: " />
+                                        <TextBlock
+                                            Margin="0,0,12,0"
+                                            FontSize="12"
+                                            FontWeight="SemiBold"
+                                            Foreground="{DynamicResource Brush.TextSecondary}"
+                                            Text="{Binding GeminiMaskedKeyDisplay}" />
+                                        <Border
+                                            Padding="6,1"
+                                            Background="{DynamicResource Brush.Surface}"
+                                            CornerRadius="4">
+                                            <TextBlock
+                                                FontSize="11"
+                                                Foreground="{DynamicResource Brush.Primary}"
+                                                Text="{Binding GeminiModel}" />
                                         </Border>
                                     </StackPanel>
                                 </StackPanel>
 
-                                <Button Grid.Column="2" Style="{StaticResource Button.Danger}" Content="Disconnect" Command="{Binding DisconnectGeminiCommand}" Height="34" Padding="14,0" />
+                                <Button
+                                    Grid.Column="2"
+                                    Height="34"
+                                    Padding="14,0"
+                                    Command="{Binding DisconnectGeminiCommand}"
+                                    Content="Disconnect"
+                                    Style="{StaticResource Button.Danger}" />
                             </Grid>
                         </Border>
 
-                        <!-- ── Model Selector ─────────────────────────────────── -->
-                        <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="10" Padding="18" Margin="0,0,0,0">
+                        <!--  ── Model Selector ───────────────────────────────────  -->
+                        <Border
+                            Margin="0,0,0,0"
+                            Padding="18"
+                            Background="{DynamicResource Brush.SurfaceElevated}"
+                            CornerRadius="10">
                             <StackPanel>
-                                <!-- Header row -->
-                                <StackPanel Orientation="Horizontal" Margin="0,0,0,6">
-                                    <TextBlock Text="⚙️" FontSize="14" VerticalAlignment="Center" Margin="0,0,6,0" />
-                                    <TextBlock Text="Gemini Model" FontSize="13" FontWeight="SemiBold"
-                                               Foreground="{DynamicResource Brush.TextPrimary}" VerticalAlignment="Center" />
+                                <!--  Header row  -->
+                                <StackPanel Margin="0,0,0,6" Orientation="Horizontal">
+                                    <TextBlock
+                                        Margin="0,0,6,0"
+                                        VerticalAlignment="Center"
+                                        FontSize="14"
+                                        Text="⚙️" />
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        FontSize="13"
+                                        FontWeight="SemiBold"
+                                        Foreground="{DynamicResource Brush.TextPrimary}"
+                                        Text="Gemini Model" />
                                 </StackPanel>
 
-                                <!-- Description -->
-                                <TextBlock Text="Choose which Gemini model Octo uses. Newer models are smarter but may count against your quota faster."
-                                           FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" TextWrapping="Wrap" Margin="0,0,0,12" />
+                                <!--  Description  -->
+                                <TextBlock
+                                    Margin="0,0,0,12"
+                                    FontSize="11"
+                                    Foreground="{DynamicResource Brush.TextMuted}"
+                                    Text="Choose which Gemini model Octo uses. Newer models are smarter but may count against your quota faster."
+                                    TextWrapping="Wrap" />
 
-                                <!-- Dropdown + Apply button -->
+                                <!--  Dropdown + Apply button  -->
                                 <Grid>
                                     <Grid.ColumnDefinitions>
                                         <ColumnDefinition Width="*" />
@@ -299,26 +740,40 @@
                                         <ColumnDefinition Width="Auto" />
                                     </Grid.ColumnDefinitions>
 
-                                    <!-- ComboBox with curated model list -->
-                                    <ComboBox Grid.Column="0"
-                                              ItemsSource="{Binding AvailableGeminiModels}"
-                                              SelectedItem="{Binding GeminiModelInput, Mode=TwoWay}"
-                                              Style="{StaticResource ComboBox.Modern}"
-                                              Height="42" />
+                                    <!--  ComboBox with curated model list  -->
+                                    <ComboBox
+                                        Grid.Column="0"
+                                        Height="42"
+                                        ItemsSource="{Binding AvailableGeminiModels}"
+                                        SelectedItem="{Binding GeminiModelInput, Mode=TwoWay}"
+                                        Style="{StaticResource ComboBox.Modern}" />
 
-                                    <!-- Apply button -->
-                                    <Button Grid.Column="2"
-                                            Style="{StaticResource Button.Primary}"
-                                            Content="💾  Apply"
-                                            Command="{Binding SaveGeminiModelCommand}"
-                                            Height="42" Padding="20,0" />
+                                    <!--  Apply button  -->
+                                    <Button
+                                        Grid.Column="2"
+                                        Height="42"
+                                        Padding="20,0"
+                                        Command="{Binding SaveGeminiModelCommand}"
+                                        Content="💾  Apply"
+                                        Style="{StaticResource Button.Primary}" />
                                 </Grid>
 
-                                <!-- Active model badge -->
-                                <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
-                                    <TextBlock Text="Active: " FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" VerticalAlignment="Center" />
-                                    <Border Background="{DynamicResource Brush.PrimarySoft}" CornerRadius="5" Padding="8,3">
-                                        <TextBlock Text="{Binding GeminiModel}" FontSize="11" FontWeight="SemiBold" Foreground="{DynamicResource Brush.Primary}" />
+                                <!--  Active model badge  -->
+                                <StackPanel Margin="0,10,0,0" Orientation="Horizontal">
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        FontSize="11"
+                                        Foreground="{DynamicResource Brush.TextMuted}"
+                                        Text="Active: " />
+                                    <Border
+                                        Padding="8,3"
+                                        Background="{DynamicResource Brush.PrimarySoft}"
+                                        CornerRadius="5">
+                                        <TextBlock
+                                            FontSize="11"
+                                            FontWeight="SemiBold"
+                                            Foreground="{DynamicResource Brush.Primary}"
+                                            Text="{Binding GeminiModel}" />
                                     </Border>
                                 </StackPanel>
                             </StackPanel>
@@ -328,272 +783,1163 @@
             </Border>
 
 
-            <!-- ── SECTION 4: FLOATING WINDOWS & SHORTCUT GUIDE (CHEAT SHEET) ── -->
-            <Border Style="{StaticResource Border.Card}" Padding="24" Margin="0,0,0,24">
+            <!--  ── SECTION 4: FLOATING WINDOWS, OVERLAYS & SHORTCUT GUIDE ──  -->
+            <Border
+                Margin="0,0,0,24"
+                Padding="24"
+                Style="{StaticResource Border.Card}">
                 <StackPanel>
-                    <!-- Header -->
-                    <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
-                        <Border Width="28" Height="28" CornerRadius="6" Background="{DynamicResource Brush.PrimarySoft}" Margin="0,0,10,0">
-                            <Path Data="{StaticResource Icon.Dashboard}" Fill="{DynamicResource Brush.Primary}" Width="15" Height="15" Stretch="Uniform" />
+                    <!--  Header  -->
+                    <StackPanel Margin="0,0,0,4" Orientation="Horizontal">
+                        <Border
+                            Width="28"
+                            Height="28"
+                            Margin="0,0,10,0"
+                            Background="{DynamicResource Brush.PrimarySoft}"
+                            CornerRadius="6">
+                            <Path
+                                Width="15"
+                                Height="15"
+                                Data="{StaticResource Icon.Dashboard}"
+                                Fill="{DynamicResource Brush.Primary}"
+                                Stretch="Uniform" />
                         </Border>
-                        <TextBlock Text="Floating Windows &amp; Hotkeys Guide" Style="{StaticResource Text.Heading3}" VerticalAlignment="Center" />
+                        <TextBlock
+                            VerticalAlignment="Center"
+                            Style="{StaticResource Text.Heading3}"
+                            Text="Floating Windows, Overlay Permissions &amp; Hotkeys" />
                     </StackPanel>
-                    <TextBlock Text="Global keyboard shortcuts allow you to instantly summon or toggle floating widgets and overlay boards from anywhere in Windows, even when OctalPulse is minimized or another application has focus." 
-                               Style="{StaticResource Text.Subtitle}" TextWrapping="Wrap" LineHeight="20" Margin="0,0,0,18" />
+                    <TextBlock
+                        Margin="0,0,0,18"
+                        LineHeight="20"
+                        Style="{StaticResource Text.Subtitle}"
+                        Text="Configure which floating overlay tools have permission to appear over all windows (Always On Top) or stay in the background. The Main Workspace Window always operates as a standard desktop application."
+                        TextWrapping="Wrap" />
 
-                    <!-- Pro Tip Banner -->
-                    <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="8" Padding="14,12" Margin="0,0,0,16" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1">
+                    <!--  Pro Tip Banner  -->
+                    <Border
+                        Margin="0,0,0,16"
+                        Padding="14,12"
+                        Background="{DynamicResource Brush.SurfaceElevated}"
+                        BorderBrush="{DynamicResource Brush.Border}"
+                        BorderThickness="1"
+                        CornerRadius="8">
                         <Grid>
                             <Grid.ColumnDefinitions>
                                 <ColumnDefinition Width="Auto" />
                                 <ColumnDefinition Width="*" />
                             </Grid.ColumnDefinitions>
-                            <Border Grid.Column="0" Width="26" Height="26" CornerRadius="13" Background="{DynamicResource Brush.PrimarySoft}" Margin="0,0,12,0" VerticalAlignment="Center">
-                                <Path Data="{StaticResource Icon.Sparkles}" Fill="{DynamicResource Brush.Primary}" Width="13" Height="13" Stretch="Uniform" />
+                            <Border
+                                Grid.Column="0"
+                                Width="26"
+                                Height="26"
+                                Margin="0,0,12,0"
+                                VerticalAlignment="Center"
+                                Background="{DynamicResource Brush.PrimarySoft}"
+                                CornerRadius="13">
+                                <Path
+                                    Width="13"
+                                    Height="13"
+                                    Data="{StaticResource Icon.Sparkles}"
+                                    Fill="{DynamicResource Brush.Primary}"
+                                    Stretch="Uniform" />
                             </Border>
-                            <TextBlock Grid.Column="1" VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" TextWrapping="Wrap">
-                                <Run Text="⚡ Global Windows Hotkeys:" FontWeight="Bold" Foreground="{DynamicResource Brush.Primary}" />
-                                <Run Text=" Press any combination below from any game, browser, or code editor to pop open its floating overlay. You can also click Test Open to preview any window now." />
+                            <TextBlock
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                FontSize="12"
+                                Foreground="{DynamicResource Brush.TextSecondary}"
+                                TextWrapping="Wrap">
+                                <Run
+                                    FontWeight="Bold"
+                                    Foreground="{DynamicResource Brush.Primary}"
+                                    Text="⚡ Always-On-Top Permissions:" />
+                                <Run Text=" Enable 'Over All Windows' for any floating tool so it stays visible while you code, browse, or game. Disable to keep it in the background as a standard window." />
                             </TextBlock>
                         </Grid>
                     </Border>
 
-                    <!-- Shortcut Cheat Sheet Cards -->
+                    <!--  Shortcut Cheat Sheet & Overlay Permission Cards  -->
                     <StackPanel>
-                        <!-- 1. Alt + W: Main Window -->
-                        <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="10" Padding="14,12" Margin="0,0,0,8" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1">
+                        <!--  1. Alt + W: Main Window (Always Normal Desktop Window)  -->
+                        <Border
+                            Margin="0,0,0,8"
+                            Padding="14,12"
+                            Background="{DynamicResource Brush.SurfaceElevated}"
+                            BorderBrush="{DynamicResource Brush.Border}"
+                            BorderThickness="1"
+                            CornerRadius="10">
                             <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-
-                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="8" Background="{DynamicResource Brush.PrimarySoft}" Margin="0,0,14,0" VerticalAlignment="Center">
-                                    <Path Data="{StaticResource Icon.Dashboard}" Fill="{DynamicResource Brush.Primary}" Width="18" Height="18" Stretch="Uniform" />
-                                </Border>
-
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,16,0">
-                                    <TextBlock Text="Main Workspace Window" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
-                                    <TextBlock Text="Restores and brings the primary OctalPulse hub to the foreground from tray or background." FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,2,0,0" TextWrapping="Wrap" />
-                                </StackPanel>
-
-                                <!-- Key Badge -->
-                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Border Background="{DynamicResource Brush.Card}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1.5" CornerRadius="6" Padding="9,4">
-                                        <TextBlock Text="ALT" FontSize="11" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="{DynamicResource Brush.TextPrimary}" />
-                                    </Border>
-                                    <TextBlock Text="+" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource Brush.TextMuted}" Margin="6,0" VerticalAlignment="Center" />
-                                    <Border Background="{DynamicResource Brush.PrimarySoft}" BorderBrush="{DynamicResource Brush.Primary}" BorderThickness="1.5" CornerRadius="6" Padding="9,4">
-                                        <TextBlock Text="W" FontSize="11" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="{DynamicResource Brush.Primary}" />
-                                    </Border>
-                                </StackPanel>
-
-                                <Button Grid.Column="3" Style="{StaticResource Button.Ghost}" Content="Open" Command="{Binding ToggleFloatWindowCommand}" CommandParameter="main" Height="32" Padding="12,0" Margin="14,0,0,0" VerticalAlignment="Center" />
-                            </Grid>
-                        </Border>
-
-                        <!-- 2. Alt + N: Minor Tasks Board -->
-                        <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="10" Padding="14,12" Margin="0,0,0,8" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
                                     <ColumnDefinition Width="Auto" />
                                 </Grid.ColumnDefinitions>
 
-                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="8" Background="{DynamicResource Brush.PrimarySoft}" Margin="0,0,14,0" VerticalAlignment="Center">
-                                    <Path Data="{StaticResource Icon.Tasks}" Fill="{DynamicResource Brush.Primary}" Width="18" Height="18" Stretch="Uniform" />
+                                <Border
+                                    Grid.Column="0"
+                                    Width="36"
+                                    Height="36"
+                                    Margin="0,0,14,0"
+                                    VerticalAlignment="Center"
+                                    Background="{DynamicResource Brush.PrimarySoft}"
+                                    CornerRadius="8">
+                                    <Path
+                                        Width="18"
+                                        Height="18"
+                                        Data="{StaticResource Icon.Dashboard}"
+                                        Fill="{DynamicResource Brush.Primary}"
+                                        Stretch="Uniform" />
                                 </Border>
 
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,16,0">
-                                    <TextBlock Text="Minor Tasks Board" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
-                                    <TextBlock Text="Compact floating sticky checklist to quickly add, review, and check off agile subtasks." FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                <StackPanel
+                                    Grid.Column="1"
+                                    Margin="0,0,16,0"
+                                    VerticalAlignment="Center">
+                                    <TextBlock
+                                        FontSize="13"
+                                        FontWeight="SemiBold"
+                                        Foreground="{DynamicResource Brush.TextPrimary}"
+                                        Text="Main Workspace Window" />
+                                    <TextBlock
+                                        Margin="0,2,0,0"
+                                        FontSize="11"
+                                        Foreground="{DynamicResource Brush.TextMuted}"
+                                        Text="Restores and brings the primary OctalPulse hub to the foreground from tray or background."
+                                        TextWrapping="Wrap" />
                                 </StackPanel>
 
-                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Border Background="{DynamicResource Brush.Card}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1.5" CornerRadius="6" Padding="9,4">
-                                        <TextBlock Text="ALT" FontSize="11" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="{DynamicResource Brush.TextPrimary}" />
+                                <!--  Key Badge  -->
+                                <StackPanel
+                                    Grid.Column="2"
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal">
+                                    <Border
+                                        Padding="9,4"
+                                        Background="{DynamicResource Brush.Card}"
+                                        BorderBrush="{DynamicResource Brush.Border}"
+                                        BorderThickness="1.5"
+                                        CornerRadius="6">
+                                        <TextBlock
+                                            FontFamily="Consolas, Segoe UI"
+                                            FontSize="11"
+                                            FontWeight="Bold"
+                                            Foreground="{DynamicResource Brush.TextPrimary}"
+                                            Text="ALT" />
                                     </Border>
-                                    <TextBlock Text="+" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource Brush.TextMuted}" Margin="6,0" VerticalAlignment="Center" />
-                                    <Border Background="{DynamicResource Brush.PrimarySoft}" BorderBrush="{DynamicResource Brush.Primary}" BorderThickness="1.5" CornerRadius="6" Padding="9,4">
-                                        <TextBlock Text="N" FontSize="11" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="{DynamicResource Brush.Primary}" />
-                                    </Border>
-                                </StackPanel>
-
-                                <Button Grid.Column="3" Style="{StaticResource Button.Ghost}" Content="Toggle" Command="{Binding ToggleFloatWindowCommand}" CommandParameter="minortasks" Height="32" Padding="12,0" Margin="14,0,0,0" VerticalAlignment="Center" />
-                            </Grid>
-                        </Border>
-
-                        <!-- 3. Alt + J: Major Tasks Board -->
-                        <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="10" Padding="14,12" Margin="0,0,0,8" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-
-                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="8" Background="{DynamicResource Brush.PrimarySoft}" Margin="0,0,14,0" VerticalAlignment="Center">
-                                    <Path Data="{StaticResource Icon.Briefcase}" Fill="{DynamicResource Brush.Primary}" Width="18" Height="18" Stretch="Uniform" />
-                                </Border>
-
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,16,0">
-                                    <TextBlock Text="Major Tasks Board" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
-                                    <TextBlock Text="Floating agile kanban board with sprint milestones, priority indicators, and track items." FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,2,0,0" TextWrapping="Wrap" />
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Border Background="{DynamicResource Brush.Card}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1.5" CornerRadius="6" Padding="9,4">
-                                        <TextBlock Text="ALT" FontSize="11" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="{DynamicResource Brush.TextPrimary}" />
-                                    </Border>
-                                    <TextBlock Text="+" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource Brush.TextMuted}" Margin="6,0" VerticalAlignment="Center" />
-                                    <Border Background="{DynamicResource Brush.PrimarySoft}" BorderBrush="{DynamicResource Brush.Primary}" BorderThickness="1.5" CornerRadius="6" Padding="10,4">
-                                        <TextBlock Text="J" FontSize="11" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="{DynamicResource Brush.Primary}" />
-                                    </Border>
-                                </StackPanel>
-
-                                <Button Grid.Column="3" Style="{StaticResource Button.Ghost}" Content="Toggle" Command="{Binding ToggleFloatWindowCommand}" CommandParameter="majortasks" Height="32" Padding="12,0" Margin="14,0,0,0" VerticalAlignment="Center" />
-                            </Grid>
-                        </Border>
-
-                        <!-- 4. Alt + M: Media -->
-                        <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="10" Padding="14,12" Margin="0,0,0,8" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-
-                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="8" Background="{DynamicResource Brush.PrimarySoft}" Margin="0,0,14,0" VerticalAlignment="Center">
-                                    <Path Data="{StaticResource Icon.Media}" Fill="{DynamicResource Brush.Primary}" Width="18" Height="18" Stretch="Uniform" />
-                                </Border>
-
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,16,0">
-                                    <TextBlock Text="Media Player" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
-                                    <TextBlock Text="Floating lightweight music controller and audio stream player for productive sessions." FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,2,0,0" TextWrapping="Wrap" />
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Border Background="{DynamicResource Brush.Card}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1.5" CornerRadius="6" Padding="9,4">
-                                        <TextBlock Text="ALT" FontSize="11" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="{DynamicResource Brush.TextPrimary}" />
-                                    </Border>
-                                    <TextBlock Text="+" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource Brush.TextMuted}" Margin="6,0" VerticalAlignment="Center" />
-                                    <Border Background="{DynamicResource Brush.PrimarySoft}" BorderBrush="{DynamicResource Brush.Primary}" BorderThickness="1.5" CornerRadius="6" Padding="9,4">
-                                        <TextBlock Text="M" FontSize="11" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="{DynamicResource Brush.Primary}" />
+                                    <TextBlock
+                                        Margin="6,0"
+                                        VerticalAlignment="Center"
+                                        FontSize="13"
+                                        FontWeight="Bold"
+                                        Foreground="{DynamicResource Brush.TextMuted}"
+                                        Text="+" />
+                                    <Border
+                                        Padding="9,4"
+                                        Background="{DynamicResource Brush.PrimarySoft}"
+                                        BorderBrush="{DynamicResource Brush.Primary}"
+                                        BorderThickness="1.5"
+                                        CornerRadius="6">
+                                        <TextBlock
+                                            FontFamily="Consolas, Segoe UI"
+                                            FontSize="11"
+                                            FontWeight="Bold"
+                                            Foreground="{DynamicResource Brush.Primary}"
+                                            Text="W" />
                                     </Border>
                                 </StackPanel>
 
-                                <Button Grid.Column="3" Style="{StaticResource Button.Ghost}" Content="Toggle" Command="{Binding ToggleFloatWindowCommand}" CommandParameter="media" Height="32" Padding="12,0" Margin="14,0,0,0" VerticalAlignment="Center" />
-                            </Grid>
-                        </Border>
-
-                        <!-- 5. Alt + T: Stopwatch -->
-                        <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="10" Padding="14,12" Margin="0,0,0,8" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-
-                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="8" Background="{DynamicResource Brush.PrimarySoft}" Margin="0,0,14,0" VerticalAlignment="Center">
-                                    <Path Data="{StaticResource Icon.Stopwatch}" Fill="{DynamicResource Brush.Primary}" Width="18" Height="18" Stretch="Uniform" />
-                                </Border>
-
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,16,0">
-                                    <TextBlock Text="Stopwatch &amp; Focus Timer" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
-                                    <TextBlock Text="Floating high-precision stopwatch with lap counter and quick pomodoro focus tracking." FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,2,0,0" TextWrapping="Wrap" />
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Border Background="{DynamicResource Brush.Card}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1.5" CornerRadius="6" Padding="9,4">
-                                        <TextBlock Text="ALT" FontSize="11" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="{DynamicResource Brush.TextPrimary}" />
-                                    </Border>
-                                    <TextBlock Text="+" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource Brush.TextMuted}" Margin="6,0" VerticalAlignment="Center" />
-                                    <Border Background="{DynamicResource Brush.PrimarySoft}" BorderBrush="{DynamicResource Brush.Primary}" BorderThickness="1.5" CornerRadius="6" Padding="9,4">
-                                        <TextBlock Text="T" FontSize="11" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="{DynamicResource Brush.Primary}" />
-                                    </Border>
-                                </StackPanel>
-
-                                <Button Grid.Column="3" Style="{StaticResource Button.Ghost}" Content="Toggle" Command="{Binding ToggleFloatWindowCommand}" CommandParameter="stopwatch" Height="32" Padding="12,0" Margin="14,0,0,0" VerticalAlignment="Center" />
-                            </Grid>
-                        </Border>
-
-                        <!-- 6. Alt + C: Calendar -->
-                        <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="10" Padding="14,12" Margin="0,0,0,8" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-
-                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="8" Background="{DynamicResource Brush.PrimarySoft}" Margin="0,0,14,0" VerticalAlignment="Center">
-                                    <Path Data="{StaticResource Icon.Calendar}" Fill="{DynamicResource Brush.Primary}" Width="18" Height="18" Stretch="Uniform" />
-                                </Border>
-
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,16,0">
-                                    <TextBlock Text="Calendar &amp; Deadlines" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
-                                    <TextBlock Text="Floating sprint calendar view highlighting project deadlines, team releases, and meetings." FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,2,0,0" TextWrapping="Wrap" />
-                                </StackPanel>
-
-                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Border Background="{DynamicResource Brush.Card}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1.5" CornerRadius="6" Padding="9,4">
-                                        <TextBlock Text="ALT" FontSize="11" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="{DynamicResource Brush.TextPrimary}" />
-                                    </Border>
-                                    <TextBlock Text="+" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource Brush.TextMuted}" Margin="6,0" VerticalAlignment="Center" />
-                                    <Border Background="{DynamicResource Brush.PrimarySoft}" BorderBrush="{DynamicResource Brush.Primary}" BorderThickness="1.5" CornerRadius="6" Padding="9,4">
-                                        <TextBlock Text="C" FontSize="11" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="{DynamicResource Brush.Primary}" />
-                                    </Border>
-                                </StackPanel>
-
-                                <Button Grid.Column="3" Style="{StaticResource Button.Ghost}" Content="Toggle" Command="{Binding ToggleFloatWindowCommand}" CommandParameter="calendar" Height="32" Padding="12,0" Margin="14,0,0,0" VerticalAlignment="Center" />
-                            </Grid>
-                        </Border>
-
-                        <!-- 7. Alt + O: Notes & Ideas -->
-                        <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="10" Padding="14,12" Margin="0,0,0,0" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1">
-                            <Grid>
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-
-                                <Border Grid.Column="0" Width="36" Height="36" CornerRadius="8" Background="{DynamicResource Brush.PrimarySoft}" Margin="0,0,14,0" VerticalAlignment="Center">
-                                    <TextBlock Text="📝" FontSize="16" HorizontalAlignment="Center" VerticalAlignment="Center" />
-                                </Border>
-
-                                <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="0,0,16,0">
+                                <!--  Desktop Status (No Topmost toggle: runs normally as desktop window)  -->
+                                <Border
+                                    Grid.Column="3"
+                                    Margin="14,0,0,0"
+                                    Padding="10,5"
+                                    VerticalAlignment="Center"
+                                    Background="#1564748B"
+                                    BorderBrush="#3064748B"
+                                    BorderThickness="1"
+                                    CornerRadius="6">
                                     <StackPanel Orientation="Horizontal">
-                                        <TextBlock Text="Private Notes &amp; Ideas Drawer" FontSize="13" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" />
-                                        <Border Background="#1A10B981" CornerRadius="4" Padding="5,1" Margin="6,0,0,0" VerticalAlignment="Center">
-                                            <TextBlock Text="Offline &amp; Safe" FontSize="9" FontWeight="Bold" Foreground="#10B981" />
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            FontSize="10"
+                                            Text="💻 " />
+                                        <TextBlock
+                                            VerticalAlignment="Center"
+                                            FontSize="10"
+                                            FontWeight="SemiBold"
+                                            Foreground="{DynamicResource Brush.TextMuted}"
+                                            Text="Standard Desktop (Background)" />
+                                    </StackPanel>
+                                </Border>
+
+                                <Button
+                                    Grid.Column="4"
+                                    Height="30"
+                                    Margin="10,0,0,0"
+                                    Padding="12,0"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding ToggleFloatWindowCommand}"
+                                    CommandParameter="main"
+                                    Content="Open"
+                                    Style="{StaticResource Button.Ghost}" />
+                            </Grid>
+                        </Border>
+
+                        <!--  2. Alt + N: Minor Tasks Board  -->
+                        <Border
+                            Margin="0,0,0,8"
+                            Padding="14,12"
+                            Background="{DynamicResource Brush.SurfaceElevated}"
+                            BorderBrush="{DynamicResource Brush.Border}"
+                            BorderThickness="1"
+                            CornerRadius="10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border
+                                    Grid.Column="0"
+                                    Width="36"
+                                    Height="36"
+                                    Margin="0,0,14,0"
+                                    VerticalAlignment="Center"
+                                    Background="{DynamicResource Brush.PrimarySoft}"
+                                    CornerRadius="8">
+                                    <Path
+                                        Width="18"
+                                        Height="18"
+                                        Data="{StaticResource Icon.Tasks}"
+                                        Fill="{DynamicResource Brush.Primary}"
+                                        Stretch="Uniform" />
+                                </Border>
+
+                                <StackPanel
+                                    Grid.Column="1"
+                                    Margin="0,0,16,0"
+                                    VerticalAlignment="Center">
+                                    <TextBlock
+                                        FontSize="13"
+                                        FontWeight="SemiBold"
+                                        Foreground="{DynamicResource Brush.TextPrimary}"
+                                        Text="Minor Tasks Board" />
+                                    <TextBlock
+                                        Margin="0,2,0,0"
+                                        FontSize="11"
+                                        Foreground="{DynamicResource Brush.TextMuted}"
+                                        Text="Compact floating sticky checklist to quickly add, review, and check off agile subtasks."
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+
+                                <StackPanel
+                                    Grid.Column="2"
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal">
+                                    <Border
+                                        Padding="9,4"
+                                        Background="{DynamicResource Brush.Card}"
+                                        BorderBrush="{DynamicResource Brush.Border}"
+                                        BorderThickness="1.5"
+                                        CornerRadius="6">
+                                        <TextBlock
+                                            FontFamily="Consolas, Segoe UI"
+                                            FontSize="11"
+                                            FontWeight="Bold"
+                                            Foreground="{DynamicResource Brush.TextPrimary}"
+                                            Text="ALT" />
+                                    </Border>
+                                    <TextBlock
+                                        Margin="6,0"
+                                        VerticalAlignment="Center"
+                                        FontSize="13"
+                                        FontWeight="Bold"
+                                        Foreground="{DynamicResource Brush.TextMuted}"
+                                        Text="+" />
+                                    <Border
+                                        Padding="9,4"
+                                        Background="{DynamicResource Brush.PrimarySoft}"
+                                        BorderBrush="{DynamicResource Brush.Primary}"
+                                        BorderThickness="1.5"
+                                        CornerRadius="6">
+                                        <TextBlock
+                                            FontFamily="Consolas, Segoe UI"
+                                            FontSize="11"
+                                            FontWeight="Bold"
+                                            Foreground="{DynamicResource Brush.Primary}"
+                                            Text="N" />
+                                    </Border>
+                                </StackPanel>
+
+                                <!--  Topmost Permission Toggle Button  -->
+                                <Button
+                                    Grid.Column="3"
+                                    Height="30"
+                                    Margin="14,0,0,0"
+                                    Padding="0"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding ToggleFloatTopmostCommand}"
+                                    CommandParameter="minortasks"
+                                    Style="{StaticResource Button.Ghost}"
+                                    ToolTip="Click to toggle whether this floating window appears over all windows (Always On Top) or stays in the background">
+                                    <Grid>
+                                        <Border
+                                            Padding="9,4"
+                                            Background="#2010B981"
+                                            BorderBrush="#6010B981"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Visibility="{Binding FloatTopmostMinorTasks, Converter={StaticResource BoolToVis}}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontSize="10"
+                                                    Text="📌 " />
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontSize="10"
+                                                    FontWeight="Bold"
+                                                    Foreground="{DynamicResource Brush.Success}"
+                                                    Text="Over All Windows: ON" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Border
+                                            Padding="9,4"
+                                            Background="#1564748B"
+                                            BorderBrush="#3064748B"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Visibility="{Binding FloatTopmostMinorTasks, Converter={StaticResource InvertBoolToVis}}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontSize="10"
+                                                    Text="🪟 " />
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontSize="10"
+                                                    FontWeight="SemiBold"
+                                                    Foreground="{DynamicResource Brush.TextMuted}"
+                                                    Text="Over All Windows: OFF" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                </Button>
+
+                                <Button
+                                    Grid.Column="4"
+                                    Height="30"
+                                    Margin="10,0,0,0"
+                                    Padding="12,0"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding ToggleFloatWindowCommand}"
+                                    CommandParameter="minortasks"
+                                    Content="Toggle"
+                                    Style="{StaticResource Button.Ghost}" />
+                            </Grid>
+                        </Border>
+
+                        <!--  3. Alt + J: Major Tasks Board  -->
+                        <Border
+                            Margin="0,0,0,8"
+                            Padding="14,12"
+                            Background="{DynamicResource Brush.SurfaceElevated}"
+                            BorderBrush="{DynamicResource Brush.Border}"
+                            BorderThickness="1"
+                            CornerRadius="10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border
+                                    Grid.Column="0"
+                                    Width="36"
+                                    Height="36"
+                                    Margin="0,0,14,0"
+                                    VerticalAlignment="Center"
+                                    Background="{DynamicResource Brush.PrimarySoft}"
+                                    CornerRadius="8">
+                                    <Path
+                                        Width="18"
+                                        Height="18"
+                                        Data="{StaticResource Icon.Briefcase}"
+                                        Fill="{DynamicResource Brush.Primary}"
+                                        Stretch="Uniform" />
+                                </Border>
+
+                                <StackPanel
+                                    Grid.Column="1"
+                                    Margin="0,0,16,0"
+                                    VerticalAlignment="Center">
+                                    <TextBlock
+                                        FontSize="13"
+                                        FontWeight="SemiBold"
+                                        Foreground="{DynamicResource Brush.TextPrimary}"
+                                        Text="Major Tasks Board" />
+                                    <TextBlock
+                                        Margin="0,2,0,0"
+                                        FontSize="11"
+                                        Foreground="{DynamicResource Brush.TextMuted}"
+                                        Text="Floating agile kanban board with sprint milestones, priority indicators, and track items."
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+
+                                <StackPanel
+                                    Grid.Column="2"
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal">
+                                    <Border
+                                        Padding="9,4"
+                                        Background="{DynamicResource Brush.Card}"
+                                        BorderBrush="{DynamicResource Brush.Border}"
+                                        BorderThickness="1.5"
+                                        CornerRadius="6">
+                                        <TextBlock
+                                            FontFamily="Consolas, Segoe UI"
+                                            FontSize="11"
+                                            FontWeight="Bold"
+                                            Foreground="{DynamicResource Brush.TextPrimary}"
+                                            Text="ALT" />
+                                    </Border>
+                                    <TextBlock
+                                        Margin="6,0"
+                                        VerticalAlignment="Center"
+                                        FontSize="13"
+                                        FontWeight="Bold"
+                                        Foreground="{DynamicResource Brush.TextMuted}"
+                                        Text="+" />
+                                    <Border
+                                        Padding="10,4"
+                                        Background="{DynamicResource Brush.PrimarySoft}"
+                                        BorderBrush="{DynamicResource Brush.Primary}"
+                                        BorderThickness="1.5"
+                                        CornerRadius="6">
+                                        <TextBlock
+                                            FontFamily="Consolas, Segoe UI"
+                                            FontSize="11"
+                                            FontWeight="Bold"
+                                            Foreground="{DynamicResource Brush.Primary}"
+                                            Text="J" />
+                                    </Border>
+                                </StackPanel>
+
+                                <!--  Topmost Permission Toggle Button  -->
+                                <Button
+                                    Grid.Column="3"
+                                    Height="30"
+                                    Margin="14,0,0,0"
+                                    Padding="0"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding ToggleFloatTopmostCommand}"
+                                    CommandParameter="majortasks"
+                                    Style="{StaticResource Button.Ghost}"
+                                    ToolTip="Click to toggle whether this floating window appears over all windows (Always On Top) or stays in the background">
+                                    <Grid>
+                                        <Border
+                                            Padding="9,4"
+                                            Background="#2010B981"
+                                            BorderBrush="#6010B981"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Visibility="{Binding FloatTopmostMajorTasks, Converter={StaticResource BoolToVis}}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontSize="10"
+                                                    Text="📌 " />
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontSize="10"
+                                                    FontWeight="Bold"
+                                                    Foreground="{DynamicResource Brush.Success}"
+                                                    Text="Over All Windows: ON" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Border
+                                            Padding="9,4"
+                                            Background="#1564748B"
+                                            BorderBrush="#3064748B"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Visibility="{Binding FloatTopmostMajorTasks, Converter={StaticResource InvertBoolToVis}}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontSize="10"
+                                                    Text="🪟 " />
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontSize="10"
+                                                    FontWeight="SemiBold"
+                                                    Foreground="{DynamicResource Brush.TextMuted}"
+                                                    Text="Over All Windows: OFF" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                </Button>
+
+                                <Button
+                                    Grid.Column="4"
+                                    Height="30"
+                                    Margin="10,0,0,0"
+                                    Padding="12,0"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding ToggleFloatWindowCommand}"
+                                    CommandParameter="majortasks"
+                                    Content="Toggle"
+                                    Style="{StaticResource Button.Ghost}" />
+                            </Grid>
+                        </Border>
+
+                        <!--  4. Alt + M: Media  -->
+                        <Border
+                            Margin="0,0,0,8"
+                            Padding="14,12"
+                            Background="{DynamicResource Brush.SurfaceElevated}"
+                            BorderBrush="{DynamicResource Brush.Border}"
+                            BorderThickness="1"
+                            CornerRadius="10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border
+                                    Grid.Column="0"
+                                    Width="36"
+                                    Height="36"
+                                    Margin="0,0,14,0"
+                                    VerticalAlignment="Center"
+                                    Background="{DynamicResource Brush.PrimarySoft}"
+                                    CornerRadius="8">
+                                    <Path
+                                        Width="18"
+                                        Height="18"
+                                        Data="{StaticResource Icon.Media}"
+                                        Fill="{DynamicResource Brush.Primary}"
+                                        Stretch="Uniform" />
+                                </Border>
+
+                                <StackPanel
+                                    Grid.Column="1"
+                                    Margin="0,0,16,0"
+                                    VerticalAlignment="Center">
+                                    <TextBlock
+                                        FontSize="13"
+                                        FontWeight="SemiBold"
+                                        Foreground="{DynamicResource Brush.TextPrimary}"
+                                        Text="Media Player" />
+                                    <TextBlock
+                                        Margin="0,2,0,0"
+                                        FontSize="11"
+                                        Foreground="{DynamicResource Brush.TextMuted}"
+                                        Text="Floating lightweight music controller and audio stream player for productive sessions."
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+
+                                <StackPanel
+                                    Grid.Column="2"
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal">
+                                    <Border
+                                        Padding="9,4"
+                                        Background="{DynamicResource Brush.Card}"
+                                        BorderBrush="{DynamicResource Brush.Border}"
+                                        BorderThickness="1.5"
+                                        CornerRadius="6">
+                                        <TextBlock
+                                            FontFamily="Consolas, Segoe UI"
+                                            FontSize="11"
+                                            FontWeight="Bold"
+                                            Foreground="{DynamicResource Brush.TextPrimary}"
+                                            Text="ALT" />
+                                    </Border>
+                                    <TextBlock
+                                        Margin="6,0"
+                                        VerticalAlignment="Center"
+                                        FontSize="13"
+                                        FontWeight="Bold"
+                                        Foreground="{DynamicResource Brush.TextMuted}"
+                                        Text="+" />
+                                    <Border
+                                        Padding="9,4"
+                                        Background="{DynamicResource Brush.PrimarySoft}"
+                                        BorderBrush="{DynamicResource Brush.Primary}"
+                                        BorderThickness="1.5"
+                                        CornerRadius="6">
+                                        <TextBlock
+                                            FontFamily="Consolas, Segoe UI"
+                                            FontSize="11"
+                                            FontWeight="Bold"
+                                            Foreground="{DynamicResource Brush.Primary}"
+                                            Text="M" />
+                                    </Border>
+                                </StackPanel>
+
+                                <!--  Topmost Permission Toggle Button  -->
+                                <Button
+                                    Grid.Column="3"
+                                    Height="30"
+                                    Margin="14,0,0,0"
+                                    Padding="0"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding ToggleFloatTopmostCommand}"
+                                    CommandParameter="media"
+                                    Style="{StaticResource Button.Ghost}"
+                                    ToolTip="Click to toggle whether this floating window appears over all windows (Always On Top) or stays in the background">
+                                    <Grid>
+                                        <Border
+                                            Padding="9,4"
+                                            Background="#2010B981"
+                                            BorderBrush="#6010B981"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Visibility="{Binding FloatTopmostMedia, Converter={StaticResource BoolToVis}}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontSize="10"
+                                                    Text="📌 " />
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontSize="10"
+                                                    FontWeight="Bold"
+                                                    Foreground="{DynamicResource Brush.Success}"
+                                                    Text="Over All Windows: ON" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Border
+                                            Padding="9,4"
+                                            Background="#1564748B"
+                                            BorderBrush="#3064748B"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Visibility="{Binding FloatTopmostMedia, Converter={StaticResource InvertBoolToVis}}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontSize="10"
+                                                    Text="🪟 " />
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontSize="10"
+                                                    FontWeight="SemiBold"
+                                                    Foreground="{DynamicResource Brush.TextMuted}"
+                                                    Text="Over All Windows: OFF" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                </Button>
+
+                                <Button
+                                    Grid.Column="4"
+                                    Height="30"
+                                    Margin="10,0,0,0"
+                                    Padding="12,0"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding ToggleFloatWindowCommand}"
+                                    CommandParameter="media"
+                                    Content="Toggle"
+                                    Style="{StaticResource Button.Ghost}" />
+                            </Grid>
+                        </Border>
+
+                        <!--  5. Alt + T: Stopwatch  -->
+                        <Border
+                            Margin="0,0,0,8"
+                            Padding="14,12"
+                            Background="{DynamicResource Brush.SurfaceElevated}"
+                            BorderBrush="{DynamicResource Brush.Border}"
+                            BorderThickness="1"
+                            CornerRadius="10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border
+                                    Grid.Column="0"
+                                    Width="36"
+                                    Height="36"
+                                    Margin="0,0,14,0"
+                                    VerticalAlignment="Center"
+                                    Background="{DynamicResource Brush.PrimarySoft}"
+                                    CornerRadius="8">
+                                    <Path
+                                        Width="18"
+                                        Height="18"
+                                        Data="{StaticResource Icon.Stopwatch}"
+                                        Fill="{DynamicResource Brush.Primary}"
+                                        Stretch="Uniform" />
+                                </Border>
+
+                                <StackPanel
+                                    Grid.Column="1"
+                                    Margin="0,0,16,0"
+                                    VerticalAlignment="Center">
+                                    <TextBlock
+                                        FontSize="13"
+                                        FontWeight="SemiBold"
+                                        Foreground="{DynamicResource Brush.TextPrimary}"
+                                        Text="Stopwatch &amp; Focus Timer" />
+                                    <TextBlock
+                                        Margin="0,2,0,0"
+                                        FontSize="11"
+                                        Foreground="{DynamicResource Brush.TextMuted}"
+                                        Text="Floating high-precision stopwatch with lap counter and quick pomodoro focus tracking."
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+
+                                <StackPanel
+                                    Grid.Column="2"
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal">
+                                    <Border
+                                        Padding="9,4"
+                                        Background="{DynamicResource Brush.Card}"
+                                        BorderBrush="{DynamicResource Brush.Border}"
+                                        BorderThickness="1.5"
+                                        CornerRadius="6">
+                                        <TextBlock
+                                            FontFamily="Consolas, Segoe UI"
+                                            FontSize="11"
+                                            FontWeight="Bold"
+                                            Foreground="{DynamicResource Brush.TextPrimary}"
+                                            Text="ALT" />
+                                    </Border>
+                                    <TextBlock
+                                        Margin="6,0"
+                                        VerticalAlignment="Center"
+                                        FontSize="13"
+                                        FontWeight="Bold"
+                                        Foreground="{DynamicResource Brush.TextMuted}"
+                                        Text="+" />
+                                    <Border
+                                        Padding="9,4"
+                                        Background="{DynamicResource Brush.PrimarySoft}"
+                                        BorderBrush="{DynamicResource Brush.Primary}"
+                                        BorderThickness="1.5"
+                                        CornerRadius="6">
+                                        <TextBlock
+                                            FontFamily="Consolas, Segoe UI"
+                                            FontSize="11"
+                                            FontWeight="Bold"
+                                            Foreground="{DynamicResource Brush.Primary}"
+                                            Text="T" />
+                                    </Border>
+                                </StackPanel>
+
+                                <!--  Topmost Permission Toggle Button  -->
+                                <Button
+                                    Grid.Column="3"
+                                    Height="30"
+                                    Margin="14,0,0,0"
+                                    Padding="0"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding ToggleFloatTopmostCommand}"
+                                    CommandParameter="stopwatch"
+                                    Style="{StaticResource Button.Ghost}"
+                                    ToolTip="Click to toggle whether this floating window appears over all windows (Always On Top) or stays in the background">
+                                    <Grid>
+                                        <Border
+                                            Padding="9,4"
+                                            Background="#2010B981"
+                                            BorderBrush="#6010B981"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Visibility="{Binding FloatTopmostStopwatch, Converter={StaticResource BoolToVis}}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontSize="10"
+                                                    Text="📌 " />
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontSize="10"
+                                                    FontWeight="Bold"
+                                                    Foreground="{DynamicResource Brush.Success}"
+                                                    Text="Over All Windows: ON" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Border
+                                            Padding="9,4"
+                                            Background="#1564748B"
+                                            BorderBrush="#3064748B"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Visibility="{Binding FloatTopmostStopwatch, Converter={StaticResource InvertBoolToVis}}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontSize="10"
+                                                    Text="🪟 " />
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontSize="10"
+                                                    FontWeight="SemiBold"
+                                                    Foreground="{DynamicResource Brush.TextMuted}"
+                                                    Text="Over All Windows: OFF" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                </Button>
+
+                                <Button
+                                    Grid.Column="4"
+                                    Height="30"
+                                    Margin="10,0,0,0"
+                                    Padding="12,0"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding ToggleFloatWindowCommand}"
+                                    CommandParameter="stopwatch"
+                                    Content="Toggle"
+                                    Style="{StaticResource Button.Ghost}" />
+                            </Grid>
+                        </Border>
+
+                        <!--  6. Alt + C: Calendar  -->
+                        <Border
+                            Margin="0,0,0,8"
+                            Padding="14,12"
+                            Background="{DynamicResource Brush.SurfaceElevated}"
+                            BorderBrush="{DynamicResource Brush.Border}"
+                            BorderThickness="1"
+                            CornerRadius="10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border
+                                    Grid.Column="0"
+                                    Width="36"
+                                    Height="36"
+                                    Margin="0,0,14,0"
+                                    VerticalAlignment="Center"
+                                    Background="{DynamicResource Brush.PrimarySoft}"
+                                    CornerRadius="8">
+                                    <Path
+                                        Width="18"
+                                        Height="18"
+                                        Data="{StaticResource Icon.Calendar}"
+                                        Fill="{DynamicResource Brush.Primary}"
+                                        Stretch="Uniform" />
+                                </Border>
+
+                                <StackPanel
+                                    Grid.Column="1"
+                                    Margin="0,0,16,0"
+                                    VerticalAlignment="Center">
+                                    <TextBlock
+                                        FontSize="13"
+                                        FontWeight="SemiBold"
+                                        Foreground="{DynamicResource Brush.TextPrimary}"
+                                        Text="Calendar &amp; Deadlines" />
+                                    <TextBlock
+                                        Margin="0,2,0,0"
+                                        FontSize="11"
+                                        Foreground="{DynamicResource Brush.TextMuted}"
+                                        Text="Floating sprint calendar view highlighting project deadlines, team releases, and meetings."
+                                        TextWrapping="Wrap" />
+                                </StackPanel>
+
+                                <StackPanel
+                                    Grid.Column="2"
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal">
+                                    <Border
+                                        Padding="9,4"
+                                        Background="{DynamicResource Brush.Card}"
+                                        BorderBrush="{DynamicResource Brush.Border}"
+                                        BorderThickness="1.5"
+                                        CornerRadius="6">
+                                        <TextBlock
+                                            FontFamily="Consolas, Segoe UI"
+                                            FontSize="11"
+                                            FontWeight="Bold"
+                                            Foreground="{DynamicResource Brush.TextPrimary}"
+                                            Text="ALT" />
+                                    </Border>
+                                    <TextBlock
+                                        Margin="6,0"
+                                        VerticalAlignment="Center"
+                                        FontSize="13"
+                                        FontWeight="Bold"
+                                        Foreground="{DynamicResource Brush.TextMuted}"
+                                        Text="+" />
+                                    <Border
+                                        Padding="9,4"
+                                        Background="{DynamicResource Brush.PrimarySoft}"
+                                        BorderBrush="{DynamicResource Brush.Primary}"
+                                        BorderThickness="1.5"
+                                        CornerRadius="6">
+                                        <TextBlock
+                                            FontFamily="Consolas, Segoe UI"
+                                            FontSize="11"
+                                            FontWeight="Bold"
+                                            Foreground="{DynamicResource Brush.Primary}"
+                                            Text="C" />
+                                    </Border>
+                                </StackPanel>
+
+                                <!--  Topmost Permission Toggle Button  -->
+                                <Button
+                                    Grid.Column="3"
+                                    Height="30"
+                                    Margin="14,0,0,0"
+                                    Padding="0"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding ToggleFloatTopmostCommand}"
+                                    CommandParameter="calendar"
+                                    Style="{StaticResource Button.Ghost}"
+                                    ToolTip="Click to toggle whether this floating window appears over all windows (Always On Top) or stays in the background">
+                                    <Grid>
+                                        <Border
+                                            Padding="9,4"
+                                            Background="#2010B981"
+                                            BorderBrush="#6010B981"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Visibility="{Binding FloatTopmostCalendar, Converter={StaticResource BoolToVis}}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontSize="10"
+                                                    Text="📌 " />
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontSize="10"
+                                                    FontWeight="Bold"
+                                                    Foreground="{DynamicResource Brush.Success}"
+                                                    Text="Over All Windows: ON" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Border
+                                            Padding="9,4"
+                                            Background="#1564748B"
+                                            BorderBrush="#3064748B"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Visibility="{Binding FloatTopmostCalendar, Converter={StaticResource InvertBoolToVis}}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontSize="10"
+                                                    Text="🪟 " />
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontSize="10"
+                                                    FontWeight="SemiBold"
+                                                    Foreground="{DynamicResource Brush.TextMuted}"
+                                                    Text="Over All Windows: OFF" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                </Button>
+
+                                <Button
+                                    Grid.Column="4"
+                                    Height="30"
+                                    Margin="10,0,0,0"
+                                    Padding="12,0"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding ToggleFloatWindowCommand}"
+                                    CommandParameter="calendar"
+                                    Content="Toggle"
+                                    Style="{StaticResource Button.Ghost}" />
+                            </Grid>
+                        </Border>
+
+                        <!--  7. Alt + O: Notes & Ideas  -->
+                        <Border
+                            Margin="0,0,0,0"
+                            Padding="14,12"
+                            Background="{DynamicResource Brush.SurfaceElevated}"
+                            BorderBrush="{DynamicResource Brush.Border}"
+                            BorderThickness="1"
+                            CornerRadius="10">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+
+                                <Border
+                                    Grid.Column="0"
+                                    Width="36"
+                                    Height="36"
+                                    Margin="0,0,14,0"
+                                    VerticalAlignment="Center"
+                                    Background="{DynamicResource Brush.PrimarySoft}"
+                                    CornerRadius="8">
+                                    <TextBlock
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        FontSize="16"
+                                        Text="📝" />
+                                </Border>
+
+                                <StackPanel
+                                    Grid.Column="1"
+                                    Margin="0,0,16,0"
+                                    VerticalAlignment="Center">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock
+                                            FontSize="13"
+                                            FontWeight="SemiBold"
+                                            Foreground="{DynamicResource Brush.TextPrimary}"
+                                            Text="Private Notes &amp; Ideas Drawer" />
+                                        <Border
+                                            Margin="6,0,0,0"
+                                            Padding="5,1"
+                                            VerticalAlignment="Center"
+                                            Background="#1A10B981"
+                                            CornerRadius="4">
+                                            <TextBlock
+                                                FontSize="9"
+                                                FontWeight="Bold"
+                                                Foreground="#10B981"
+                                                Text="Offline &amp; Safe" />
                                         </Border>
                                     </StackPanel>
-                                    <TextBlock Text="Right-docked floating drawer for private ideas, task checklists, and research bookmarks with emergency backup." FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" Margin="0,2,0,0" TextWrapping="Wrap" />
+                                    <TextBlock
+                                        Margin="0,2,0,0"
+                                        FontSize="11"
+                                        Foreground="{DynamicResource Brush.TextMuted}"
+                                        Text="Floating drawer (dockable Left, Right, Top, or Bottom) for private ideas, task checklists, and research bookmarks with emergency backup."
+                                        TextWrapping="Wrap" />
                                 </StackPanel>
 
-                                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
-                                    <Border Background="{DynamicResource Brush.Card}" BorderBrush="{DynamicResource Brush.Border}" BorderThickness="1.5" CornerRadius="6" Padding="9,4">
-                                        <TextBlock Text="ALT" FontSize="11" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="{DynamicResource Brush.TextPrimary}" />
+                                <StackPanel
+                                    Grid.Column="2"
+                                    VerticalAlignment="Center"
+                                    Orientation="Horizontal">
+                                    <Border
+                                        Padding="9,4"
+                                        Background="{DynamicResource Brush.Card}"
+                                        BorderBrush="{DynamicResource Brush.Border}"
+                                        BorderThickness="1.5"
+                                        CornerRadius="6">
+                                        <TextBlock
+                                            FontFamily="Consolas, Segoe UI"
+                                            FontSize="11"
+                                            FontWeight="Bold"
+                                            Foreground="{DynamicResource Brush.TextPrimary}"
+                                            Text="ALT" />
                                     </Border>
-                                    <TextBlock Text="+" FontSize="13" FontWeight="Bold" Foreground="{DynamicResource Brush.TextMuted}" Margin="6,0" VerticalAlignment="Center" />
-                                    <Border Background="{DynamicResource Brush.PrimarySoft}" BorderBrush="{DynamicResource Brush.Primary}" BorderThickness="1.5" CornerRadius="6" Padding="9,4">
-                                        <TextBlock Text="O" FontSize="11" FontWeight="Bold" FontFamily="Consolas, Segoe UI" Foreground="{DynamicResource Brush.Primary}" />
+                                    <TextBlock
+                                        Margin="6,0"
+                                        VerticalAlignment="Center"
+                                        FontSize="13"
+                                        FontWeight="Bold"
+                                        Foreground="{DynamicResource Brush.TextMuted}"
+                                        Text="+" />
+                                    <Border
+                                        Padding="9,4"
+                                        Background="{DynamicResource Brush.PrimarySoft}"
+                                        BorderBrush="{DynamicResource Brush.Primary}"
+                                        BorderThickness="1.5"
+                                        CornerRadius="6">
+                                        <TextBlock
+                                            FontFamily="Consolas, Segoe UI"
+                                            FontSize="11"
+                                            FontWeight="Bold"
+                                            Foreground="{DynamicResource Brush.Primary}"
+                                            Text="O" />
                                     </Border>
                                 </StackPanel>
 
-                                <Button Grid.Column="3" Style="{StaticResource Button.Ghost}" Content="Toggle" Command="{Binding ToggleFloatWindowCommand}" CommandParameter="notes" Height="32" Padding="12,0" Margin="14,0,0,0" VerticalAlignment="Center" />
+                                <!--  Topmost Permission Toggle Button  -->
+                                <Button
+                                    Grid.Column="3"
+                                    Height="30"
+                                    Margin="14,0,0,0"
+                                    Padding="0"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding ToggleFloatTopmostCommand}"
+                                    CommandParameter="notes"
+                                    Style="{StaticResource Button.Ghost}"
+                                    ToolTip="Click to toggle whether this floating window appears over all windows (Always On Top) or stays in the background">
+                                    <Grid>
+                                        <Border
+                                            Padding="9,4"
+                                            Background="#2010B981"
+                                            BorderBrush="#6010B981"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Visibility="{Binding FloatTopmostNotes, Converter={StaticResource BoolToVis}}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontSize="10"
+                                                    Text="📌 " />
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontSize="10"
+                                                    FontWeight="Bold"
+                                                    Foreground="{DynamicResource Brush.Success}"
+                                                    Text="Over All Windows: ON" />
+                                            </StackPanel>
+                                        </Border>
+                                        <Border
+                                            Padding="9,4"
+                                            Background="#1564748B"
+                                            BorderBrush="#3064748B"
+                                            BorderThickness="1"
+                                            CornerRadius="6"
+                                            Visibility="{Binding FloatTopmostNotes, Converter={StaticResource InvertBoolToVis}}">
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontSize="10"
+                                                    Text="🪟 " />
+                                                <TextBlock
+                                                    VerticalAlignment="Center"
+                                                    FontSize="10"
+                                                    FontWeight="SemiBold"
+                                                    Foreground="{DynamicResource Brush.TextMuted}"
+                                                    Text="Over All Windows: OFF" />
+                                            </StackPanel>
+                                        </Border>
+                                    </Grid>
+                                </Button>
+
+                                <Button
+                                    Grid.Column="4"
+                                    Height="30"
+                                    Margin="10,0,0,0"
+                                    Padding="12,0"
+                                    VerticalAlignment="Center"
+                                    Command="{Binding ToggleFloatWindowCommand}"
+                                    CommandParameter="notes"
+                                    Content="Toggle"
+                                    Style="{StaticResource Button.Ghost}" />
                             </Grid>
                         </Border>
                     </StackPanel>
@@ -601,31 +1947,64 @@
             </Border>
 
 
-            <!-- ── SECTION 5: SYSTEM INFO & UPDATES ───────────────────────── -->
-            <Border Style="{StaticResource Border.Card}" Padding="24">
+            <!--  ── SECTION 5: SYSTEM INFO & UPDATES ─────────────────────────  -->
+            <Border Padding="24" Style="{StaticResource Border.Card}">
                 <StackPanel>
                     <StackPanel Margin="0,0,0,14">
-                        <TextBlock Text="About OctalPulse Desktop" Style="{StaticResource Text.Heading3}" Margin="0,0,0,4" />
-                        <StackPanel Orientation="Horizontal" Margin="0,2,0,4">
-                            <TextBlock Text="Version " FontSize="14" Foreground="{DynamicResource Brush.TextSecondary}" />
-                            <TextBlock Text="{Binding VersionDisplay}" FontSize="14" FontWeight="Bold" Foreground="{DynamicResource Brush.Primary}" />
-                            <Border Background="{DynamicResource Brush.PrimarySoft}" CornerRadius="4" Padding="8,5" Margin="10,0,0,0">
-                                <TextBlock Text="X1.X2.X3.X4" FontSize="10" FontWeight="Bold" Foreground="{DynamicResource Brush.Primary}" />
+                        <TextBlock
+                            Margin="0,0,0,4"
+                            Style="{StaticResource Text.Heading3}"
+                            Text="About OctalPulse Desktop" />
+                        <StackPanel Margin="0,2,0,4" Orientation="Horizontal">
+                            <TextBlock
+                                FontSize="14"
+                                Foreground="{DynamicResource Brush.TextSecondary}"
+                                Text="Version " />
+                            <TextBlock
+                                FontSize="14"
+                                FontWeight="Bold"
+                                Foreground="{DynamicResource Brush.Primary}"
+                                Text="{Binding VersionDisplay}" />
+                            <Border
+                                Margin="10,0,0,0"
+                                Padding="8,5"
+                                Background="{DynamicResource Brush.PrimarySoft}"
+                                CornerRadius="4">
+                                <TextBlock
+                                    FontSize="10"
+                                    FontWeight="Bold"
+                                    Foreground="{DynamicResource Brush.Primary}"
+                                    Text="X1.X2.X3.X4" />
                             </Border>
                         </StackPanel>
                     </StackPanel>
 
-                    <!-- Version Meaning / Breakdown Card -->
-                    <Border Background="{DynamicResource Brush.SurfaceElevated}" CornerRadius="8" Padding="14" Margin="0,0,0,14">
+                    <!--  Version Meaning / Breakdown Card  -->
+                    <Border
+                        Margin="0,0,0,14"
+                        Padding="14"
+                        Background="{DynamicResource Brush.SurfaceElevated}"
+                        CornerRadius="8">
                         <StackPanel>
-                            <TextBlock Text="{Binding VersionBreakdown}" FontSize="12" FontWeight="SemiBold" Foreground="{DynamicResource Brush.TextPrimary}" Margin="0,0,0,4" />
-                            <TextBlock Text="Version Scheme: [X1] Backend Provider Update • [X2] Desktop Feature • [X3] UI/UX &amp; Theme • [X4] Bug / Error Fixes" 
-                                       FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" />
+                            <TextBlock
+                                Margin="0,0,0,4"
+                                FontSize="12"
+                                FontWeight="SemiBold"
+                                Foreground="{DynamicResource Brush.TextPrimary}"
+                                Text="{Binding VersionBreakdown}" />
+                            <TextBlock
+                                FontSize="11"
+                                Foreground="{DynamicResource Brush.TextMuted}"
+                                Text="Version Scheme: [X1] Backend Provider Update • [X2] Desktop Feature • [X3] UI/UX &amp; Theme • [X4] Bug / Error Fixes" />
                         </StackPanel>
                     </Border>
 
-                    <TextBlock Text="Built with WPF, C# 13, and .NET 10 following Onion Architecture, Clean MVVM, SignalR Real-Time Collaboration, SQLite Local Cache, and Windows DPAPI." 
-                               FontSize="11" Foreground="{DynamicResource Brush.TextMuted}" LineHeight="16" TextWrapping="Wrap" />
+                    <TextBlock
+                        FontSize="11"
+                        Foreground="{DynamicResource Brush.TextMuted}"
+                        LineHeight="16"
+                        Text="Built with WPF, C# 13, and .NET 10 following Onion Architecture, Clean MVVM, SignalR Real-Time Collaboration, SQLite Local Cache, and Windows DPAPI."
+                        TextWrapping="Wrap" />
                 </StackPanel>
             </Border>
         </StackPanel>

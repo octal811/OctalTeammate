@@ -45,6 +45,15 @@ public class LocalCacheService : ILocalCacheService
         {
             // Column already exists — ignore.
         }
+
+        // Safe migration: add float window topmost permissions and notes dock position
+        try { db.Database.ExecuteSqlRaw("ALTER TABLE \"Preferences\" ADD COLUMN \"FloatTopmostMajorTasks\" INTEGER NOT NULL DEFAULT 0;"); } catch { }
+        try { db.Database.ExecuteSqlRaw("ALTER TABLE \"Preferences\" ADD COLUMN \"FloatTopmostMinorTasks\" INTEGER NOT NULL DEFAULT 0;"); } catch { }
+        try { db.Database.ExecuteSqlRaw("ALTER TABLE \"Preferences\" ADD COLUMN \"FloatTopmostStopwatch\" INTEGER NOT NULL DEFAULT 0;"); } catch { }
+        try { db.Database.ExecuteSqlRaw("ALTER TABLE \"Preferences\" ADD COLUMN \"FloatTopmostCalendar\" INTEGER NOT NULL DEFAULT 0;"); } catch { }
+        try { db.Database.ExecuteSqlRaw("ALTER TABLE \"Preferences\" ADD COLUMN \"FloatTopmostMedia\" INTEGER NOT NULL DEFAULT 0;"); } catch { }
+        try { db.Database.ExecuteSqlRaw("ALTER TABLE \"Preferences\" ADD COLUMN \"FloatTopmostNotes\" INTEGER NOT NULL DEFAULT 1;"); } catch { }
+        try { db.Database.ExecuteSqlRaw("ALTER TABLE \"Preferences\" ADD COLUMN \"NotesDockPosition\" TEXT NOT NULL DEFAULT 'Left';"); } catch { }
     }
 
     public async Task<LocalSession?> GetActiveSessionAsync()
@@ -123,6 +132,13 @@ public class LocalCacheService : ILocalCacheService
             existing.NotificationsEnabled = preferences.NotificationsEnabled;
             existing.AutoReconnectSignalR = preferences.AutoReconnectSignalR;
             existing.GeminiModel = preferences.GeminiModel;
+            existing.FloatTopmostMajorTasks = preferences.FloatTopmostMajorTasks;
+            existing.FloatTopmostMinorTasks = preferences.FloatTopmostMinorTasks;
+            existing.FloatTopmostStopwatch = preferences.FloatTopmostStopwatch;
+            existing.FloatTopmostCalendar = preferences.FloatTopmostCalendar;
+            existing.FloatTopmostMedia = preferences.FloatTopmostMedia;
+            existing.FloatTopmostNotes = preferences.FloatTopmostNotes;
+            existing.NotesDockPosition = preferences.NotesDockPosition;
         }
         else
         {

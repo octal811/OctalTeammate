@@ -199,4 +199,113 @@ JSON SCHEMA EXAMPLE:
 ]
 """;
     }
+
+    public static string GetNotesPrompt()
+    {
+        return """
+You are a personal assistant and note organizer. Based on our conversation, notes, ideas, or research discussed, generate a structured list of personal Notes for my desktop notes drawer.
+
+IMPORTANT RULES FOR THE JSON OUTPUT:
+1. Output ONLY a valid JSON array of Note objects. Do NOT include markdown code fences, greetings, or explanations.
+2. Mandatory fields: "title" is required for each note.
+3. Optional/Nullable fields: "description", "durationDate", "relatedToProject" can be null or omitted.
+4. Valid "type" values:
+   - "Task" (Actionable personal to-do)
+   - "Reminder" (Time-sensitive reminder)
+   - "Research" (Ideas, reference notes, technical links)
+   (Default is "Task").
+5. Valid "cardColor" values - YOU MUST SELECT EXACTLY ONE of the 10 available palette colors below:
+   - "#FFFFFF" (Pure White - Default)
+   - "#FEF08A" (Sunlight Yellow)
+   - "#A7F3D0" (Mint Emerald)
+   - "#BAE6FD" (Sky Ice)
+   - "#DDD6FE" (Soft Lilac)
+   - "#FECDD3" (Coral Rose)
+   - "#FED7AA" (Warm Peach)
+   - "#99F6E4" (Bright Aqua)
+   - "#E2E8F0" (Slate Silver)
+   - "#334155" (Obsidian Navy)
+   Do NOT invent custom hex codes or invalid colors.
+6. Optional "listOfLinks" array: List of web URLs (e.g. ["https://github.com", "https://docs.microsoft.com"]).
+7. Optional "durationDate": Target or reminder date in "YYYY-MM-DD" format (or null).
+8. Optional "checked": true or false (default is false).
+9. Optional "relatedToProject": Name of associated project or null if personal.
+
+JSON SCHEMA EXAMPLE:
+[
+  {
+    "title": "Review Q4 Architecture Roadmap",
+    "description": "Examine database indexing strategy and SignalR live update latency.",
+    "type": "Research",
+    "cardColor": "#BAE6FD",
+    "durationDate": "2026-10-10",
+    "relatedToProject": "OctalPulse",
+    "listOfLinks": [
+      "https://learn.microsoft.com/aspnet/core/signalr"
+    ],
+    "checked": false
+  },
+  {
+    "title": "Submit weekly sprint retrospectives",
+    "description": "Highlight achievements on Fast Add importer and WPF performance tuning.",
+    "type": "Reminder",
+    "cardColor": "#FEF08A",
+    "durationDate": "2026-10-05",
+    "relatedToProject": null,
+    "listOfLinks": [],
+    "checked": false
+  },
+  {
+    "title": "Verify emergency backup mirrored file in Documents",
+    "description": "Check user_notes_emergency.json file integrity after local edits.",
+    "type": "Task",
+    "cardColor": "#A7F3D0",
+    "durationDate": null,
+    "relatedToProject": null,
+    "listOfLinks": [],
+    "checked": false
+  }
+]
+""";
+    }
+
+    public static string GetSampleNotesJson()
+    {
+        return """
+[
+  {
+    "title": "Review Q4 Architecture Roadmap",
+    "description": "Examine database indexing strategy and SignalR live update latency.",
+    "type": "Research",
+    "cardColor": "#BAE6FD",
+    "durationDate": "2026-10-10",
+    "relatedToProject": "OctalPulse",
+    "listOfLinks": [
+      "https://learn.microsoft.com/aspnet/core/signalr"
+    ],
+    "checked": false
+  },
+  {
+    "title": "Submit weekly sprint retrospectives",
+    "description": "Highlight achievements on Fast Add importer and WPF performance tuning.",
+    "type": "Reminder",
+    "cardColor": "#FEF08A",
+    "durationDate": "2026-10-05",
+    "relatedToProject": null,
+    "listOfLinks": [],
+    "checked": false
+  },
+  {
+    "title": "Verify emergency backup mirrored file in Documents",
+    "description": "Check user_notes_emergency.json file integrity after local edits.",
+    "type": "Task",
+    "cardColor": "#A7F3D0",
+    "durationDate": null,
+    "relatedToProject": null,
+    "listOfLinks": [],
+    "checked": false
+  }
+]
+""";
+    }
 }

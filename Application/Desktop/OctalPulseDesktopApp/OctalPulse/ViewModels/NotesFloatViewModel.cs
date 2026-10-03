@@ -27,6 +27,7 @@ public partial class NotesFloatViewModel : ObservableObject
     private readonly IProjectService? _projectService;
     private readonly IDialogService _dialogService;
     private readonly ThemeService _themeService;
+    private readonly IFastAddDialogService? _fastAddDialogService;
 
     private readonly List<NoteItemViewModel> _allNotes = new();
 
@@ -87,11 +88,13 @@ public partial class NotesFloatViewModel : ObservableObject
         INotesStorageService storageService,
         IDialogService dialogService,
         ThemeService themeService,
+        IFastAddDialogService? fastAddDialogService = null,
         IProjectService? projectService = null)
     {
         _storageService = storageService;
         _dialogService = dialogService;
         _themeService = themeService;
+        _fastAddDialogService = fastAddDialogService;
         _projectService = projectService;
     }
 
@@ -99,6 +102,19 @@ public partial class NotesFloatViewModel : ObservableObject
     {
         await LoadNotesAsync();
         _ = LoadProjectsAsync();
+    }
+
+    [RelayCommand]
+    public async Task OpenFastAddAsync()
+    {
+        if (_fastAddDialogService == null) return;
+
+        var imported = await _fastAddDialogService.OpenForNotesAsync();
+        if (imported)
+        {
+            await LoadNotesAsync();
+            _dialogService.ShowToast("Fast Add Complete", "New notes imported successfully to your personal drawer!", ToastType.Success);
+        }
     }
 
     [RelayCommand]

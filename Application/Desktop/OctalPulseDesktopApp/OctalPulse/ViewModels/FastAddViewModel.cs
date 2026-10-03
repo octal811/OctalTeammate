@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.Input;
 using OctalPulse.Application.Abstractions;
 using OctalPulse.Application.Contracts;
 using OctalPulse.Application.Services;
+using OctalPulse.Domain.Entities;
 using OctalPulse.Domain.Enums;
 using OctalPulse.Services;
 
@@ -34,6 +35,13 @@ public partial class FastAddExecutionItemModel : ObservableObject
     public MinorTaskState MinorState { get; set; } = MinorTaskState.Todo;
     public MinorTaskJobType? JobType { get; set; }
 
+    // Note properties
+    public NoteType NoteType { get; set; } = NoteType.Task;
+    public string? CardColor { get; set; }
+    public string? RelatedToProject { get; set; }
+    public List<string> Links { get; set; } = new();
+    public bool IsChecked { get; set; }
+
     // Reference to parent major item model if this is a child minor task
     public FastAddExecutionItemModel? ParentMajorItem { get; set; }
 
@@ -58,13 +66,19 @@ public partial class FastAddExecutionItemModel : ObservableObject
     public bool IsFailed => Status == FastAddExecutionStatus.Failed;
     public bool IsSkipped => Status == FastAddExecutionStatus.Skipped;
 
-    public string TypeBadge => TaskType == FastAddTaskType.Major ? "MAJOR" : "MINOR";
+    public string TypeBadge => TaskType switch
+    {
+        FastAddTaskType.Major => "MAJOR",
+        FastAddTaskType.Minor => "MINOR",
+        FastAddTaskType.Note => "NOTE",
+        _ => "TASK"
+    };
 
     public string StatusDisplay => Status switch
     {
         FastAddExecutionStatus.Pending => "Queued",
-        FastAddExecutionStatus.InProgress => "Adding to project...",
-        FastAddExecutionStatus.Success => "Created",
+        FastAddExecutionStatus.InProgress => TaskType == FastAddTaskType.Note ? "Saving to personal drawer..." : "Adding to project...",
+        FastAddExecutionStatus.Success => TaskType == FastAddTaskType.Note ? "Saved offline" : "Created",
         FastAddExecutionStatus.Failed => $"Failed: {ErrorMessage}",
         FastAddExecutionStatus.Skipped => "Skipped (Parent failed)",
         _ => "Unknown"
@@ -78,6 +92,7 @@ public partial class FastAddViewModel : ObservableObject
     private readonly IUserSession _userSession;
     private readonly IFastAddParserService _parserService;
     private readonly IDialogService _dialogService;
+    private readonly INotesStorageService _notesStorageService;
 
     public event Action<bool>? RequestClose;
 
@@ -94,10 +109,12 @@ public partial class FastAddViewModel : ObservableObject
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(IsMajorTasksScope))]
     [NotifyPropertyChangedFor(nameof(IsMinorTasksScope))]
+    [NotifyPropertyChangedFor(nameof(IsNotesScope))]
     private FastAddScope _selectedScope = FastAddScope.MajorTasks;
 
     public bool IsMajorTasksScope => SelectedScope == FastAddScope.MajorTasks;
     public bool IsMinorTasksScope => SelectedScope == FastAddScope.MinorTasks;
+    public bool IsNotesScope => SelectedScope == FastAddScope.Notes;
 
     [ObservableProperty]
     private bool _isScopeLocked;
@@ -132,6 +149,7 @@ public partial class FastAddViewModel : ObservableObject
     public ObservableCollection<string> ValidationWarnings { get; } = new();
     public ObservableCollection<FastAddMajorTaskDto> ParsedMajorTasks { get; } = new();
     public ObservableCollection<FastAddMinorTaskDto> ParsedMinorTasks { get; } = new();
+    public ObservableCollection<FastAddNoteDto> ParsedNotes { get; } = new();
 
     // Execution State
     public ObservableCollection<FastAddExecutionItemModel> ExecutionItems { get; } = new();
@@ -165,13 +183,15 @@ public partial class FastAddViewModel : ObservableObject
         IProjectService projectService,
         IUserSession userSession,
         IFastAddParserService parserService,
-        IDialogService dialogService)
+        IDialogService dialogService,
+        INotesStorageService notesStorageService)
     {
         _taskService = taskService;
         _projectService = projectService;
         _userSession = userSession;
         _parserService = parserService;
         _dialogService = dialogService;
+        _notesStorageService = notesStorageService;
     }
 
     public async Task InitializeForTrackAsync(Guid? preferredTrackId = null)
@@ -190,6 +210,15 @@ public partial class FastAddViewModel : ObservableObject
         IsScopeLocked = true;
         TargetMajorTaskId = majorTaskId;
         TargetMajorTaskTitle = majorTaskTitle;
+    }
+
+    public Task InitializeForNotesAsync()
+    {
+        SelectedScope = FastAddScope.Notes;
+        IsScopeLocked = true;
+        TargetMajorTaskId = null;
+        TargetMajorTaskTitle = null;
+        return Task.CompletedTask;
     }
 
     private async Task LoadTracksAsync(Guid? preferredTrackId)
@@ -259,16 +288,17 @@ public partial class FastAddViewModel : ObservableObject
         ValidationWarnings.Clear();
         ParsedMajorTasks.Clear();
         ParsedMinorTasks.Clear();
+        ParsedNotes.Clear();
 
         if (string.IsNullOrWhiteSpace(RawJsonInput))
         {
             IsValid = false;
-            ValidationStatusMessage = "Please paste JSON task definitions.";
+            ValidationStatusMessage = "Please paste JSON task or note definitions.";
             return;
         }
 
         // Scope check
-        FastAddScope? forced = IsScopeLocked ? FastAddScope.MinorTasks : SelectedScope;
+        FastAddScope? forced = IsScopeLocked ? (SelectedScope == FastAddScope.Notes ? FastAddScope.Notes : FastAddScope.MinorTasks) : SelectedScope;
         var result = _parserService.ParseAndValidate(RawJsonInput, forced);
 
         if (!IsScopeLocked && result.DetectedScope != SelectedScope)
@@ -276,7 +306,7 @@ public partial class FastAddViewModel : ObservableObject
             SelectedScope = result.DetectedScope;
         }
 
-        // Context check (Track or MajorTask target required)
+        // Context check (Track or MajorTask target required for tasks; Notes need no target context)
         if (SelectedScope == FastAddScope.MajorTasks && SelectedTrack == null)
         {
             result.Errors.Add("Please select a target Project & Track for these Major Tasks.");
@@ -298,21 +328,30 @@ public partial class FastAddViewModel : ObservableObject
         foreach (var sub in result.MinorTasks)
             ParsedMinorTasks.Add(sub);
 
-        IsValid = result.Errors.Count == 0 && (ParsedMajorTasks.Count > 0 || ParsedMinorTasks.Count > 0);
+        foreach (var n in result.Notes)
+            ParsedNotes.Add(n);
+
+        IsValid = result.Errors.Count == 0 && (ParsedMajorTasks.Count > 0 || ParsedMinorTasks.Count > 0 || ParsedNotes.Count > 0);
 
         OnPropertyChanged(nameof(HasErrors));
         OnPropertyChanged(nameof(HasWarnings));
         OnPropertyChanged(nameof(HasMajorTasks));
         OnPropertyChanged(nameof(HasMinorTasks));
+        OnPropertyChanged(nameof(HasNotes));
 
         if (IsValid)
         {
             var majorCount = ParsedMajorTasks.Count;
             var subCount = ParsedMajorTasks.Sum(m => m.MinorTasks.Count) + ParsedMinorTasks.Count;
+            var noteCount = ParsedNotes.Count;
 
-            ValidationStatusMessage = SelectedScope == FastAddScope.MajorTasks
-                ? $"✓ Ready to import {majorCount} Major Task{(majorCount == 1 ? string.Empty : "s")} and {subCount} Sub-task{(subCount == 1 ? string.Empty : "s")}."
-                : $"✓ Ready to import {subCount} Minor Task{(subCount == 1 ? string.Empty : "s")}.";
+            ValidationStatusMessage = SelectedScope switch
+            {
+                FastAddScope.MajorTasks => $"✓ Ready to import {majorCount} Major Task{(majorCount == 1 ? string.Empty : "s")} and {subCount} Sub-task{(subCount == 1 ? string.Empty : "s")}.",
+                FastAddScope.MinorTasks => $"✓ Ready to import {subCount} Minor Task{(subCount == 1 ? string.Empty : "s")}.",
+                FastAddScope.Notes => $"✓ Ready to import {noteCount} Note{(noteCount == 1 ? string.Empty : "s")} to your offline personal notes drawer.",
+                _ => "✓ Ready to import."
+            };
         }
         else
         {
@@ -324,6 +363,7 @@ public partial class FastAddViewModel : ObservableObject
     public bool HasWarnings => ValidationWarnings.Count > 0;
     public bool HasMajorTasks => ParsedMajorTasks.Count > 0;
     public bool HasMinorTasks => ParsedMinorTasks.Count > 0;
+    public bool HasNotes => ParsedNotes.Count > 0;
 
     private void ResetValidation()
     {
@@ -334,11 +374,13 @@ public partial class FastAddViewModel : ObservableObject
         ValidationWarnings.Clear();
         ParsedMajorTasks.Clear();
         ParsedMinorTasks.Clear();
+        ParsedNotes.Clear();
 
         OnPropertyChanged(nameof(HasErrors));
         OnPropertyChanged(nameof(HasWarnings));
         OnPropertyChanged(nameof(HasMajorTasks));
         OnPropertyChanged(nameof(HasMinorTasks));
+        OnPropertyChanged(nameof(HasNotes));
     }
 
     [RelayCommand]
@@ -370,14 +412,32 @@ public partial class FastAddViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private void CopyNotesPrompt()
+    {
+        try
+        {
+            Clipboard.SetText(FastAddPromptProvider.GetNotesPrompt());
+            _dialogService.ShowToast("Prompt Copied", "Notes AI prompt copied to clipboard. Paste it in your AI chat!", ToastType.Success);
+        }
+        catch (Exception ex)
+        {
+            _dialogService.ShowToast("Copy Failed", ex.Message, ToastType.Warning);
+        }
+    }
+
+    [RelayCommand]
     private void LoadSampleJson()
     {
-        RawJsonInput = SelectedScope == FastAddScope.MajorTasks
-            ? FastAddPromptProvider.GetSampleMajorTasksJson()
-            : FastAddPromptProvider.GetSampleMinorTasksJson();
+        RawJsonInput = SelectedScope switch
+        {
+            FastAddScope.MajorTasks => FastAddPromptProvider.GetSampleMajorTasksJson(),
+            FastAddScope.MinorTasks => FastAddPromptProvider.GetSampleMinorTasksJson(),
+            FastAddScope.Notes => FastAddPromptProvider.GetSampleNotesJson(),
+            _ => FastAddPromptProvider.GetSampleMajorTasksJson()
+        };
 
         ValidateJson();
-        _dialogService.ShowToast("Sample Loaded", "Sample task JSON loaded into editor.", ToastType.Info);
+        _dialogService.ShowToast("Sample Loaded", "Sample task/note JSON loaded into editor.", ToastType.Info);
     }
 
     [RelayCommand]
@@ -463,7 +523,7 @@ public partial class FastAddViewModel : ObservableObject
                 }
             }
         }
-        else
+        else if (SelectedScope == FastAddScope.MinorTasks)
         {
             foreach (var minor in ParsedMinorTasks)
             {
@@ -481,6 +541,27 @@ public partial class FastAddViewModel : ObservableObject
                     Status = FastAddExecutionStatus.Pending
                 };
                 ExecutionItems.Add(minorItem);
+            }
+        }
+        else
+        {
+            foreach (var note in ParsedNotes)
+            {
+                var noteItem = new FastAddExecutionItemModel
+                {
+                    TaskType = FastAddTaskType.Note,
+                    Title = note.Title,
+                    Description = note.Description,
+                    DetailsOrTarget = note.RelatedToProject,
+                    NoteType = note.ResolvedType,
+                    CardColor = note.ResolvedCardColor,
+                    RelatedToProject = note.RelatedToProject,
+                    DueDate = note.ResolvedDurationDate,
+                    Links = note.ListOfLinks.ToList(),
+                    IsChecked = note.Checked,
+                    Status = FastAddExecutionStatus.Pending
+                };
+                ExecutionItems.Add(noteItem);
             }
         }
 
@@ -527,10 +608,11 @@ public partial class FastAddViewModel : ObservableObject
             }
 
             item.Status = FastAddExecutionStatus.InProgress;
-            ProgressText = $"Adding task {i + 1} of {TotalToProcess}: '{item.Title}'...";
+            var itemTypeLabel = item.TaskType == FastAddTaskType.Note ? "note" : "task";
+            ProgressText = $"Adding {itemTypeLabel} {i + 1} of {TotalToProcess}: '{item.Title}'...";
 
             // Delay slight tick for smooth UI rendering
-            await Task.Delay(60);
+            await Task.Delay(50);
 
             try
             {
@@ -555,7 +637,7 @@ public partial class FastAddViewModel : ObservableObject
                     SuccessCount++;
                     HasAnySucceeded = true;
                 }
-                else
+                else if (item.TaskType == FastAddTaskType.Minor)
                 {
                     // Minor Task
                     Guid targetParentId;
@@ -592,6 +674,31 @@ public partial class FastAddViewModel : ObservableObject
                     SuccessCount++;
                     HasAnySucceeded = true;
                 }
+                else
+                {
+                    // Note item
+                    var userNote = new UserNote
+                    {
+                        Id = Guid.NewGuid(),
+                        Title = item.Title,
+                        Description = item.Description,
+                        Type = item.NoteType,
+                        DurationDate = item.DueDate,
+                        CardColor = item.CardColor ?? "#FFFFFF",
+                        CreatedAt = DateTime.UtcNow,
+                        RelatedToProject = item.RelatedToProject,
+                        Checked = item.IsChecked,
+                        ListOfLinks = item.Links.ToList()
+                    };
+
+                    await _notesStorageService.AddOrUpdateNoteAsync(userNote);
+
+                    item.CreatedId = userNote.Id;
+                    item.Status = FastAddExecutionStatus.Success;
+                    item.ErrorMessage = null;
+                    SuccessCount++;
+                    HasAnySucceeded = true;
+                }
             }
             catch (Exception ex)
             {
@@ -607,15 +714,16 @@ public partial class FastAddViewModel : ObservableObject
         IsExecuting = false;
         CurrentStep = FastAddStep.Finished;
 
+        var unit = SelectedScope == FastAddScope.Notes ? "notes" : "tasks";
         if (FailedCount == 0)
         {
-            ProgressText = $"Completed! All {SuccessCount} tasks added successfully.";
-            _dialogService.ShowToast("Fast Add Finished", $"Successfully created {SuccessCount} tasks!", ToastType.Success);
+            ProgressText = $"Completed! All {SuccessCount} {unit} added successfully.";
+            _dialogService.ShowToast("Fast Add Finished", $"Successfully created {SuccessCount} {unit}!", ToastType.Success);
         }
         else
         {
             ProgressText = $"Finished with issues: {SuccessCount} succeeded, {FailedCount} failed.";
-            _dialogService.ShowToast("Fast Add Finished", $"{SuccessCount} tasks created, {FailedCount} failed.", ToastType.Warning);
+            _dialogService.ShowToast("Fast Add Finished", $"{SuccessCount} {unit} created, {FailedCount} failed.", ToastType.Warning);
         }
     }
 

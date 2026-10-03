@@ -10,14 +10,16 @@ public class ThemeService
 
     private static readonly HashSet<string> _knownThemes = new(StringComparer.OrdinalIgnoreCase)
     {
-        "Light", "Dark", "OledDark"
+        "Light", "Dark", "OledDark", "Glasses", "HeavyGlasses"
     };
 
     private static Uri ThemeUri(string theme) => theme.ToLowerInvariant() switch
     {
-        "light"    => new Uri("pack://application:,,,/OctalPulse;component/Styles/Light.xaml"),
-        "oleddark" => new Uri("pack://application:,,,/OctalPulse;component/Styles/OledDark.xaml"),
-        _          => new Uri("pack://application:,,,/OctalPulse;component/Styles/Dark.xaml")
+        "light"        => new Uri("pack://application:,,,/OctalPulse;component/Styles/Light.xaml"),
+        "oleddark"     => new Uri("pack://application:,,,/OctalPulse;component/Styles/OledDark.xaml"),
+        "glasses"      => new Uri("pack://application:,,,/OctalPulse;component/Styles/Glasses.xaml"),
+        "heavyglasses" => new Uri("pack://application:,,,/OctalPulse;component/Styles/HeavyGlasses.xaml"),
+        _              => new Uri("pack://application:,,,/OctalPulse;component/Styles/Dark.xaml")
     };
 
     public void SetTheme(string theme)
@@ -28,9 +30,11 @@ public class ThemeService
         // Swap theme resource dictionaries
         var toRemove = app.Resources.MergedDictionaries
             .Where(d => d.Source != null && (
-                d.Source.OriginalString.Contains("Dark.xaml")    ||
-                d.Source.OriginalString.Contains("Light.xaml")   ||
-                d.Source.OriginalString.Contains("OledDark.xaml")))
+                d.Source.OriginalString.Contains("Dark.xaml")        ||
+                d.Source.OriginalString.Contains("Light.xaml")       ||
+                d.Source.OriginalString.Contains("OledDark.xaml")    ||
+                d.Source.OriginalString.Contains("Glasses.xaml")     ||
+                d.Source.OriginalString.Contains("HeavyGlasses.xaml")))
             .ToList();
 
         foreach (var old in toRemove)
@@ -45,10 +49,12 @@ public class ThemeService
     {
         SetTheme(_currentTheme switch
         {
-            "Light"    => "Dark",
-            "Dark"     => "OledDark",
-            "OledDark" => "Light",
-            _          => "Light"
+            "Light"        => "Dark",
+            "Dark"         => "OledDark",
+            "OledDark"     => "Glasses",
+            "Glasses"      => "HeavyGlasses",
+            "HeavyGlasses" => "Light",
+            _              => "Light"
         });
     }
 }

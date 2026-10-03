@@ -7,7 +7,7 @@
         xmlns:views="clr-namespace:OctalPulse.Views"
         mc:Ignorable="d"
         WindowStyle="None"
-        AllowsTransparency="False"
+        AllowsTransparency="True"
         Title="OctalPulse • Enterprise Project Management"
         Icon="pack://application:,,,/OctalPulse;component/Assets/OctalPulse.ico"
         Height="820" Width="1280"
@@ -112,7 +112,7 @@
         <!-- ── Custom Title Bar (themed via XAML brushes, no Win32/DWM) ── -->
         <Border Grid.Row="0" Background="{DynamicResource Brush.Surface}"
                 BorderBrush="{DynamicResource Brush.Border}" BorderThickness="0,0,0,1">
-<Grid x:Name="RootLayout">
+            <Grid x:Name="RootLayout">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
