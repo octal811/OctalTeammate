@@ -32,9 +32,9 @@
     <UseWPF>true</UseWPF>
     <UseWindowsForms>true</UseWindowsForms>
     <ApplicationIcon>Assets\OctalPulse.ico</ApplicationIcon>
-    <Version>1.7.5.17</Version>
-    <AssemblyVersion>1.7.5.17</AssemblyVersion>
-    <FileVersion>1.7.5.17</FileVersion>
+    <Version>1.8.7.21</Version>
+    <AssemblyVersion>1.8.7.21</AssemblyVersion>
+    <FileVersion>1.8.7.21</FileVersion>
     <!-- Use our custom Program.Main so the mutex check runs BEFORE WPF initialises -->
     <StartupObject>OctalPulse.Program</StartupObject>
   </PropertyGroup>

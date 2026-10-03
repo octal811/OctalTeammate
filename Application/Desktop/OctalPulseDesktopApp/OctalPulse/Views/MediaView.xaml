@@ -280,7 +280,7 @@
                                         <Button Grid.Column="2" Command="{Binding DeletePostCommand}" Style="{StaticResource Button.Ghost}"
                                                 Width="32" Height="32" Padding="0" ToolTip="Delete Post"
                                                 Visibility="{Binding IsAuthor, Converter={StaticResource BoolToVis}}">
-                                            <Path Data="{StaticResource Icon.Trash}" Fill="{DynamicResource Brush.Danger}" Width="14" Height="14" Stretch="Uniform" />
+                                            <Path Data="{StaticResource Icon.Trash}" Fill="{DynamicResource Brush.Danger}" Margin="9,0,0,0" Width="14" Height="14" Stretch="Uniform" />
                                         </Button>
                                     </Grid>
 

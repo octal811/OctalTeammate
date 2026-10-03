@@ -68,6 +68,10 @@ public partial class MajorTasksFloatWindow : Window
 
     private void SendToDesktopLevel()
     {
+        // When Topmost is enabled (Over All Windows), do NOT push to HWND_BOTTOM
+        // — that would override the topmost state and send the window behind everything.
+        if (Topmost) return;
+
         var hwnd = new WindowInteropHelper(this).Handle;
         SetWindowPos(hwnd, HWND_BOTTOM, 0, 0, 0, 0,
             SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE);
