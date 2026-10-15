@@ -1,6 +1,7 @@
 using System.Windows;
 using Microsoft.Extensions.Logging;
 using OctalPulse.Application.Abstractions;
+using OctalPulse.Application.Contracts;
 using OctalPulse.Application.Services;
 
 namespace OctalPulse.Services;
@@ -26,6 +27,7 @@ public sealed class RealtimeNotificationService : IDisposable
     public event Action? CalendarUpdated;
     public event Action? ProjectsTracksUpdated;
     public event Action? MediaUpdated;
+    public event Action<NotificationItemDto>? NotificationReceived;
 
     public RealtimeNotificationService(
         ISignalRRealtimeService signalRService,
@@ -53,6 +55,7 @@ public sealed class RealtimeNotificationService : IDisposable
         _signalRService.MinorTaskChanged += OnMinorTaskChanged;
         _signalRService.EventChanged += OnEventChanged;
         _signalRService.PostCreated += OnPostCreated;
+        _signalRService.NotificationReceived += OnNotificationReceived;
 
         // If already connected, sync groups right away
         if (_signalRService.IsConnected)
@@ -104,21 +107,34 @@ public sealed class RealtimeNotificationService : IDisposable
         }
     }
 
+    private void OnNotificationReceived(NotificationItemDto notification)
+    {
+        _logger.LogInformation("Notification received for user: {Title} - {Message}", notification.Title, notification.Message);
+
+        var title = !string.IsNullOrWhiteSpace(notification.Title) ? notification.Title : "OctalPulse Notification";
+        var message = notification.Message;
+        if (!string.IsNullOrWhiteSpace(notification.ActorName) &&
+            !message.StartsWith(notification.ActorName, StringComparison.OrdinalIgnoreCase))
+        {
+            message = $"{notification.ActorName}: {message}";
+        }
+
+        ShowNotification(title, message);
+
+        NotifyUi(() => NotificationReceived?.Invoke(notification));
+    }
+
     private void OnProjectChanged(Guid projectId)
     {
         _ = _signalRService.JoinProjectAsync(projectId);
-
-        ShowNotification("Project Updated", "A project was created or updated.");
         NotifyUi(() => ProjectsTracksUpdated?.Invoke());
     }
 
     private void OnTrackChanged(Guid trackId, Guid projectId)
     {
-        // When a new track is created, join its track group immediately so we receive its tasks!
         _ = _signalRService.JoinTrackAsync(trackId);
         _ = _signalRService.JoinProjectAsync(projectId);
 
-        ShowNotification("Track Updated", "A project track was created or updated.");
         NotifyUi(() =>
         {
             ProjectsTracksUpdated?.Invoke();
@@ -129,27 +145,22 @@ public sealed class RealtimeNotificationService : IDisposable
 
     private void OnMajorTaskChanged(Guid majorTaskId, Guid trackId)
     {
-        ShowNotification("Major Task Updated", "A major task was added or updated in your track.");
         NotifyUi(() => MajorTasksUpdated?.Invoke());
     }
 
     private void OnMinorTaskChanged(Guid minorTaskId, Guid trackId)
     {
-        ShowNotification("Minor Task Updated", "A sub-task was added or updated in your track.");
         NotifyUi(() => MinorTasksUpdated?.Invoke());
     }
 
     private void OnEventChanged(Guid eventId, Guid projectId)
     {
         _ = _signalRService.JoinProjectAsync(projectId);
-
-        ShowNotification("Calendar Event", "A calendar schedule event was added or updated.");
         NotifyUi(() => CalendarUpdated?.Invoke());
     }
 
     private void OnPostCreated(Guid postId, Guid? projectId, Guid? trackId)
     {
-        ShowNotification("New Media Post", "A new post was shared on your team feed.");
         NotifyUi(() => MediaUpdated?.Invoke());
     }
 
@@ -157,7 +168,7 @@ public sealed class RealtimeNotificationService : IDisposable
     {
         try
         {
-            _trayService.ShowBalloonTip(title, message, 3000);
+            _trayService.ShowBalloonTip(title, message, 3500);
         }
         catch (Exception ex)
         {
@@ -193,5 +204,6 @@ public sealed class RealtimeNotificationService : IDisposable
         _signalRService.MinorTaskChanged -= OnMinorTaskChanged;
         _signalRService.EventChanged -= OnEventChanged;
         _signalRService.PostCreated -= OnPostCreated;
+        _signalRService.NotificationReceived -= OnNotificationReceived;
     }
 }

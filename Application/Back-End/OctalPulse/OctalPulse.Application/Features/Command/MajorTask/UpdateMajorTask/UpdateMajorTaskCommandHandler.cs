@@ -12,17 +12,20 @@ public class UpdateMajorTaskCommandHandler : IRequestHandler<UpdateMajorTaskComm
     private readonly IRealtimeNotifier _realtimeNotifier;
     private readonly IProgressCalculator _progressCalculator;
     private readonly IBadgeService _badgeService;
+    private readonly IAppNotificationService _notificationService;
 
     public UpdateMajorTaskCommandHandler(
         IUnitOfWork unitOfWork,
         IRealtimeNotifier realtimeNotifier,
         IProgressCalculator progressCalculator,
-        IBadgeService badgeService)
+        IBadgeService badgeService,
+        IAppNotificationService notificationService)
     {
         _unitOfWork = unitOfWork;
         _realtimeNotifier = realtimeNotifier;
         _progressCalculator = progressCalculator;
         _badgeService = badgeService;
+        _notificationService = notificationService;
     }
 
     public async Task<UpdateMajorTaskResponse> Handle(
@@ -62,6 +65,32 @@ public class UpdateMajorTaskCommandHandler : IRequestHandler<UpdateMajorTaskComm
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         await _realtimeNotifier.MajorTaskChangedAsync(task.TrackId, task.Id, cancellationToken);
+
+        var track = await _unitOfWork.Tracks.GetByIdAsync(task.TrackId, cancellationToken);
+        var trackName = track?.Name ?? "track";
+
+        await _notificationService.NotifyTrackMembersAsync(
+            task.TrackId,
+            request.UserId,
+            "Major Task Updated",
+            $"Updated major task '{task.Title}' in track '{trackName}'.",
+            Domain.Enums.NotificationType.MajorTask,
+            task.Id,
+            cancellationToken);
+
+        if (task.AssignedUserId.HasValue && task.AssignedUserId != request.UserId)
+        {
+            await _notificationService.CreateAndSendNotificationAsync(
+                task.AssignedUserId.Value,
+                request.UserId,
+                track?.ProjectId,
+                task.TrackId,
+                "Task Assigned",
+                $"You were assigned major task '{task.Title}'.",
+                Domain.Enums.NotificationType.MajorTask,
+                task.Id,
+                cancellationToken);
+        }
 
         var progress = await _progressCalculator.GetMajorTaskProgressAsync(task.Id, cancellationToken);
 

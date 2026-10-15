@@ -31,15 +31,18 @@ public class AddPostCommentCommandHandler : IRequestHandler<AddPostCommentComman
     private readonly IUnitOfWork _unitOfWork;
     private readonly IRealtimeNotifier _realtimeNotifier;
     private readonly IBadgeService _badgeService;
+    private readonly IAppNotificationService _notificationService;
 
     public AddPostCommentCommandHandler(
         IUnitOfWork unitOfWork,
         IRealtimeNotifier realtimeNotifier,
-        IBadgeService badgeService)
+        IBadgeService badgeService,
+        IAppNotificationService notificationService)
     {
         _unitOfWork = unitOfWork;
         _realtimeNotifier = realtimeNotifier;
         _badgeService = badgeService;
+        _notificationService = notificationService;
     }
 
     public async Task<CommentResponse> Handle(AddPostCommentCommand request, CancellationToken cancellationToken)
@@ -87,6 +90,24 @@ public class AddPostCommentCommandHandler : IRequestHandler<AddPostCommentComman
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         await _realtimeNotifier.CommentAddedAsync(post.Id, comment.Id, comment.ParentCommentId, post.ProjectId, cancellationToken);
+
+        if (post.AuthorId != request.UserId)
+        {
+            var commentPreview = string.IsNullOrWhiteSpace(request.Content)
+                ? "Commented on your post."
+                : (request.Content.Length > 90 ? request.Content.Substring(0, 87) + "..." : request.Content);
+
+            await _notificationService.CreateAndSendNotificationAsync(
+                post.AuthorId,
+                request.UserId,
+                post.ProjectId,
+                post.TrackId,
+                "New Comment",
+                commentPreview,
+                Domain.Enums.NotificationType.Comment,
+                post.Id,
+                cancellationToken);
+        }
 
         var loadedComment = await _unitOfWork.PostComments.GetWithRepliesAsync(comment.Id, cancellationToken);
         return PostMapper.ToResponse(loadedComment ?? comment);

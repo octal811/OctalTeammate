@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 using OctalPulse.API.Hubs;
+using OctalPulse.Application.Features.Notification.DTOs;
 using OctalPulse.Application.Interface.Services;
 
 namespace OctalPulse.API.Notifications;
@@ -16,35 +17,39 @@ public class SignalRNotifier : IRealtimeNotifier
     public async Task ProjectChangedAsync(Guid projectId, CancellationToken cancellationToken = default)
     {
         await _hubContext.Clients
-            .All
+            .Group(CollaborationHub.ProjectGroupName(projectId))
             .SendAsync("projectChanged", projectId, cancellationToken);
     }
 
     public async Task TrackChangedAsync(Guid trackId, Guid projectId, CancellationToken cancellationToken = default)
     {
         await _hubContext.Clients
-            .All
+            .Group(CollaborationHub.TrackGroupName(trackId))
+            .SendAsync("trackChanged", trackId, projectId, cancellationToken);
+
+        await _hubContext.Clients
+            .Group(CollaborationHub.ProjectGroupName(projectId))
             .SendAsync("trackChanged", trackId, projectId, cancellationToken);
     }
 
     public async Task MajorTaskChangedAsync(Guid trackId, Guid majorTaskId, CancellationToken cancellationToken = default)
     {
         await _hubContext.Clients
-            .All
+            .Group(CollaborationHub.TrackGroupName(trackId))
             .SendAsync("majorTaskChanged", majorTaskId, trackId, cancellationToken);
     }
 
     public async Task MinorTaskChangedAsync(Guid trackId, Guid minorTaskId, CancellationToken cancellationToken = default)
     {
         await _hubContext.Clients
-            .All
+            .Group(CollaborationHub.TrackGroupName(trackId))
             .SendAsync("minorTaskChanged", minorTaskId, trackId, cancellationToken);
     }
 
     public async Task EventChangedAsync(Guid projectId, Guid eventId, CancellationToken cancellationToken = default)
     {
         await _hubContext.Clients
-            .All
+            .Group(CollaborationHub.ProjectGroupName(projectId))
             .SendAsync("eventChanged", eventId, projectId, cancellationToken);
     }
 
@@ -142,5 +147,22 @@ public class SignalRNotifier : IRealtimeNotifier
                 .All
                 .SendAsync("commentDeleted", postId, commentId, null, cancellationToken);
         }
+    }
+
+    public async Task SendNotificationAsync(Guid recipientUserId, NotificationDto notification, CancellationToken cancellationToken = default)
+    {
+        await _hubContext.Clients
+            .User(recipientUserId.ToString())
+            .SendAsync("receiveNotification", notification, cancellationToken);
+    }
+
+    public async Task SendNotificationToUsersAsync(IEnumerable<Guid> recipientUserIds, NotificationDto notification, CancellationToken cancellationToken = default)
+    {
+        var userIds = recipientUserIds.Select(u => u.ToString()).ToList();
+        if (!userIds.Any()) return;
+
+        await _hubContext.Clients
+            .Users(userIds)
+            .SendAsync("receiveNotification", notification, cancellationToken);
     }
 }

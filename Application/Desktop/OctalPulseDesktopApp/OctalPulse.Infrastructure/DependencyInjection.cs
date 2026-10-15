@@ -70,6 +70,7 @@ public static class DependencyInjection
         services.AddScoped<IBadgeService, BadgeService>();
         services.AddScoped<IActivityService, ActivityService>();
         services.AddScoped<IFastAddParserService, FastAddParserService>();
+        services.AddScoped<IAppNotificationService, AppNotificationService>();
 
         // Gemini & Octo AI Supporter
         services.AddHttpClient<IGeminiClient, OctalPulse.Infrastructure.Gemini.GeminiClient>(client =>

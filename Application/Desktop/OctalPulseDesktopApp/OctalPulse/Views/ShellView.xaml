@@ -676,7 +676,43 @@
                             </Border>
                         </Button>
 
+                        <!--  Notification Bell Button  -->
+                        <Grid Margin="0,0,4,0" VerticalAlignment="Center">
+                            <Button
+                                Width="36"
+                                Height="36"
+                                Command="{Binding ToggleNotificationDrawerCommand}"
+                                Style="{StaticResource Button.Icon}"
+                                ToolTip="Notifications">
+                                <Path
+                                    Width="18"
+                                    Height="18"
+                                    Data="{StaticResource Icon.Bell}"
+                                    Fill="{DynamicResource Brush.TextSecondary}"
+                                    Stretch="Uniform" />
+                            </Button>
 
+                            <!--  Unread Count Badge  -->
+                            <Border
+                                MinWidth="18"
+                                Height="18"
+                                Margin="0,-2,-2,0"
+                                Padding="4,1"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Top"
+                                Background="{DynamicResource Brush.Danger}"
+                                CornerRadius="9"
+                                IsHitTestVisible="False"
+                                Visibility="{Binding HasUnreadNotifications, Converter={StaticResource BoolToVis}}">
+                                <TextBlock
+                                    HorizontalAlignment="Center"
+                                    VerticalAlignment="Center"
+                                    FontSize="10"
+                                    FontWeight="Bold"
+                                    Foreground="#FFFFFF"
+                                    Text="{Binding UnreadBadgeText}" />
+                            </Border>
+                        </Grid>
 
                     </StackPanel>
                 </Grid>
@@ -687,6 +723,454 @@
                 Grid.Row="2"
                 Grid.RowSpan="2"
                 Content="{Binding CurrentView}" />
+        </Grid>
+
+        <!--  ── Notification Slide-Over Drawer Overlay ──────────────────  -->
+        <Grid
+            Grid.ColumnSpan="2"
+            HorizontalAlignment="Stretch"
+            VerticalAlignment="Stretch"
+            Visibility="{Binding IsNotificationDrawerOpen, Converter={StaticResource BoolToVis}}">
+
+            <!--  Backdrop (semi-transparent, click outside to close)  -->
+            <Border Background="#55000000">
+                <Border.InputBindings>
+                    <MouseBinding MouseAction="LeftClick" Command="{Binding CloseNotificationDrawerCommand}" />
+                </Border.InputBindings>
+            </Border>
+
+            <!--  Slide-Over Drawer Container  -->
+            <Border
+                Width="420"
+                HorizontalAlignment="Right"
+                VerticalAlignment="Stretch"
+                Background="{DynamicResource Brush.Surface}"
+                BorderBrush="{DynamicResource Brush.Border}"
+                BorderThickness="1,0,0,0">
+                <Border.Effect>
+                    <DropShadowEffect
+                        BlurRadius="24"
+                        Direction="180"
+                        Opacity="0.3"
+                        ShadowDepth="4"
+                        Color="#000000" />
+                </Border.Effect>
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <!--  Header  -->
+                        <RowDefinition Height="Auto" />
+                        <!--  Content / List  -->
+                        <RowDefinition Height="*" />
+                        <!--  Footer / Pagination  -->
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+
+                    <!--  Drawer Header  -->
+                    <Border
+                        Grid.Row="0"
+                        Padding="20,16"
+                        BorderBrush="{DynamicResource Brush.Border}"
+                        BorderThickness="0,0,0,1">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+
+                            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                <TextBlock
+                                    FontSize="16"
+                                    FontWeight="Bold"
+                                    Foreground="{DynamicResource Brush.TextPrimary}"
+                                    Text="Notifications" />
+                                <Border
+                                    Margin="8,0,0,0"
+                                    Padding="8,2"
+                                    Background="{DynamicResource Brush.PrimarySoft}"
+                                    CornerRadius="10"
+                                    VerticalAlignment="Center"
+                                    Visibility="{Binding HasUnreadNotifications, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock
+                                        FontSize="11"
+                                        FontWeight="SemiBold"
+                                        Foreground="{DynamicResource Brush.Primary}">
+                                        <TextBlock.Text>
+                                            <Binding Path="UnreadNotificationsCount" StringFormat="{}{0} new" />
+                                        </TextBlock.Text>
+                                    </TextBlock>
+                                </Border>
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                <!--  Mark all as read button  -->
+                                <Button
+                                    Margin="0,0,8,0"
+                                    Padding="8,4"
+                                    Command="{Binding MarkAllNotificationsAsReadCommand}"
+                                    Style="{StaticResource Button.Ghost}"
+                                    ToolTip="Mark all as read"
+                                    Visibility="{Binding HasUnreadNotifications, Converter={StaticResource BoolToVis}}">
+                                    <TextBlock
+                                        FontSize="12"
+                                        FontWeight="Medium"
+                                        Foreground="{DynamicResource Brush.Primary}"
+                                        Text="Mark all read" />
+                                </Button>
+
+                                <!--  Close Button  -->
+                                <Button
+                                    Width="30"
+                                    Height="30"
+                                    Command="{Binding CloseNotificationDrawerCommand}"
+                                    Style="{StaticResource Button.Icon}"
+                                    ToolTip="Close">
+                                    <Path
+                                        Width="12"
+                                        Height="12"
+                                        Data="{StaticResource Icon.Close}"
+                                        Fill="{DynamicResource Brush.TextMuted}"
+                                        Stretch="Uniform" />
+                                </Button>
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+
+                    <!--  Drawer Body  -->
+                    <Grid Grid.Row="1">
+                        <!--  Loading State  -->
+                        <StackPanel
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center"
+                            Visibility="{Binding IsLoadingNotifications, Converter={StaticResource BoolToVis}}">
+                            <TextBlock
+                                FontSize="14"
+                                Foreground="{DynamicResource Brush.TextMuted}"
+                                HorizontalAlignment="Center"
+                                Text="Loading notifications..." />
+                        </StackPanel>
+
+                        <!--  Empty State  -->
+                        <StackPanel
+                            Margin="32"
+                            VerticalAlignment="Center"
+                            HorizontalAlignment="Center">
+                            <StackPanel.Style>
+                                <Style TargetType="StackPanel">
+                                    <Setter Property="Visibility" Value="Collapsed" />
+                                    <Style.Triggers>
+                                        <MultiDataTrigger>
+                                            <MultiDataTrigger.Conditions>
+                                                <Condition Binding="{Binding HasNotifications}" Value="False" />
+                                                <Condition Binding="{Binding IsLoadingNotifications}" Value="False" />
+                                            </MultiDataTrigger.Conditions>
+                                            <Setter Property="Visibility" Value="Visible" />
+                                        </MultiDataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </StackPanel.Style>
+                            <Border
+                                Width="56"
+                                Height="56"
+                                Margin="0,0,0,16"
+                                HorizontalAlignment="Center"
+                                Background="{DynamicResource Brush.SurfaceElevated}"
+                                CornerRadius="28">
+                                <Path
+                                    Width="24"
+                                    Height="24"
+                                    Data="{StaticResource Icon.Bell}"
+                                    Fill="{DynamicResource Brush.TextMuted}"
+                                    Stretch="Uniform" />
+                            </Border>
+                            <TextBlock
+                                FontSize="15"
+                                FontWeight="SemiBold"
+                                Foreground="{DynamicResource Brush.TextPrimary}"
+                                HorizontalAlignment="Center"
+                                Text="No notifications yet" />
+                            <TextBlock
+                                Margin="0,6,0,0"
+                                FontSize="12"
+                                Foreground="{DynamicResource Brush.TextSecondary}"
+                                HorizontalAlignment="Center"
+                                TextAlignment="Center"
+                                TextWrapping="Wrap"
+                                Text="When team members create or update tasks, events, and posts in your tracks and projects, they'll appear here." />
+                        </StackPanel>
+
+                        <!--  Notifications List  -->
+                        <ScrollViewer
+                            Padding="16,12"
+                            VerticalScrollBarVisibility="Auto"
+                            Visibility="{Binding HasNotifications, Converter={StaticResource BoolToVis}}">
+
+                            <ItemsControl ItemsSource="{Binding Notifications}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate DataType="{x:Type vm:NotificationItemViewModel}">
+                                        <Border
+                                            Margin="0,0,0,10"
+                                            Padding="14"
+                                            CornerRadius="10"
+                                            Cursor="Hand">
+                                            <Border.InputBindings>
+                                                <MouseBinding
+                                                    MouseAction="LeftClick"
+                                                    Command="{Binding DataContext.MarkNotificationAsReadCommand, RelativeSource={RelativeSource AncestorType=views:ShellView}}"
+                                                    CommandParameter="{Binding}" />
+                                            </Border.InputBindings>
+                                            <Border.Style>
+                                                <Style TargetType="Border">
+                                                    <Setter Property="Background" Value="{DynamicResource Brush.SurfaceElevated}" />
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}" />
+                                                    <Setter Property="BorderThickness" Value="1" />
+                                                    <Style.Triggers>
+                                                        <!--  When Unread: highlight border and subtle surface background  -->
+                                                        <DataTrigger Binding="{Binding IsRead}" Value="False">
+                                                            <Setter Property="Background" Value="{DynamicResource Brush.Surface}" />
+                                                            <Setter Property="BorderBrush" Value="{DynamicResource Brush.PrimarySoft}" />
+                                                            <Setter Property="BorderThickness" Value="1.5" />
+                                                        </DataTrigger>
+                                                        <Trigger Property="IsMouseOver" Value="True">
+                                                            <Setter Property="Background" Value="{DynamicResource Brush.SurfaceHover}" />
+                                                        </Trigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </Border.Style>
+
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <!--  Avatar / Initial  -->
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <!--  Main Notification Content  -->
+                                                    <ColumnDefinition Width="*" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <!--  Actor Avatar  -->
+                                                <Grid
+                                                    Grid.Column="0"
+                                                    Width="36"
+                                                    Height="36"
+                                                    Margin="0,2,12,0"
+                                                    VerticalAlignment="Top">
+                                                    <Border
+                                                        Background="{DynamicResource Brush.Primary}"
+                                                        CornerRadius="18">
+                                                        <TextBlock
+                                                            HorizontalAlignment="Center"
+                                                            VerticalAlignment="Center"
+                                                            FontSize="14"
+                                                            FontWeight="Bold"
+                                                            Foreground="#FFFFFF"
+                                                            Text="{Binding ActorInitial}" />
+                                                    </Border>
+                                                    <Ellipse Visibility="{Binding ActorProfilePictureUrl, Converter={StaticResource NullToVis}}">
+                                                        <Ellipse.Fill>
+                                                            <ImageBrush
+                                                                ImageSource="{Binding ActorProfilePictureUrl, Converter={StaticResource RelativeUrlToImage}}"
+                                                                Stretch="UniformToFill" />
+                                                        </Ellipse.Fill>
+                                                    </Ellipse>
+                                                </Grid>
+
+                                                <!--  Content Column  -->
+                                                <StackPanel Grid.Column="1">
+                                                    <!--  Top row: Actor Name + TimeAgo + Unread Dot  -->
+                                                    <Grid Margin="0,0,0,3">
+                                                        <Grid.ColumnDefinitions>
+                                                            <ColumnDefinition Width="*" />
+                                                            <ColumnDefinition Width="Auto" />
+                                                        </Grid.ColumnDefinitions>
+
+                                                        <TextBlock
+                                                            Grid.Column="0"
+                                                            FontSize="13"
+                                                            FontWeight="SemiBold"
+                                                            Foreground="{DynamicResource Brush.TextPrimary}"
+                                                            Text="{Binding ActorName}"
+                                                            TextTrimming="CharacterEllipsis" />
+
+                                                        <StackPanel
+                                                            Grid.Column="1"
+                                                            Orientation="Horizontal"
+                                                            VerticalAlignment="Center">
+                                                            <TextBlock
+                                                                FontSize="11"
+                                                                Foreground="{DynamicResource Brush.TextMuted}"
+                                                                Text="{Binding TimeAgo}" />
+
+                                                            <!--  Unread dot  -->
+                                                            <Ellipse
+                                                                Width="8"
+                                                                Height="8"
+                                                                Margin="6,0,0,0"
+                                                                Fill="{DynamicResource Brush.Primary}"
+                                                                Visibility="{Binding IsRead, Converter={StaticResource BoolToVis}, ConverterParameter=invert}" />
+                                                        </StackPanel>
+                                                    </Grid>
+
+                                                    <!--  Title  -->
+                                                    <TextBlock
+                                                        Margin="0,0,0,4"
+                                                        FontSize="12"
+                                                        FontWeight="Medium"
+                                                        Foreground="{DynamicResource Brush.TextPrimary}"
+                                                        Text="{Binding Title}"
+                                                        TextWrapping="Wrap" />
+
+                                                    <!--  Message Body  -->
+                                                    <TextBlock
+                                                        FontSize="12"
+                                                        Foreground="{DynamicResource Brush.TextSecondary}"
+                                                        Text="{Binding Message}"
+                                                        TextWrapping="Wrap" />
+
+                                                    <!--  Project / Track / Type Badges  -->
+                                                    <WrapPanel Margin="0,8,0,0">
+                                                        <!--  Type Badge  -->
+                                                        <Border
+                                                            Margin="0,0,6,4"
+                                                            Padding="6,2"
+                                                            Background="{DynamicResource Brush.Surface}"
+                                                            BorderBrush="{DynamicResource Brush.Border}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="4">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <TextBlock
+                                                                    FontFamily="Segoe MDL2 Assets"
+                                                                    FontSize="10"
+                                                                    Margin="0,0,4,0"
+                                                                    VerticalAlignment="Center"
+                                                                    Foreground="{DynamicResource Brush.Primary}"
+                                                                    Text="{Binding TypeIconGlyph}" />
+                                                                <TextBlock
+                                                                    FontSize="10"
+                                                                    FontWeight="Medium"
+                                                                    Foreground="{DynamicResource Brush.TextSecondary}"
+                                                                    Text="{Binding Type}" />
+                                                            </StackPanel>
+                                                        </Border>
+
+                                                        <!--  Project Badge  -->
+                                                        <Border
+                                                            Margin="0,0,6,4"
+                                                            Padding="6,2"
+                                                            Background="{DynamicResource Brush.Surface}"
+                                                            BorderBrush="{DynamicResource Brush.Border}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="4"
+                                                            Visibility="{Binding HasProject, Converter={StaticResource BoolToVis}}">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <Path
+                                                                    Width="10"
+                                                                    Height="10"
+                                                                    Margin="0,0,4,0"
+                                                                    VerticalAlignment="Center"
+                                                                    Data="{StaticResource Icon.Projects}"
+                                                                    Fill="{DynamicResource Brush.TextMuted}"
+                                                                    Stretch="Uniform" />
+                                                                <TextBlock
+                                                                    FontSize="10"
+                                                                    FontWeight="Medium"
+                                                                    Foreground="{DynamicResource Brush.TextSecondary}"
+                                                                    Text="{Binding ProjectName}"
+                                                                    MaxWidth="120"
+                                                                    TextTrimming="CharacterEllipsis" />
+                                                            </StackPanel>
+                                                        </Border>
+
+                                                        <!--  Track Badge  -->
+                                                        <Border
+                                                            Margin="0,0,6,4"
+                                                            Padding="6,2"
+                                                            Background="{DynamicResource Brush.Surface}"
+                                                            BorderBrush="{DynamicResource Brush.Border}"
+                                                            BorderThickness="1"
+                                                            CornerRadius="4"
+                                                            Visibility="{Binding HasTrack, Converter={StaticResource BoolToVis}}">
+                                                            <StackPanel Orientation="Horizontal">
+                                                                <Path
+                                                                    Width="10"
+                                                                    Height="10"
+                                                                    Margin="0,0,4,0"
+                                                                    VerticalAlignment="Center"
+                                                                    Data="{StaticResource Icon.Tracks}"
+                                                                    Fill="{DynamicResource Brush.TextMuted}"
+                                                                    Stretch="Uniform" />
+                                                                <TextBlock
+                                                                    FontSize="10"
+                                                                    FontWeight="Medium"
+                                                                    Foreground="{DynamicResource Brush.TextSecondary}"
+                                                                    Text="{Binding TrackName}"
+                                                                    MaxWidth="120"
+                                                                    TextTrimming="CharacterEllipsis" />
+                                                            </StackPanel>
+                                                        </Border>
+                                                    </WrapPanel>
+                                                </StackPanel>
+                                            </Grid>
+                                        </Border>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </ScrollViewer>
+                    </Grid>
+
+                    <!--  Drawer Footer / Pagination  -->
+                    <Border
+                        Grid.Row="2"
+                        Padding="16,12"
+                        BorderBrush="{DynamicResource Brush.Border}"
+                        BorderThickness="0,1,0,0"
+                        Background="{DynamicResource Brush.Surface}">
+                        <StackPanel>
+                            <!--  Load More Button  -->
+                            <Button
+                                Height="36"
+                                Margin="0,0,0,6"
+                                Command="{Binding LoadMoreNotificationsCommand}"
+                                Visibility="{Binding HasMoreNotifications, Converter={StaticResource BoolToVis}}">
+                                <Button.Style>
+                                    <Style TargetType="Button" BasedOn="{StaticResource Button.Secondary}">
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding IsLoadingMoreNotifications}" Value="True">
+                                                <Setter Property="IsEnabled" Value="False" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Button.Style>
+                                <TextBlock
+                                    FontSize="13"
+                                    FontWeight="Medium">
+                                    <TextBlock.Style>
+                                        <Style TargetType="TextBlock">
+                                            <Setter Property="Text" Value="Load More Notifications" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsLoadingMoreNotifications}" Value="True">
+                                                    <Setter Property="Text" Value="Loading more..." />
+                                                </DataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </TextBlock.Style>
+                                </TextBlock>
+                            </Button>
+
+                            <!--  Pagination Count / Status  -->
+                            <TextBlock
+                                FontSize="11"
+                                Foreground="{DynamicResource Brush.TextMuted}"
+                                HorizontalAlignment="Center">
+                                <TextBlock.Text>
+                                    <MultiBinding StringFormat="Showing {0} of {1} notifications">
+                                        <Binding Path="Notifications.Count" />
+                                        <Binding Path="TotalNotificationsCount" />
+                                    </MultiBinding>
+                                </TextBlock.Text>
+                            </TextBlock>
+                        </StackPanel>
+                    </Border>
+                </Grid>
+            </Border>
         </Grid>
 
         <!--  ── In-App Floating Toast Notification ───────────────────────  -->

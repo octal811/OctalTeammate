@@ -33,15 +33,18 @@ public class CreatePostCommandHandler : IRequestHandler<CreatePostCommand, PostR
     private readonly IUnitOfWork _unitOfWork;
     private readonly IRealtimeNotifier _realtimeNotifier;
     private readonly IBadgeService _badgeService;
+    private readonly IAppNotificationService _notificationService;
 
     public CreatePostCommandHandler(
         IUnitOfWork unitOfWork,
         IRealtimeNotifier realtimeNotifier,
-        IBadgeService badgeService)
+        IBadgeService badgeService,
+        IAppNotificationService notificationService)
     {
         _unitOfWork = unitOfWork;
         _realtimeNotifier = realtimeNotifier;
         _badgeService = badgeService;
+        _notificationService = notificationService;
     }
 
     public async Task<PostResponse> Handle(CreatePostCommand request, CancellationToken cancellationToken)
@@ -84,6 +87,43 @@ public class CreatePostCommandHandler : IRequestHandler<CreatePostCommand, PostR
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         await _realtimeNotifier.PostCreatedAsync(post.Id, post.ProjectId, post.TrackId, cancellationToken);
+
+        var preview = string.IsNullOrWhiteSpace(post.Content)
+            ? "Shared a new post in the feed."
+            : (post.Content.Length > 90 ? post.Content.Substring(0, 87) + "..." : post.Content);
+
+        if (post.TrackId.HasValue)
+        {
+            await _notificationService.NotifyTrackMembersAsync(
+                post.TrackId.Value,
+                request.AuthorId,
+                "New Post",
+                preview,
+                Domain.Enums.NotificationType.Post,
+                post.Id,
+                cancellationToken);
+        }
+        else if (post.ProjectId.HasValue)
+        {
+            await _notificationService.NotifyProjectMembersAsync(
+                post.ProjectId.Value,
+                request.AuthorId,
+                "New Post",
+                preview,
+                Domain.Enums.NotificationType.Post,
+                post.Id,
+                cancellationToken);
+        }
+        else
+        {
+            await _notificationService.NotifyWorkspaceUsersAsync(
+                request.AuthorId,
+                "New Post",
+                preview,
+                Domain.Enums.NotificationType.Post,
+                post.Id,
+                cancellationToken);
+        }
 
         var created = await _unitOfWork.Posts.GetWithDetailsAsync(post.Id, cancellationToken);
         return PostMapper.ToResponse(created ?? post, request.AuthorId);

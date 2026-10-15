@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.SignalR.Client;
 using Microsoft.Extensions.Logging;
+using OctalPulse.Application.Contracts;
 using OctalPulse.Application.Services;
 
 namespace OctalPulse.Infrastructure.Realtime;
@@ -38,6 +39,7 @@ public class SignalRRealtimeService : ISignalRRealtimeService
     public event Action<Guid, Guid?>? PostReactionChanged;
     public event Action<Guid, Guid, Guid?, Guid?>? CommentAdded;
     public event Action<Guid, Guid, Guid?>? CommentDeleted;
+    public event Action<NotificationItemDto>? NotificationReceived;
     public event Action<bool>? ConnectionStateChanged;
 
     public SignalRRealtimeService(string hubBaseUrl, ITokenService tokenService, ILogger<SignalRRealtimeService> logger)
@@ -358,6 +360,12 @@ public class SignalRRealtimeService : ISignalRRealtimeService
         {
             _logger.LogDebug("SignalR commentDeleted received: Post={PostId}, Comment={CommentId}", postId, commentId);
             CommentDeleted?.Invoke(postId, commentId, projectId);
+        });
+
+        _hubConnection.On<NotificationItemDto>("receiveNotification", notification =>
+        {
+            _logger.LogInformation("SignalR receiveNotification received: {Title} - {Message}", notification.Title, notification.Message);
+            NotificationReceived?.Invoke(notification);
         });
     }
 

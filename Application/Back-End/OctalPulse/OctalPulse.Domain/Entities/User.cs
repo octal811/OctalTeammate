@@ -22,4 +22,5 @@ public class User : IdentityUser<Guid>, DomainEntity
     public ICollection<Project> CreatedProjects { get; set; } = new List<Project>();
     public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
     public ICollection<UserBadge> Badges { get; set; } = new List<UserBadge>();
+    public ICollection<Notification> Notifications { get; set; } = new List<Notification>();
 }

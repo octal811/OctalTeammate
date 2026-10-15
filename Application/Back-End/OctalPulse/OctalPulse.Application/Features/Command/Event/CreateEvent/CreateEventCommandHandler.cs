@@ -10,11 +10,16 @@ public class CreateEventCommandHandler : IRequestHandler<CreateEventCommand, Cre
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IRealtimeNotifier _realtimeNotifier;
+    private readonly IAppNotificationService _notificationService;
 
-    public CreateEventCommandHandler(IUnitOfWork unitOfWork, IRealtimeNotifier realtimeNotifier)
+    public CreateEventCommandHandler(
+        IUnitOfWork unitOfWork,
+        IRealtimeNotifier realtimeNotifier,
+        IAppNotificationService notificationService)
     {
         _unitOfWork = unitOfWork;
         _realtimeNotifier = realtimeNotifier;
+        _notificationService = notificationService;
     }
 
     public async Task<CreateEventResponse> Handle(CreateEventCommand request, CancellationToken cancellationToken)
@@ -60,6 +65,18 @@ public class CreateEventCommandHandler : IRequestHandler<CreateEventCommand, Cre
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         await _realtimeNotifier.EventChangedAsync(request.ProjectId, eventEntity.Id, cancellationToken);
+
+        var project = await _unitOfWork.Projects.GetByIdAsync(request.ProjectId, cancellationToken);
+        var projectName = project?.Title ?? "project";
+
+        await _notificationService.NotifyProjectMembersAsync(
+            request.ProjectId,
+            request.CreatedByUserId,
+            "New Event Scheduled",
+            $"Scheduled event '{eventEntity.Title}' in project '{projectName}'.",
+            Domain.Enums.NotificationType.Event,
+            eventEntity.Id,
+            cancellationToken);
 
         return new CreateEventResponse(
             eventEntity.Id,

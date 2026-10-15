@@ -1,3 +1,5 @@
+using OctalPulse.Application.Contracts;
+
 namespace OctalPulse.Application.Services;
 
 public interface ISignalRRealtimeService : IAsyncDisposable
@@ -23,5 +25,6 @@ public interface ISignalRRealtimeService : IAsyncDisposable
     event Action<Guid, Guid?>? PostReactionChanged;
     event Action<Guid, Guid, Guid?, Guid?>? CommentAdded;
     event Action<Guid, Guid, Guid?>? CommentDeleted;
+    event Action<NotificationItemDto>? NotificationReceived;
     event Action<bool>? ConnectionStateChanged;
 }

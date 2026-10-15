@@ -1,7 +1,9 @@
+using System.Collections.ObjectModel;
 using System.Windows.Threading;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using OctalPulse.Application.Abstractions;
+using OctalPulse.Application.Contracts;
 using OctalPulse.Application.Services;
 using OctalPulse.Services;
 
@@ -19,6 +21,7 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
     private readonly ThemeService _themeService;
     private readonly WpfDialogService _dialogService;
     private readonly RealtimeNotificationService _notificationService;
+    private readonly IAppNotificationService _appNotificationService;
     private DispatcherTimer? _toastTimer;
     private bool _groupsRegistered;
 
@@ -53,6 +56,36 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
     [ObservableProperty]
     private bool _isToastVisible;
 
+    // Notifications Section
+    public ObservableCollection<NotificationItemViewModel> Notifications { get; } = new();
+
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasUnreadNotifications))]
+    [NotifyPropertyChangedFor(nameof(UnreadBadgeText))]
+    private int _unreadNotificationsCount;
+
+    public bool HasUnreadNotifications => UnreadNotificationsCount > 0;
+    public string UnreadBadgeText => UnreadNotificationsCount > 99 ? "99+" : UnreadNotificationsCount.ToString();
+    public bool HasNotifications => Notifications.Count > 0;
+
+    [ObservableProperty]
+    private bool _isNotificationDrawerOpen;
+
+    [ObservableProperty]
+    private bool _isLoadingNotifications;
+
+    [ObservableProperty]
+    private bool _isLoadingMoreNotifications;
+
+    [ObservableProperty]
+    private bool _hasMoreNotifications;
+
+    [ObservableProperty]
+    private int _currentNotificationPage = 1;
+
+    [ObservableProperty]
+    private int _totalNotificationsCount;
+
     public ShellViewModel(
         INavigationService navigationService,
         IUserSession userSession,
@@ -63,7 +96,8 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
         IProjectService projectService,
         ThemeService themeService,
         IDialogService dialogService,
-        RealtimeNotificationService notificationService)
+        RealtimeNotificationService notificationService,
+        IAppNotificationService appNotificationService)
     {
         _navigationService = navigationService;
         _userSession = userSession;
@@ -75,10 +109,13 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
         _themeService = themeService;
         _dialogService = (WpfDialogService)dialogService;
         _notificationService = notificationService;
+        _appNotificationService = appNotificationService;
 
         _isSignalRConnected = _signalRService.IsConnected;
         _signalRService.ConnectionStateChanged += OnConnectionStateChanged;
         _dialogService.ToastRequested += OnToastRequested;
+        _notificationService.NotificationReceived += OnRealtimeNotificationReceived;
+        Notifications.CollectionChanged += (s, e) => OnPropertyChanged(nameof(HasNotifications));
     }
 
     public void OnNavigatedTo(object? parameter)
@@ -93,6 +130,8 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
             _groupsRegistered = true;
             _ = _notificationService.SyncAllUserGroupsAsync();
         }
+
+        _ = LoadInitialNotificationsAsync();
     }
 
     private void OnConnectionStateChanged(bool connected)
@@ -106,15 +145,36 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
         }
         else
         {
-            // Never block the UI thread from a SignalR callback. Synchronous
-            // Invoke here deadlocks during shutdown, when the UI thread is
-            // busy stopping the DI container.
             app.Dispatcher.BeginInvoke(() => IsSignalRConnected = connected);
         }
 
         if (connected)
         {
             _ = _notificationService.SyncAllUserGroupsAsync();
+            _ = LoadInitialNotificationsAsync();
+        }
+    }
+
+    private void OnRealtimeNotificationReceived(NotificationItemDto notification)
+    {
+        var app = System.Windows.Application.Current;
+        if (app == null) return;
+
+        void AddNotification()
+        {
+            var itemVm = new NotificationItemViewModel(notification);
+            Notifications.Insert(0, itemVm);
+            UnreadNotificationsCount++;
+            TotalNotificationsCount++;
+        }
+
+        if (app.Dispatcher.CheckAccess())
+        {
+            AddNotification();
+        }
+        else
+        {
+            app.Dispatcher.BeginInvoke(AddNotification);
         }
     }
 
@@ -161,6 +221,101 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
     private void ToggleSidebar()
     {
         IsSidebarCollapsed = !IsSidebarCollapsed;
+    }
+
+    [RelayCommand]
+    private void ToggleNotificationDrawer()
+    {
+        IsNotificationDrawerOpen = !IsNotificationDrawerOpen;
+        if (IsNotificationDrawerOpen && Notifications.Count == 0)
+        {
+            _ = LoadInitialNotificationsAsync();
+        }
+    }
+
+    [RelayCommand]
+    private void CloseNotificationDrawer()
+    {
+        IsNotificationDrawerOpen = false;
+    }
+
+    [RelayCommand]
+    public async Task LoadInitialNotificationsAsync()
+    {
+        if (IsLoadingNotifications) return;
+
+        IsLoadingNotifications = true;
+        try
+        {
+            CurrentNotificationPage = 1;
+            var result = await _appNotificationService.GetNotificationsAsync(1, 8);
+
+            Notifications.Clear();
+            foreach (var item in result.Items)
+            {
+                Notifications.Add(new NotificationItemViewModel(item));
+            }
+
+            TotalNotificationsCount = result.TotalCount;
+            UnreadNotificationsCount = result.UnreadCount;
+            HasMoreNotifications = result.HasMore;
+        }
+        finally
+        {
+            IsLoadingNotifications = false;
+        }
+    }
+
+    [RelayCommand]
+    public async Task LoadMoreNotificationsAsync()
+    {
+        if (IsLoadingMoreNotifications || !HasMoreNotifications) return;
+
+        IsLoadingMoreNotifications = true;
+        try
+        {
+            var nextPage = CurrentNotificationPage + 1;
+            var result = await _appNotificationService.GetNotificationsAsync(nextPage, 8);
+
+            foreach (var item in result.Items)
+            {
+                Notifications.Add(new NotificationItemViewModel(item));
+            }
+
+            CurrentNotificationPage = nextPage;
+            TotalNotificationsCount = result.TotalCount;
+            HasMoreNotifications = result.HasMore;
+        }
+        finally
+        {
+            IsLoadingMoreNotifications = false;
+        }
+    }
+
+    [RelayCommand]
+    public async Task MarkNotificationAsReadAsync(NotificationItemViewModel? item)
+    {
+        if (item == null || item.IsRead) return;
+
+        item.IsRead = true;
+        if (UnreadNotificationsCount > 0)
+        {
+            UnreadNotificationsCount--;
+        }
+
+        await _appNotificationService.MarkAsReadAsync(item.Id);
+    }
+
+    [RelayCommand]
+    public async Task MarkAllNotificationsAsReadAsync()
+    {
+        foreach (var item in Notifications)
+        {
+            item.IsRead = true;
+        }
+
+        UnreadNotificationsCount = 0;
+        await _appNotificationService.MarkAllAsReadAsync();
     }
 
     [RelayCommand]
@@ -237,7 +392,6 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
         _navigationService.NavigateTo<MediaViewModel>();
     }
 
-
     [RelayCommand]
     private async Task ReconnectSignalRAsync()
     {
@@ -274,6 +428,7 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
         }
 
         await _signalRService.DisconnectAsync();
+        _notificationService.NotificationReceived -= OnRealtimeNotificationReceived;
         _groupsRegistered = false;
         _tokenService.ClearTokens();
         _userSession.ClearSession();

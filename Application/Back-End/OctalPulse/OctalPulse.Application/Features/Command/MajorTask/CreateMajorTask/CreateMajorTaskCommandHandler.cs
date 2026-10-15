@@ -11,15 +11,18 @@ public class CreateMajorTaskCommandHandler : IRequestHandler<CreateMajorTaskComm
     private readonly IUnitOfWork _unitOfWork;
     private readonly IRealtimeNotifier _realtimeNotifier;
     private readonly IBadgeService _badgeService;
+    private readonly IAppNotificationService _notificationService;
 
     public CreateMajorTaskCommandHandler(
         IUnitOfWork unitOfWork,
         IRealtimeNotifier realtimeNotifier,
-        IBadgeService badgeService)
+        IBadgeService badgeService,
+        IAppNotificationService notificationService)
     {
         _unitOfWork = unitOfWork;
         _realtimeNotifier = realtimeNotifier;
         _badgeService = badgeService;
+        _notificationService = notificationService;
     }
 
     public async Task<CreateMajorTaskResponse> Handle(
@@ -57,6 +60,29 @@ public class CreateMajorTaskCommandHandler : IRequestHandler<CreateMajorTaskComm
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         await _realtimeNotifier.MajorTaskChangedAsync(request.TrackId, task.Id, cancellationToken);
+
+        await _notificationService.NotifyTrackMembersAsync(
+            request.TrackId,
+            request.UserId,
+            "New Major Task",
+            $"Added major task '{task.Title}' in track '{track.Name}'.",
+            Domain.Enums.NotificationType.MajorTask,
+            task.Id,
+            cancellationToken);
+
+        if (task.AssignedUserId.HasValue && task.AssignedUserId.Value != request.UserId)
+        {
+            await _notificationService.CreateAndSendNotificationAsync(
+                task.AssignedUserId.Value,
+                request.UserId,
+                track.ProjectId,
+                request.TrackId,
+                "Task Assigned",
+                $"You were assigned major task '{task.Title}'.",
+                Domain.Enums.NotificationType.MajorTask,
+                task.Id,
+                cancellationToken);
+        }
 
         return new CreateMajorTaskResponse(
             task.Id,

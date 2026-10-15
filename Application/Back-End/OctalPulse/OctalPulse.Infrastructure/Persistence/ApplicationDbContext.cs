@@ -28,6 +28,7 @@ public class ApplicationDbContext : IdentityDbContext<User, IdentityRole<Guid>, 
     public DbSet<PostComment> PostComments => Set<PostComment>();
     public DbSet<UserBadge> UserBadges => Set<UserBadge>();
     public DbSet<DailyWorkLog> DailyWorkLogs => Set<DailyWorkLog>();
+    public DbSet<Notification> Notifications => Set<Notification>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {

@@ -22,6 +22,7 @@ public static class DependencyInjection
         services.AddSingleton<EmailTemplateRenderer>();
         services.AddScoped<IEmailService, EmailService>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IAppNotificationService, AppNotificationService>();
 
         services.Configure<JwtSettings>(configuration.GetSection("Jwt"));
         services.AddScoped<IJwtService, JwtService>();
@@ -53,6 +54,7 @@ public static class DependencyInjection
         services.AddScoped<IPostCommentRepository, PostCommentRepository>();
         services.AddScoped<IUserBadgeRepository, UserBadgeRepository>();
         services.AddScoped<IDailyWorkLogRepository, DailyWorkLogRepository>();
+        services.AddScoped<INotificationRepository, NotificationRepository>();
 
         return services;
     }

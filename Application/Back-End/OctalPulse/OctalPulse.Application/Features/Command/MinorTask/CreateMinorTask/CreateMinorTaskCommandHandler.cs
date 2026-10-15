@@ -10,11 +10,16 @@ public class CreateMinorTaskCommandHandler : IRequestHandler<CreateMinorTaskComm
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IRealtimeNotifier _realtimeNotifier;
+    private readonly IAppNotificationService _notificationService;
 
-    public CreateMinorTaskCommandHandler(IUnitOfWork unitOfWork, IRealtimeNotifier realtimeNotifier)
+    public CreateMinorTaskCommandHandler(
+        IUnitOfWork unitOfWork,
+        IRealtimeNotifier realtimeNotifier,
+        IAppNotificationService notificationService)
     {
         _unitOfWork = unitOfWork;
         _realtimeNotifier = realtimeNotifier;
+        _notificationService = notificationService;
     }
 
     public async Task<CreateMinorTaskResponse> Handle(
@@ -52,6 +57,32 @@ public class CreateMinorTaskCommandHandler : IRequestHandler<CreateMinorTaskComm
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         await _realtimeNotifier.MinorTaskChangedAsync(majorTask.TrackId, task.Id, cancellationToken);
+
+        var track = await _unitOfWork.Tracks.GetByIdAsync(majorTask.TrackId, cancellationToken);
+        var trackName = track?.Name ?? "track";
+
+        await _notificationService.NotifyTrackMembersAsync(
+            majorTask.TrackId,
+            request.UserId,
+            "New Sub-Task",
+            $"Added sub-task '{task.Title}' under '{majorTask.Title}' in track '{trackName}'.",
+            Domain.Enums.NotificationType.MinorTask,
+            task.Id,
+            cancellationToken);
+
+        if (task.AssignedUserId.HasValue && task.AssignedUserId != request.UserId)
+        {
+            await _notificationService.CreateAndSendNotificationAsync(
+                task.AssignedUserId.Value,
+                request.UserId,
+                track?.ProjectId,
+                majorTask.TrackId,
+                "Sub-Task Assigned",
+                $"You were assigned sub-task '{task.Title}'.",
+                Domain.Enums.NotificationType.MinorTask,
+                task.Id,
+                cancellationToken);
+        }
 
         return new CreateMinorTaskResponse(
             task.Id,

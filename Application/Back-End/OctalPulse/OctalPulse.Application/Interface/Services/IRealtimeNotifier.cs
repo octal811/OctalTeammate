@@ -1,3 +1,5 @@
+using OctalPulse.Application.Features.Notification.DTOs;
+
 namespace OctalPulse.Application.Interface.Services;
 
 public interface IRealtimeNotifier
@@ -13,4 +15,7 @@ public interface IRealtimeNotifier
     Task PostReactionChangedAsync(Guid postId, Guid? projectId, CancellationToken cancellationToken = default);
     Task CommentAddedAsync(Guid postId, Guid commentId, Guid? parentCommentId, Guid? projectId, CancellationToken cancellationToken = default);
     Task CommentDeletedAsync(Guid postId, Guid commentId, Guid? projectId, CancellationToken cancellationToken = default);
+
+    Task SendNotificationAsync(Guid recipientUserId, NotificationDto notification, CancellationToken cancellationToken = default);
+    Task SendNotificationToUsersAsync(IEnumerable<Guid> recipientUserIds, NotificationDto notification, CancellationToken cancellationToken = default);
 }
