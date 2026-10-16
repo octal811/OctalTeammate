@@ -1,0 +1,786 @@
+<UserControl
+    x:Class="OctalPulse.Views.NotesView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="clr-namespace:OctalPulse.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:entities="clr-namespace:OctalPulse.Domain.Entities;assembly=OctalPulse.Domain"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:vm="clr-namespace:OctalPulse.ViewModels"
+    d:DesignHeight="800"
+    d:DesignWidth="1100"
+    Background="{DynamicResource Brush.Background}"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <converters:BooleanToVisibilityConverter x:Key="InvertBoolToVis" Invert="True" />
+        <converters:NullToVisibilityConverter x:Key="NullToVis" />
+        <converters:NoteCardColorConverter x:Key="NoteColorConv" />
+    </UserControl.Resources>
+
+    <Grid Margin="28,24">
+        <Grid.RowDefinitions>
+            <!--  Top Header & Actions  -->
+            <RowDefinition Height="Auto" />
+            <!--  Stats & Search / Filter Bar  -->
+            <RowDefinition Height="Auto" />
+            <!--  Composer (Expandable)  -->
+            <RowDefinition Height="Auto" />
+            <!--  Notes Grid Content  -->
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!--  ── ROW 0: TOP HEADER & ACTIONS ──  -->
+        <Grid Grid.Row="0" Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <!--  Title & Info  -->
+            <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                <Border
+                    Width="44"
+                    Height="44"
+                    Margin="0,0,14,0"
+                    CornerRadius="12">
+                    <Border.Background>
+                        <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
+                            <GradientStop Offset="0" Color="#6366F1" />
+                            <GradientStop Offset="1" Color="#8B5CF6" />
+                        </LinearGradientBrush>
+                    </Border.Background>
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center"
+                        FontSize="22"
+                        Text="📝" />
+                </Border>
+                <StackPanel VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock
+                            FontSize="22"
+                            FontWeight="Bold"
+                            Foreground="{DynamicResource Brush.TextPrimary}"
+                            Text="Personal Notes &amp; Ideas" />
+                        <Border
+                            Margin="10,0,0,0"
+                            Padding="8,2"
+                            VerticalAlignment="Center"
+                            Background="{DynamicResource Brush.PrimarySoft}"
+                            CornerRadius="6">
+                            <TextBlock
+                                FontSize="10"
+                                FontWeight="Bold"
+                                Foreground="{DynamicResource Brush.Primary}"
+                                Text="OFFLINE &amp; PRIVATE" />
+                        </Border>
+                    </StackPanel>
+                    <TextBlock
+                        Margin="0,3,0,0"
+                        FontSize="12"
+                        Foreground="{DynamicResource Brush.TextMuted}"
+                        Text="Personal scratchpad, task reminders, and ideas saved locally with emergency backup protection." />
+                </StackPanel>
+            </StackPanel>
+
+            <!--  Header Action Buttons  -->
+            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                <!--  Open Floating Window  -->
+                <Button
+                    Height="36"
+                    Padding="12,0"
+                    Margin="0,0,8,0"
+                    Command="{Binding ToggleFloatDrawerCommand}"
+                    Style="{StaticResource Button.Ghost}"
+                    ToolTip="Open Notes Floating Drawer (Alt+O)">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📌 Float Window " FontSize="12" Foreground="{DynamicResource Brush.TextSecondary}" />
+                        <Border
+                            Padding="5,1"
+                            Background="{DynamicResource Brush.SurfaceElevated}"
+                            CornerRadius="4"
+                            VerticalAlignment="Center">
+                            <TextBlock Text="Alt+O" FontSize="9" FontWeight="Bold" Foreground="{DynamicResource Brush.Primary}" />
+                        </Border>
+                    </StackPanel>
+                </Button>
+
+                <!--  Open Emergency Folder  -->
+                <Button
+                    Height="36"
+                    Padding="12,0"
+                    Margin="0,0,8,0"
+                    Command="{Binding FloatVm.OpenEmergencyFolderCommand}"
+                    Style="{StaticResource Button.Ghost}"
+                    ToolTip="Open Emergency Backup Folder in Documents">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="📁 " FontSize="12" VerticalAlignment="Center" />
+                        <TextBlock Text="Backup Folder" FontSize="12" FontWeight="Medium" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
+                <!--  Fast Add Button  -->
+                <Button
+                    Height="36"
+                    Padding="12,0"
+                    Margin="0,0,8,0"
+                    Command="{Binding FloatVm.OpenFastAddCommand}"
+                    Style="{StaticResource Button.Ghost}"
+                    ToolTip="Import or Fast Add Multiple Notes">
+                    <StackPanel Orientation="Horizontal">
+                        <TextBlock Text="⚡ " FontSize="12" VerticalAlignment="Center" />
+                        <TextBlock Text="Fast Add" FontSize="12" FontWeight="Medium" VerticalAlignment="Center" />
+                    </StackPanel>
+                </Button>
+
+                <!--  New Note Primary Button  -->
+                <Button
+                    Height="36"
+                    Padding="16,0"
+                    Command="{Binding FloatVm.OpenCreateComposerCommand}"
+                    Style="{StaticResource Button.Primary}">
+                    <StackPanel Orientation="Horizontal">
+                        <Path
+                            Width="12"
+                            Height="12"
+                            Margin="0,0,8,0"
+                            Data="{StaticResource Icon.Plus}"
+                            Fill="{DynamicResource Brush.PrimaryForeground}"
+                            Stretch="Uniform" />
+                        <TextBlock FontWeight="SemiBold" Text="New Note" />
+                    </StackPanel>
+                </Button>
+            </StackPanel>
+        </Grid>
+
+        <!--  ── ROW 1: STATS & SEARCH / FILTER BAR ──  -->
+        <Border
+            Grid.Row="1"
+            Margin="0,0,0,16"
+            Padding="16,12"
+            Background="{DynamicResource Brush.Surface}"
+            BorderBrush="{DynamicResource Brush.Border}"
+            BorderThickness="1"
+            CornerRadius="12">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <!--  Stats Chips  -->
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <!--  Search & Project Filter  -->
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
+
+                <!--  Stats + Type Filter Chips  -->
+                <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                    <!--  Type Filter ItemsControl  -->
+                    <ItemsControl ItemsSource="{Binding FloatVm.FilterTypeOptions}">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <StackPanel Orientation="Horizontal" />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button
+                                    Content="{Binding}"
+                                    Margin="0,0,6,0"
+                                    FontSize="12"
+                                    FontWeight="SemiBold"
+                                    Padding="12,5"
+                                    Command="{Binding Path=DataContext.FloatVm.SelectFilterCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                    CommandParameter="{Binding}"
+                                    Style="{StaticResource Button.Ghost}">
+                                    <Button.Template>
+                                        <ControlTemplate TargetType="Button">
+                                            <Border
+                                                x:Name="ChipBorder"
+                                                CornerRadius="14"
+                                                Padding="{TemplateBinding Padding}"
+                                                Background="{DynamicResource Brush.SurfaceElevated}"
+                                                BorderBrush="{DynamicResource Brush.Border}"
+                                                BorderThickness="1">
+                                                <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                            </Border>
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="ChipBorder" Property="Background" Value="{DynamicResource Brush.SurfaceHover}" />
+                                                    <Setter TargetName="ChipBorder" Property="BorderBrush" Value="{DynamicResource Brush.Primary}" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
+                                        </ControlTemplate>
+                                    </Button.Template>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!--  Counts Summary  -->
+                    <Border Width="1" Height="20" Margin="10,0,14,0" Background="{DynamicResource Brush.Border}" />
+                    <TextBlock VerticalAlignment="Center" FontSize="12" Foreground="{DynamicResource Brush.TextMuted}">
+                        <Run Text="{Binding FloatVm.TotalCount}" FontWeight="Bold" Foreground="{DynamicResource Brush.TextPrimary}" />
+                        <Run Text=" Total  •  " />
+                        <Run Text="{Binding FloatVm.ActiveCount}" FontWeight="Bold" Foreground="{DynamicResource Brush.Primary}" />
+                        <Run Text=" Active  •  " />
+                        <Run Text="{Binding FloatVm.CompletedCount}" FontWeight="Bold" Foreground="{DynamicResource Brush.Success}" />
+                        <Run Text=" Done" />
+                    </TextBlock>
+                </StackPanel>
+
+                <!--  Search & Project Dropdown  -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                    <!--  Project Filter  -->
+                    <ComboBox
+                        Width="160"
+                        Height="34"
+                        Margin="0,0,10,0"
+                        ItemsSource="{Binding FloatVm.AvailableProjects}"
+                        SelectedItem="{Binding FloatVm.SelectedProjectFilter, Mode=TwoWay}"
+                        Style="{StaticResource ComboBox.Modern}" />
+
+                    <!--  Search Box  -->
+                    <Border
+                        Width="220"
+                        Height="34"
+                        Background="{DynamicResource Brush.SurfaceElevated}"
+                        BorderBrush="{DynamicResource Brush.Border}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="8,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Path
+                                Grid.Column="0"
+                                Width="12"
+                                Height="12"
+                                Margin="0,0,8,0"
+                                VerticalAlignment="Center"
+                                Data="{StaticResource Icon.Search}"
+                                Fill="{DynamicResource Brush.TextMuted}"
+                                Stretch="Uniform" />
+                            <TextBox
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Foreground="{DynamicResource Brush.TextPrimary}"
+                                FontSize="12"
+                                Text="{Binding FloatVm.SearchText, UpdateSourceTrigger=PropertyChanged}">
+                                <TextBox.Style>
+                                    <Style TargetType="TextBox">
+                                        <Style.Resources>
+                                            <VisualBrush x:Key="CueBanner" AlignmentX="Left" AlignmentY="Center" Stretch="None">
+                                                <VisualBrush.Visual>
+                                                    <TextBlock FontSize="12" Foreground="{DynamicResource Brush.TextMuted}" Text="Search notes..." />
+                                                </VisualBrush.Visual>
+                                            </VisualBrush>
+                                        </Style.Resources>
+                                        <Style.Triggers>
+                                            <Trigger Property="Text" Value="">
+                                                <Setter Property="Background" Value="{StaticResource CueBanner}" />
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBox.Style>
+                            </TextBox>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!--  ── ROW 2: COMPOSER (EXPANDABLE) ──  -->
+        <Border
+            Grid.Row="2"
+            Margin="0,0,0,16"
+            Padding="20"
+            Background="{DynamicResource Brush.SurfaceElevated}"
+            BorderBrush="{DynamicResource Brush.Border}"
+            BorderThickness="1"
+            CornerRadius="12"
+            Visibility="{Binding FloatVm.IsComposerOpen, Converter={StaticResource BoolToVis}}">
+            <StackPanel>
+                <Grid Margin="0,0,0,14">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <TextBlock
+                        Grid.Column="0"
+                        FontSize="15"
+                        FontWeight="Bold"
+                        Foreground="{DynamicResource Brush.TextPrimary}">
+                        <TextBlock.Style>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="Text" Value="Create New Personal Note" />
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding FloatVm.IsEditing}" Value="True">
+                                        <Setter Property="Text" Value="Edit Personal Note" />
+                                    </DataTrigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBlock.Style>
+                    </TextBlock>
+                    <Button
+                        Grid.Column="1"
+                        Width="28"
+                        Height="28"
+                        Padding="0"
+                        Command="{Binding FloatVm.CancelComposerCommand}"
+                        Style="{StaticResource Button.Ghost}">
+                        <Path
+                            Width="10"
+                            Height="10"
+                            Data="{StaticResource Icon.Close}"
+                            Fill="{DynamicResource Brush.TextMuted}"
+                            Stretch="Uniform" />
+                    </Button>
+                </Grid>
+
+                <!--  Inputs Grid  -->
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="2*" />
+                        <ColumnDefinition Width="1*" />
+                        <ColumnDefinition Width="1*" />
+                    </Grid.ColumnDefinitions>
+
+                    <!--  Title  -->
+                    <TextBox
+                        Grid.Column="0"
+                        Height="38"
+                        Margin="0,0,10,0"
+                        Padding="12,0"
+                        VerticalContentAlignment="Center"
+                        Text="{Binding FloatVm.TitleInput, UpdateSourceTrigger=PropertyChanged}">
+                        <TextBox.Resources>
+                            <VisualBrush x:Key="TitleCue" AlignmentX="Left" AlignmentY="Center" Stretch="None">
+                                <VisualBrush.Visual>
+                                    <TextBlock FontSize="13" Foreground="{DynamicResource Brush.TextMuted}" Text="Note title or quick summary..." />
+                                </VisualBrush.Visual>
+                            </VisualBrush>
+                        </TextBox.Resources>
+                        <TextBox.Style>
+                            <Style BasedOn="{StaticResource TextBox.Modern}" TargetType="TextBox">
+                                <Style.Triggers>
+                                    <Trigger Property="Text" Value="">
+                                        <Setter Property="Background" Value="{StaticResource TitleCue}" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBox.Style>
+                    </TextBox>
+
+                    <!--  Category Type  -->
+                    <ComboBox
+                        Grid.Column="1"
+                        Height="38"
+                        Margin="0,0,10,0"
+                        SelectedValue="{Binding FloatVm.TypeInput, Mode=TwoWay}"
+                        SelectedValuePath="Tag"
+                        Style="{StaticResource ComboBox.Modern}">
+                        <ComboBoxItem Content="📌 Task" Tag="{x:Static entities:NoteType.Task}" />
+                        <ComboBoxItem Content="⏰ Reminder" Tag="{x:Static entities:NoteType.Reminder}" />
+                        <ComboBoxItem Content="🔬 Research" Tag="{x:Static entities:NoteType.Research}" />
+                    </ComboBox>
+
+                    <!--  Project Association  -->
+                    <ComboBox
+                        Grid.Column="2"
+                        Height="38"
+                        ItemsSource="{Binding FloatVm.ComposerProjects}"
+                        SelectedItem="{Binding FloatVm.SelectedProjectInput, Mode=TwoWay}"
+                        Style="{StaticResource ComboBox.Modern}" />
+                </Grid>
+
+                <!--  Description  -->
+                <TextBox
+                    Height="80"
+                    Margin="0,0,0,12"
+                    Padding="12,8"
+                    AcceptsReturn="True"
+                    Text="{Binding FloatVm.DescriptionInput, UpdateSourceTrigger=PropertyChanged}"
+                    TextWrapping="Wrap">
+                    <TextBox.Resources>
+                        <VisualBrush x:Key="DescCue" AlignmentX="Left" AlignmentY="Top" Stretch="None">
+                            <VisualBrush.Visual>
+                                <TextBlock Margin="14,10,0,0" FontSize="12" Foreground="{DynamicResource Brush.TextMuted}" Text="Write detailed description, bullet points, or thoughts..." />
+                            </VisualBrush.Visual>
+                        </VisualBrush>
+                    </TextBox.Resources>
+                    <TextBox.Style>
+                        <Style BasedOn="{StaticResource TextBox.Multiline}" TargetType="TextBox">
+                            <Style.Triggers>
+                                <Trigger Property="Text" Value="">
+                                    <Setter Property="Background" Value="{StaticResource DescCue}" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBox.Style>
+                </TextBox>
+
+                <!--  Color Palette Picker & Actions  -->
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!--  Color Choices  -->
+                    <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock
+                            Text="Color:"
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            Foreground="{DynamicResource Brush.TextSecondary}"
+                            VerticalAlignment="Center"
+                            Margin="0,0,10,0" />
+                        <ItemsControl ItemsSource="{Binding FloatVm.ColorPalette}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button
+                                        Width="26"
+                                        Height="26"
+                                        Margin="0,0,8,0"
+                                        Padding="0"
+                                        Command="{Binding Path=DataContext.FloatVm.SelectCardColorCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding Hex}"
+                                        Cursor="Hand"
+                                        Style="{StaticResource Button.Ghost}"
+                                        ToolTip="{Binding Name}">
+                                        <Border
+                                            Width="24"
+                                            Height="24"
+                                            BorderThickness="1.5"
+                                            CornerRadius="12">
+                                            <Border.Background>
+                                                <SolidColorBrush Color="{Binding Hex}" />
+                                            </Border.Background>
+                                            <Border.BorderBrush>
+                                                <SolidColorBrush Color="{Binding BorderHex}" />
+                                            </Border.BorderBrush>
+                                        </Border>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <!--  Buttons: Cancel & Save  -->
+                    <StackPanel Grid.Column="1" Orientation="Horizontal">
+                        <Button
+                            Height="34"
+                            Padding="16,0"
+                            Margin="0,0,8,0"
+                            Command="{Binding FloatVm.CancelComposerCommand}"
+                            Style="{StaticResource Button.Ghost}"
+                            Content="Cancel" />
+                        <Button
+                            Height="34"
+                            Padding="20,0"
+                            Command="{Binding FloatVm.SaveNoteCommand}"
+                            Style="{StaticResource Button.Primary}"
+                            Content="Save Note" />
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </Border>
+
+        <!--  ── ROW 3: NOTES GRID CONTENT ──  -->
+        <ScrollViewer
+            Grid.Row="3"
+            Padding="0,0,8,0"
+            VerticalScrollBarVisibility="Auto">
+            <Grid>
+                <!--  Empty State  -->
+                <StackPanel
+                    HorizontalAlignment="Center"
+                    VerticalAlignment="Center"
+                    Margin="0,60"
+                    Visibility="{Binding FloatVm.FilteredNotes.Count, Converter={StaticResource InvertBoolToVis}}">
+                    <TextBlock
+                        Text="📝"
+                        FontSize="48"
+                        HorizontalAlignment="Center"
+                        Margin="0,0,0,14" />
+                    <TextBlock
+                        Text="No notes found"
+                        FontSize="18"
+                        FontWeight="Bold"
+                        Foreground="{DynamicResource Brush.TextPrimary}"
+                        HorizontalAlignment="Center" />
+                    <TextBlock
+                        Text="Create your first personal note or adjust search filters."
+                        FontSize="13"
+                        Foreground="{DynamicResource Brush.TextMuted}"
+                        HorizontalAlignment="Center"
+                        Margin="0,4,0,18" />
+                    <Button
+                        Height="36"
+                        Padding="18,0"
+                        HorizontalAlignment="Center"
+                        Command="{Binding FloatVm.OpenCreateComposerCommand}"
+                        Style="{StaticResource Button.Primary}">
+                        <TextBlock Text="+ Add Note" FontWeight="SemiBold" />
+                    </Button>
+                </StackPanel>
+
+                <!--  Notes Cards (Dynamic Responsive Flow)  -->
+                <ItemsControl ItemsSource="{Binding FloatVm.FilteredNotes}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border
+                                Width="320"
+                                MinHeight="170"
+                                Margin="0,0,16,16"
+                                Padding="16"
+                                CornerRadius="12"
+                                Background="{Binding CardColor, Converter={StaticResource NoteColorConv}, ConverterParameter='bg'}"
+                                BorderBrush="{Binding CardColor, Converter={StaticResource NoteColorConv}, ConverterParameter='border'}"
+                                BorderThickness="1.5">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="8" Direction="270" Opacity="0.08" ShadowDepth="2" Color="#000000" />
+                                </Border.Effect>
+                                <Grid>
+                                    <Grid.RowDefinitions>
+                                        <RowDefinition Height="Auto" />
+                                        <!--  Header: Type + Project + Complete Check  -->
+                                        <RowDefinition Height="Auto" />
+                                        <!--  Title  -->
+                                        <RowDefinition Height="*" />
+                                        <!--  Description  -->
+                                        <RowDefinition Height="Auto" />
+                                        <!--  Links  -->
+                                        <RowDefinition Height="Auto" />
+                                        <!--  Footer: Timestamp + Actions  -->
+                                    </Grid.RowDefinitions>
+
+                                    <!--  Row 0: Header  -->
+                                    <Grid Grid.Row="0" Margin="0,0,0,8">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <!--  Type Tag  -->
+                                            <Border
+                                                Padding="6,2"
+                                                Background="{DynamicResource Brush.SurfaceElevated}"
+                                                CornerRadius="4"
+                                                BorderBrush="{DynamicResource Brush.Border}"
+                                                BorderThickness="1"
+                                                Margin="0,0,6,0">
+                                                <TextBlock
+                                                    Text="{Binding TypeDisplay}"
+                                                    FontSize="10"
+                                                    FontWeight="Bold"
+                                                    Foreground="{DynamicResource Brush.TextPrimary}" />
+                                            </Border>
+
+                                            <!--  Project Pill  -->
+                                            <Border
+                                                Padding="6,2"
+                                                Background="{DynamicResource Brush.PrimarySoft}"
+                                                CornerRadius="4"
+                                                Visibility="{Binding HasProject, Converter={StaticResource BoolToVis}}">
+                                                <TextBlock
+                                                    Text="{Binding ProjectName}"
+                                                    FontSize="10"
+                                                    FontWeight="SemiBold"
+                                                    Foreground="{DynamicResource Brush.Primary}"
+                                                    MaxWidth="110"
+                                                    TextTrimming="CharacterEllipsis" />
+                                            </Border>
+                                        </StackPanel>
+
+                                        <!--  Complete Checkbox Button  -->
+                                        <Button
+                                            Grid.Column="1"
+                                            Width="24"
+                                            Height="24"
+                                            Padding="0"
+                                            Command="{Binding Path=DataContext.FloatVm.ToggleNoteCompletedCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}"
+                                            Style="{StaticResource Button.Ghost}">
+                                            <Border
+                                                Width="18"
+                                                Height="18"
+                                                CornerRadius="9"
+                                                BorderThickness="1.5">
+                                                <Border.Style>
+                                                    <Style TargetType="Border">
+                                                        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}" />
+                                                        <Setter Property="Background" Value="Transparent" />
+                                                        <Style.Triggers>
+                                                            <DataTrigger Binding="{Binding IsCompleted}" Value="True">
+                                                                <Setter Property="BorderBrush" Value="{DynamicResource Brush.Success}" />
+                                                                <Setter Property="Background" Value="{DynamicResource Brush.Success}" />
+                                                            </DataTrigger>
+                                                        </Style.Triggers>
+                                                    </Style>
+                                                </Border.Style>
+                                                <TextBlock
+                                                    Text="✓"
+                                                    FontSize="11"
+                                                    FontWeight="Bold"
+                                                    Foreground="White"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center">
+                                                    <TextBlock.Style>
+                                                        <Style TargetType="TextBlock">
+                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                            <Style.Triggers>
+                                                                <DataTrigger Binding="{Binding IsCompleted}" Value="True">
+                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                </DataTrigger>
+                                                            </Style.Triggers>
+                                                        </Style>
+                                                    </TextBlock.Style>
+                                                </TextBlock>
+                                            </Border>
+                                        </Button>
+                                    </Grid>
+
+                                    <!--  Row 1: Title  -->
+                                    <TextBlock
+                                        Grid.Row="1"
+                                        Text="{Binding Title}"
+                                        FontSize="14"
+                                        FontWeight="Bold"
+                                        TextWrapping="Wrap"
+                                        Margin="0,0,0,6"
+                                        Foreground="{Binding CardColor, Converter={StaticResource NoteColorConv}, ConverterParameter='text'}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsCompleted}" Value="True">
+                                                        <Setter Property="TextDecorations" Value="Strikethrough" />
+                                                        <Setter Property="Opacity" Value="0.6" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+
+                                    <!--  Row 2: Description  -->
+                                    <TextBlock
+                                        Grid.Row="2"
+                                        Text="{Binding Description}"
+                                        FontSize="12"
+                                        LineHeight="17"
+                                        TextWrapping="Wrap"
+                                        Margin="0,0,0,10"
+                                        Foreground="{Binding CardColor, Converter={StaticResource NoteColorConv}, ConverterParameter='subtext'}">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsCompleted}" Value="True">
+                                                        <Setter Property="Opacity" Value="0.6" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+
+                                    <!--  Row 3: Links  -->
+                                    <ItemsControl
+                                        Grid.Row="3"
+                                        ItemsSource="{Binding Links}"
+                                        Margin="0,0,0,10"
+                                        Visibility="{Binding HasLinks, Converter={StaticResource BoolToVis}}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Button
+                                                    Margin="0,2"
+                                                    HorizontalAlignment="Left"
+                                                    Command="{Binding Path=DataContext.FloatVm.OpenLinkCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    CommandParameter="{Binding}"
+                                                    Style="{StaticResource Button.Ghost}">
+                                                    <Border
+                                                        Padding="8,2"
+                                                        Background="{DynamicResource Brush.SurfaceElevated}"
+                                                        CornerRadius="8"
+                                                        BorderBrush="{DynamicResource Brush.Border}"
+                                                        BorderThickness="1">
+                                                        <StackPanel Orientation="Horizontal">
+                                                            <TextBlock Text="🌐 " FontSize="9" VerticalAlignment="Center" />
+                                                            <TextBlock
+                                                                Text="{Binding}"
+                                                                FontSize="10"
+                                                                FontWeight="SemiBold"
+                                                                Foreground="{DynamicResource Brush.Primary}"
+                                                                MaxWidth="240"
+                                                                TextTrimming="CharacterEllipsis" />
+                                                        </StackPanel>
+                                                    </Border>
+                                                </Button>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+
+                                    <!--  Row 4: Footer  -->
+                                    <Grid Grid.Row="4" Margin="0,4,0,0">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock
+                                            Grid.Column="0"
+                                            Text="{Binding FormattedCreatedAt}"
+                                            FontSize="10"
+                                            VerticalAlignment="Center"
+                                            Foreground="{Binding CardColor, Converter={StaticResource NoteColorConv}, ConverterParameter='subtext'}" />
+
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                            <!--  Edit  -->
+                                            <Button
+                                                Width="26"
+                                                Height="26"
+                                                Padding="0"
+                                                Margin="0,0,4,0"
+                                                Command="{Binding Path=DataContext.FloatVm.OpenEditComposerCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource Button.Ghost}"
+                                                ToolTip="Edit Note">
+                                                <Path Width="11" Height="11" Data="{StaticResource Icon.Edit}" Fill="{DynamicResource Brush.TextSecondary}" Stretch="Uniform" />
+                                            </Button>
+
+                                            <!--  Delete  -->
+                                            <Button
+                                                Width="26"
+                                                Height="26"
+                                                Padding="0"
+                                                Command="{Binding Path=DataContext.FloatVm.DeleteNoteCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource Button.Ghost}"
+                                                ToolTip="Delete Note">
+                                                <Path Width="11" Height="11" Data="{StaticResource Icon.Trash}" Fill="{DynamicResource Brush.Danger}" Stretch="Uniform" />
+                                            </Button>
+                                        </StackPanel>
+                                    </Grid>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </Grid>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

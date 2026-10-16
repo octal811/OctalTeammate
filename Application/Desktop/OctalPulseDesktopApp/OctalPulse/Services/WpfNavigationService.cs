@@ -147,7 +147,9 @@ public partial class WpfNavigationService : ObservableObject, INavigationService
                type == typeof(SettingsViewModel) ||
                type == typeof(StopwatchViewModel) ||
                type == typeof(ProfileViewModel) ||
-               type == typeof(MediaViewModel);
+               type == typeof(MediaViewModel) ||
+               type == typeof(NotesViewModel) ||
+               type == typeof(PapersViewModel);
     }
 
     private static BreadcrumbItem DefaultBreadcrumb(Type viewModelType)
@@ -166,6 +168,8 @@ public partial class WpfNavigationService : ObservableObject, INavigationService
             nameof(StopwatchViewModel) => "Stopwatch",
             nameof(ProfileViewModel) => "Profile",
             nameof(MediaViewModel) => "Media",
+            nameof(NotesViewModel) => "Notes",
+            nameof(PapersViewModel) => "Papers",
             _ => viewModelType.Name.Replace("ViewModel", string.Empty, StringComparison.Ordinal)
         };
 

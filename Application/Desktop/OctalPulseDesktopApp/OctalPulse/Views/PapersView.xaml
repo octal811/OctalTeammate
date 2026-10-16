@@ -1,0 +1,816 @@
+<UserControl
+    x:Class="OctalPulse.Views.PapersView"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:converters="clr-namespace:OctalPulse.Converters"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    xmlns:models="clr-namespace:OctalPulse.Models"
+    xmlns:vm="clr-namespace:OctalPulse.ViewModels"
+    d:DesignHeight="700"
+    d:DesignWidth="1100"
+    Background="{DynamicResource Brush.Background}"
+    mc:Ignorable="d">
+
+    <UserControl.Resources>
+        <converters:BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <converters:BooleanToVisibilityConverter x:Key="InvertBoolToVis" Invert="True" />
+        <converters:NullToVisibilityConverter x:Key="NullToVis" />
+        <converters:NullToVisibilityConverter x:Key="InvertNullToVis" Invert="True" />
+
+        <!--  Toolbar Button Style  -->
+        <Style x:Key="MarkdownToolButton" TargetType="Button">
+            <Setter Property="Height" Value="28" />
+            <Setter Property="Padding" Value="8,0" />
+            <Setter Property="Margin" Value="2,0" />
+            <Setter Property="Background" Value="Transparent" />
+            <Setter Property="BorderThickness" Value="1" />
+            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}" />
+            <Setter Property="Foreground" Value="{DynamicResource Brush.TextSecondary}" />
+            <Setter Property="FontSize" Value="11" />
+            <Setter Property="FontWeight" Value="SemiBold" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border
+                            x:Name="bd"
+                            Background="{TemplateBinding Background}"
+                            BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}"
+                            CornerRadius="6">
+                            <ContentPresenter
+                                HorizontalAlignment="Center"
+                                VerticalAlignment="Center"
+                                Content="{TemplateBinding Content}" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource Brush.SurfaceHover}" />
+                                <Setter Property="Foreground" Value="{DynamicResource Brush.TextPrimary}" />
+                                <Setter TargetName="bd" Property="BorderBrush" Value="{DynamicResource Brush.Primary}" />
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="bd" Property="Background" Value="{DynamicResource Brush.PrimarySoft}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <!--  Left Pane: Papers Explorer  -->
+            <ColumnDefinition Width="320" MinWidth="260" MaxWidth="440" />
+            <!--  Splitter  -->
+            <ColumnDefinition Width="1" />
+            <!--  Right Pane: Editor & Reader  -->
+            <ColumnDefinition Width="*" />
+        </Grid.ColumnDefinitions>
+
+        <!--  ═══════════════════════════════════════════════════════════════  -->
+        <!--  LEFT COLUMN: PAPERS EXPLORER                                    -->
+        <!--  ═══════════════════════════════════════════════════════════════  -->
+        <Border
+            Grid.Column="0"
+            Background="{DynamicResource Brush.Surface}"
+            BorderBrush="{DynamicResource Brush.Border}"
+            BorderThickness="0,0,1,0">
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <!--  Header  -->
+                    <RowDefinition Height="Auto" />
+                    <!--  Action & Search  -->
+                    <RowDefinition Height="*" />
+                    <!--  Papers List  -->
+                    <RowDefinition Height="Auto" />
+                    <!--  Bottom Directory Status  -->
+                </Grid.RowDefinitions>
+
+                <!--  Top Header  -->
+                <Border
+                    Grid.Row="0"
+                    Padding="16,14"
+                    BorderBrush="{DynamicResource Brush.Border}"
+                    BorderThickness="0,0,0,1">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Grid Width="28" Height="28" Margin="0,0,10,0">
+                                <Border Background="{DynamicResource Brush.PrimarySoft}" CornerRadius="6">
+                                    <Path
+                                        Width="14"
+                                        Height="14"
+                                        HorizontalAlignment="Center"
+                                        VerticalAlignment="Center"
+                                        Data="{StaticResource Icon.Paper}"
+                                        Fill="{DynamicResource Brush.Primary}"
+                                        Stretch="Uniform" />
+                                </Border>
+                            </Grid>
+                            <TextBlock
+                                VerticalAlignment="Center"
+                                FontSize="15"
+                                FontWeight="Bold"
+                                Foreground="{DynamicResource Brush.TextPrimary}"
+                                Text="Papers" />
+                            <Border
+                                Margin="8,0,0,0"
+                                Padding="6,1"
+                                VerticalAlignment="Center"
+                                Background="{DynamicResource Brush.PrimarySoft}"
+                                CornerRadius="4">
+                                <TextBlock
+                                    FontSize="9"
+                                    FontWeight="Bold"
+                                    Foreground="{DynamicResource Brush.Primary}"
+                                    Text=".MD" />
+                            </Border>
+                        </StackPanel>
+
+                        <!--  Header Tool Buttons  -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                            <!--  Open in Explorer  -->
+                            <Button
+                                Width="30"
+                                Height="30"
+                                Margin="2,0"
+                                Padding="0"
+                                Command="{Binding OpenFolderInExplorerCommand}"
+                                Style="{StaticResource Button.Ghost}"
+                                ToolTip="Open Papers Folder in Windows Explorer">
+                                <Path
+                                    Width="14"
+                                    Height="14"
+                                    Data="{StaticResource Icon.FolderOpen}"
+                                    Fill="{DynamicResource Brush.TextSecondary}"
+                                    Stretch="Uniform" />
+                            </Button>
+
+                            <!--  Change Folder  -->
+                            <Button
+                                Width="30"
+                                Height="30"
+                                Margin="2,0"
+                                Padding="0"
+                                Command="{Binding ChangeFolderCommand}"
+                                Style="{StaticResource Button.Ghost}"
+                                ToolTip="Change Storage Folder Location">
+                                <Path
+                                    Width="14"
+                                    Height="14"
+                                    Data="{StaticResource Icon.Settings}"
+                                    Fill="{DynamicResource Brush.TextSecondary}"
+                                    Stretch="Uniform" />
+                            </Button>
+
+                            <!--  Reload  -->
+                            <Button
+                                Width="30"
+                                Height="30"
+                                Margin="2,0"
+                                Padding="0"
+                                Command="{Binding ReloadPapersCommand}"
+                                Style="{StaticResource Button.Ghost}"
+                                ToolTip="Refresh Files">
+                                <Path
+                                    Width="14"
+                                    Height="14"
+                                    Data="{StaticResource Icon.Refresh}"
+                                    Fill="{DynamicResource Brush.TextSecondary}"
+                                    Stretch="Uniform" />
+                            </Button>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!--  Action & Search Row  -->
+                <StackPanel Grid.Row="1" Margin="14,12,14,8">
+                    <!--  New Paper Button  -->
+                    <Button
+                        Height="36"
+                        Margin="0,0,0,10"
+                        Command="{Binding NewPaperCommand}"
+                        Style="{StaticResource Button.Primary}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path
+                                Width="12"
+                                Height="12"
+                                Margin="0,0,8,0"
+                                Data="{StaticResource Icon.Plus}"
+                                Fill="{DynamicResource Brush.PrimaryForeground}"
+                                Stretch="Uniform" />
+                            <TextBlock
+                                FontWeight="SemiBold"
+                                Text="New Paper" />
+                        </StackPanel>
+                    </Button>
+
+                    <!--  Search Box  -->
+                    <Border
+                        Height="34"
+                        Background="{DynamicResource Brush.SurfaceElevated}"
+                        BorderBrush="{DynamicResource Brush.Border}"
+                        BorderThickness="1"
+                        CornerRadius="8"
+                        Padding="8,0">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="*" />
+                            </Grid.ColumnDefinitions>
+                            <Path
+                                Grid.Column="0"
+                                Width="12"
+                                Height="12"
+                                Margin="0,0,8,0"
+                                VerticalAlignment="Center"
+                                Data="{StaticResource Icon.Search}"
+                                Fill="{DynamicResource Brush.TextMuted}"
+                                Stretch="Uniform" />
+                            <TextBox
+                                Grid.Column="1"
+                                VerticalAlignment="Center"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Foreground="{DynamicResource Brush.TextPrimary}"
+                                FontSize="12"
+                                Text="{Binding SearchText, UpdateSourceTrigger=PropertyChanged}">
+                                <TextBox.Style>
+                                    <Style TargetType="TextBox">
+                                        <Style.Resources>
+                                            <VisualBrush
+                                                x:Key="CueBannerBrush"
+                                                AlignmentX="Left"
+                                                AlignmentY="Center"
+                                                Stretch="None">
+                                                <VisualBrush.Visual>
+                                                    <TextBlock
+                                                        FontSize="12"
+                                                        Foreground="{DynamicResource Brush.TextMuted}"
+                                                        Text="Filter papers..." />
+                                                </VisualBrush.Visual>
+                                            </VisualBrush>
+                                        </Style.Resources>
+                                        <Style.Triggers>
+                                            <Trigger Property="Text" Value="">
+                                                <Setter Property="Background" Value="{StaticResource CueBannerBrush}" />
+                                            </Trigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </TextBox.Style>
+                            </TextBox>
+                        </Grid>
+                    </Border>
+                </StackPanel>
+
+                <!--  Papers List  -->
+                <ScrollViewer
+                    Grid.Row="2"
+                    Margin="8,4,8,8"
+                    Padding="0,0,4,0"
+                    VerticalScrollBarVisibility="Auto">
+                    <ItemsControl ItemsSource="{Binding FilteredPapers}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate DataType="{x:Type models:PaperItem}">
+                                <Border
+                                    Margin="0,3"
+                                    Padding="12,10"
+                                    CornerRadius="8"
+                                    BorderThickness="1">
+                                    <Border.Style>
+                                        <Style TargetType="Border">
+                                            <Setter Property="Background" Value="Transparent" />
+                                            <Setter Property="BorderBrush" Value="Transparent" />
+                                            <Style.Triggers>
+                                                <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                                    <Setter Property="Background" Value="{DynamicResource Brush.SurfaceElevated}" />
+                                                    <Setter Property="BorderBrush" Value="{DynamicResource Brush.Primary}" />
+                                                </DataTrigger>
+                                                <MultiDataTrigger>
+                                                    <MultiDataTrigger.Conditions>
+                                                        <Condition Binding="{Binding IsSelected}" Value="False" />
+                                                        <Condition Binding="{Binding IsMouseOver, RelativeSource={RelativeSource Self}}" Value="True" />
+                                                    </MultiDataTrigger.Conditions>
+                                                    <Setter Property="Background" Value="{DynamicResource Brush.SurfaceHover}" />
+                                                </MultiDataTrigger>
+                                            </Style.Triggers>
+                                        </Style>
+                                    </Border.Style>
+
+                                    <!--  Right-Click Context Menu  -->
+                                    <Border.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem
+                                                Header="Rename Paper"
+                                                Command="{Binding Path=DataContext.RenamePaperCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}" />
+                                            <MenuItem
+                                                Header="Delete Paper"
+                                                Command="{Binding Path=DataContext.DeletePaperCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}" />
+                                            <Separator />
+                                            <MenuItem
+                                                Header="Open Folder in Explorer"
+                                                Command="{Binding Path=DataContext.OpenFolderInExplorerCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}" />
+                                        </ContextMenu>
+                                    </Border.ContextMenu>
+
+                                    <Button
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Padding="0"
+                                        HorizontalContentAlignment="Stretch"
+                                        Command="{Binding Path=DataContext.SelectPaperCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding}">
+                                        <Grid>
+                                            <Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                                <RowDefinition Height="Auto" />
+                                            </Grid.RowDefinitions>
+
+                                            <!--  Row 0: Icon + Title + Size  -->
+                                            <Grid Grid.Row="0">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+
+                                                <TextBlock
+                                                    Grid.Column="0"
+                                                    Text="📄"
+                                                    FontSize="12"
+                                                    Margin="0,0,6,0"
+                                                    VerticalAlignment="Center" />
+
+                                                <TextBlock
+                                                    Grid.Column="1"
+                                                    Text="{Binding Title}"
+                                                    FontWeight="SemiBold"
+                                                    FontSize="13"
+                                                    Foreground="{DynamicResource Brush.TextPrimary}"
+                                                    TextTrimming="CharacterEllipsis"
+                                                    VerticalAlignment="Center" />
+
+                                                <TextBlock
+                                                    Grid.Column="2"
+                                                    Text="{Binding FileSizeDisplay}"
+                                                    FontSize="10"
+                                                    Foreground="{DynamicResource Brush.TextMuted}"
+                                                    VerticalAlignment="Center"
+                                                    Margin="6,0,0,0" />
+                                            </Grid>
+
+                                            <!--  Row 1: Snippet Preview  -->
+                                            <TextBlock
+                                                Grid.Row="1"
+                                                Text="{Binding Snippet}"
+                                                FontSize="11"
+                                                Foreground="{DynamicResource Brush.TextSecondary}"
+                                                TextTrimming="CharacterEllipsis"
+                                                Margin="18,3,0,4" />
+
+                                            <!--  Row 2: Timestamp  -->
+                                            <TextBlock
+                                                Grid.Row="2"
+                                                Text="{Binding FormattedLastModified}"
+                                                FontSize="10"
+                                                Foreground="{DynamicResource Brush.TextMuted}"
+                                                Margin="18,0,0,0" />
+                                        </Grid>
+                                    </Button>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <!--  Bottom Storage Folder Path  -->
+                <Border
+                    Grid.Row="3"
+                    Padding="14,10"
+                    Background="{DynamicResource Brush.SurfaceElevated}"
+                    BorderBrush="{DynamicResource Brush.Border}"
+                    BorderThickness="0,1,0,0">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                            <TextBlock
+                                FontSize="10"
+                                Foreground="{DynamicResource Brush.TextMuted}"
+                                Text="📁 Local Papers Folder" />
+                            <TextBlock
+                                FontSize="10"
+                                FontWeight="Medium"
+                                Foreground="{DynamicResource Brush.TextSecondary}"
+                                Text="{Binding CurrentDirectory}"
+                                TextTrimming="CharacterEllipsis"
+                                ToolTip="{Binding CurrentDirectory}" />
+                        </StackPanel>
+                        <Button
+                            Grid.Column="1"
+                            Height="24"
+                            Padding="8,0"
+                            Margin="6,0,0,0"
+                            Command="{Binding ChangeFolderCommand}"
+                            Style="{StaticResource Button.Ghost}"
+                            ToolTip="Change Folder">
+                            <TextBlock FontSize="10" Text="Change" />
+                        </Button>
+                    </Grid>
+                </Border>
+            </Grid>
+        </Border>
+
+        <!--  ═══════════════════════════════════════════════════════════════  -->
+        <!--  RIGHT COLUMN: EDITOR & READER                                    -->
+        <!--  ═══════════════════════════════════════════════════════════════  -->
+        <Grid Grid.Column="2">
+            <!--  Empty State (No Paper Selected)  -->
+            <Grid Visibility="{Binding SelectedPaper, Converter={StaticResource InvertNullToVis}}">
+                <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <Border
+                        Width="64"
+                        Height="64"
+                        Margin="0,0,0,16"
+                        HorizontalAlignment="Center"
+                        Background="{DynamicResource Brush.SurfaceElevated}"
+                        CornerRadius="16">
+                        <Path
+                            Width="28"
+                            Height="28"
+                            HorizontalAlignment="Center"
+                            VerticalAlignment="Center"
+                            Data="{StaticResource Icon.Paper}"
+                            Fill="{DynamicResource Brush.TextMuted}"
+                            Stretch="Uniform" />
+                    </Border>
+                    <TextBlock
+                        HorizontalAlignment="Center"
+                        FontSize="18"
+                        FontWeight="Bold"
+                        Foreground="{DynamicResource Brush.TextPrimary}"
+                        Text="No Paper Selected" />
+                    <TextBlock
+                        Margin="0,6,0,18"
+                        HorizontalAlignment="Center"
+                        FontSize="13"
+                        Foreground="{DynamicResource Brush.TextMuted}"
+                        Text="Select a paper from the list or create a new research document." />
+                    <Button
+                        Height="38"
+                        Padding="18,0"
+                        HorizontalAlignment="Center"
+                        Command="{Binding NewPaperCommand}"
+                        Style="{StaticResource Button.Primary}">
+                        <StackPanel Orientation="Horizontal">
+                            <Path
+                                Width="12"
+                                Height="12"
+                                Margin="0,0,8,0"
+                                Data="{StaticResource Icon.Plus}"
+                                Fill="{DynamicResource Brush.PrimaryForeground}"
+                                Stretch="Uniform" />
+                            <TextBlock FontWeight="SemiBold" Text="Create New Paper" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </Grid>
+
+            <!--  Active Paper Workspace  -->
+            <Grid Visibility="{Binding SelectedPaper, Converter={StaticResource NullToVis}}">
+                <Grid.RowDefinitions>
+                    <!--  Row 0: Top Workspace Bar (Title, Save Status, Modes)  -->
+                    <RowDefinition Height="Auto" />
+                    <!--  Row 1: Markdown Tools Helper Bar  -->
+                    <RowDefinition Height="Auto" />
+                    <!--  Row 2: Document Host (Edit Mode or Read Mode)  -->
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+
+                <!--  ── Row 0: Top Header ──  -->
+                <Border
+                    Grid.Row="0"
+                    Padding="20,12"
+                    Background="{DynamicResource Brush.Surface}"
+                    BorderBrush="{DynamicResource Brush.Border}"
+                    BorderThickness="0,0,0,1">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <!--  Title + Status  -->
+                        <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
+                            <TextBlock
+                                FontSize="18"
+                                FontWeight="Bold"
+                                Foreground="{DynamicResource Brush.TextPrimary}"
+                                Text="{Binding SelectedPaper.Title}"
+                                VerticalAlignment="Center" />
+
+                            <!--  Rename Button  -->
+                            <Button
+                                Width="26"
+                                Height="26"
+                                Margin="8,0,0,0"
+                                Padding="0"
+                                Command="{Binding RenamePaperCommand}"
+                                CommandParameter="{Binding SelectedPaper}"
+                                Style="{StaticResource Button.Ghost}"
+                                ToolTip="Rename Paper">
+                                <Path
+                                    Width="12"
+                                    Height="12"
+                                    Data="{StaticResource Icon.Edit}"
+                                    Fill="{DynamicResource Brush.TextSecondary}"
+                                    Stretch="Uniform" />
+                            </Button>
+
+                            <!--  Save Status Indicator  -->
+                            <Border
+                                Margin="14,0,0,0"
+                                Padding="8,2"
+                                CornerRadius="10"
+                                VerticalAlignment="Center">
+                                <Border.Style>
+                                    <Style TargetType="Border">
+                                        <Setter Property="Background" Value="{DynamicResource Brush.SurfaceElevated}" />
+                                        <Style.Triggers>
+                                            <DataTrigger Binding="{Binding HasUnsavedChanges}" Value="True">
+                                                <Setter Property="Background" Value="#25F59E0B" />
+                                            </DataTrigger>
+                                        </Style.Triggers>
+                                    </Style>
+                                </Border.Style>
+                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                    <Ellipse Width="6" Height="6" Margin="0,0,6,0" VerticalAlignment="Center">
+                                        <Ellipse.Style>
+                                            <Style TargetType="Ellipse">
+                                                <Setter Property="Fill" Value="{DynamicResource Brush.Success}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasUnsavedChanges}" Value="True">
+                                                        <Setter Property="Fill" Value="#F59E0B" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Ellipse.Style>
+                                    </Ellipse>
+                                    <TextBlock
+                                        FontSize="11"
+                                        FontWeight="Medium"
+                                        Text="{Binding StatusMessage}"
+                                        VerticalAlignment="Center">
+                                        <TextBlock.Style>
+                                            <Style TargetType="TextBlock">
+                                                <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding HasUnsavedChanges}" Value="True">
+                                                        <Setter Property="Foreground" Value="#F59E0B" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </TextBlock.Style>
+                                    </TextBlock>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+
+                        <!--  Controls: Mode Switcher + Save + Actions  -->
+                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                            <!--  Save Button  -->
+                            <Button
+                                Height="32"
+                                Padding="12,0"
+                                Margin="0,0,12,0"
+                                Command="{Binding SaveCurrentPaperCommand}"
+                                Style="{StaticResource Button.Primary}"
+                                ToolTip="Save File (Ctrl+S)">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path
+                                        Width="12"
+                                        Height="12"
+                                        Margin="0,0,6,0"
+                                        Data="{StaticResource Icon.Check}"
+                                        Fill="{DynamicResource Brush.PrimaryForeground}"
+                                        Stretch="Uniform" />
+                                    <TextBlock FontWeight="SemiBold" FontSize="12" Text="Save" />
+                                </StackPanel>
+                            </Button>
+
+                            <!--  GitHub-Style Mode Switcher  -->
+                            <Border
+                                Height="32"
+                                Background="{DynamicResource Brush.SurfaceElevated}"
+                                BorderBrush="{DynamicResource Brush.Border}"
+                                BorderThickness="1"
+                                CornerRadius="8"
+                                Padding="2">
+                                <StackPanel Orientation="Horizontal">
+                                    <!--  Edit Mode Button  -->
+                                    <Button
+                                        Height="26"
+                                        Padding="10,0"
+                                        Command="{Binding SetEditModeCommand}"
+                                        BorderThickness="0">
+                                        <Button.Style>
+                                            <Style TargetType="Button">
+                                                <Setter Property="Background" Value="Transparent" />
+                                                <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsEditMode}" Value="True">
+                                                        <Setter Property="Background" Value="{DynamicResource Brush.Primary}" />
+                                                        <Setter Property="Foreground" Value="{DynamicResource Brush.PrimaryForeground}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="✏️ " FontSize="10" VerticalAlignment="Center" />
+                                            <TextBlock Text="Edit" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+
+                                    <!--  Read Mode Button  -->
+                                    <Button
+                                        Height="26"
+                                        Padding="10,0"
+                                        Command="{Binding SetReadModeCommand}"
+                                        BorderThickness="0">
+                                        <Button.Style>
+                                            <Style TargetType="Button">
+                                                <Setter Property="Background" Value="Transparent" />
+                                                <Setter Property="Foreground" Value="{DynamicResource Brush.TextMuted}" />
+                                                <Style.Triggers>
+                                                    <DataTrigger Binding="{Binding IsReadMode}" Value="True">
+                                                        <Setter Property="Background" Value="{DynamicResource Brush.Primary}" />
+                                                        <Setter Property="Foreground" Value="{DynamicResource Brush.PrimaryForeground}" />
+                                                    </DataTrigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Button.Style>
+                                        <Button.Template>
+                                            <ControlTemplate TargetType="Button">
+                                                <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Button.Template>
+                                        <StackPanel Orientation="Horizontal">
+                                            <TextBlock Text="👁️ " FontSize="10" VerticalAlignment="Center" />
+                                            <TextBlock Text="Read" FontWeight="SemiBold" FontSize="12" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                    </Button>
+                                </StackPanel>
+                            </Border>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+
+                <!--  ── Row 1: Markdown Tools Helper Bar ──  -->
+                <Border
+                    Grid.Row="1"
+                    Padding="16,8"
+                    Background="{DynamicResource Brush.SurfaceElevated}"
+                    BorderBrush="{DynamicResource Brush.Border}"
+                    BorderThickness="0,0,0,1">
+                    <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+                        <StackPanel Orientation="Horizontal">
+                            <!--  Headings  -->
+                            <Button Style="{StaticResource MarkdownToolButton}" Command="{Binding InsertHeadingCommand}" CommandParameter="1" ToolTip="Heading 1 (#)">
+                                <TextBlock Text="H1" />
+                            </Button>
+                            <Button Style="{StaticResource MarkdownToolButton}" Command="{Binding InsertHeadingCommand}" CommandParameter="2" ToolTip="Heading 2 (##)">
+                                <TextBlock Text="H2" />
+                            </Button>
+                            <Button Style="{StaticResource MarkdownToolButton}" Command="{Binding InsertHeadingCommand}" CommandParameter="3" ToolTip="Heading 3 (###)">
+                                <TextBlock Text="H3" />
+                            </Button>
+
+                            <Border Width="1" Height="16" Margin="6,0" Background="{DynamicResource Brush.Border}" />
+
+                            <!--  Typography  -->
+                            <Button Style="{StaticResource MarkdownToolButton}" Command="{Binding InsertBoldCommand}" ToolTip="Bold (**text**)">
+                                <TextBlock Text="B" FontWeight="Bold" />
+                            </Button>
+                            <Button Style="{StaticResource MarkdownToolButton}" Command="{Binding InsertItalicCommand}" ToolTip="Italic (*text*)">
+                                <TextBlock Text="I" FontStyle="Italic" />
+                            </Button>
+                            <Button Style="{StaticResource MarkdownToolButton}" Command="{Binding InsertStrikethroughCommand}" ToolTip="Strikethrough (~~text~~)">
+                                <TextBlock Text="~S~" />
+                            </Button>
+
+                            <Border Width="1" Height="16" Margin="6,0" Background="{DynamicResource Brush.Border}" />
+
+                            <!--  Structure  -->
+                            <Button Style="{StaticResource MarkdownToolButton}" Command="{Binding InsertQuoteCommand}" ToolTip="Quote (> text)">
+                                <TextBlock Text="&quot; Quote" />
+                            </Button>
+                            <Button Style="{StaticResource MarkdownToolButton}" Command="{Binding InsertCodeBlockCommand}" ToolTip="Code Block (```)">
+                                <TextBlock Text="&lt;/&gt; Code" />
+                            </Button>
+                            <Button Style="{StaticResource MarkdownToolButton}" Command="{Binding InsertInlineCodeCommand}" ToolTip="Inline Code (`code`)">
+                                <TextBlock Text="` ` Inline" />
+                            </Button>
+
+                            <Border Width="1" Height="16" Margin="6,0" Background="{DynamicResource Brush.Border}" />
+
+                            <!--  Lists  -->
+                            <Button Style="{StaticResource MarkdownToolButton}" Command="{Binding InsertBulletListCommand}" ToolTip="Bullet List (- item)">
+                                <TextBlock Text="• List" />
+                            </Button>
+                            <Button Style="{StaticResource MarkdownToolButton}" Command="{Binding InsertNumberedListCommand}" ToolTip="Numbered List (1. item)">
+                                <TextBlock Text="1. List" />
+                            </Button>
+                            <Button Style="{StaticResource MarkdownToolButton}" Command="{Binding InsertChecklistCommand}" ToolTip="Checklist (- [ ] task)">
+                                <TextBlock Text="☑ Task" />
+                            </Button>
+
+                            <Border Width="1" Height="16" Margin="6,0" Background="{DynamicResource Brush.Border}" />
+
+                            <!--  Insertables: Photo, Table, Link, Rule  -->
+                            <Button
+                                Style="{StaticResource MarkdownToolButton}"
+                                Command="{Binding InsertImageFromPcCommand}"
+                                BorderBrush="{DynamicResource Brush.Primary}"
+                                ToolTip="Pick an image from your computer to embed in this paper">
+                                <StackPanel Orientation="Horizontal">
+                                    <Path
+                                        Width="12"
+                                        Height="12"
+                                        Margin="0,0,4,0"
+                                        Data="{StaticResource Icon.Image}"
+                                        Fill="{DynamicResource Brush.Primary}"
+                                        Stretch="Uniform" />
+                                    <TextBlock Text="Add Photo from PC" FontWeight="Bold" Foreground="{DynamicResource Brush.Primary}" />
+                                </StackPanel>
+                            </Button>
+
+                            <Button Style="{StaticResource MarkdownToolButton}" Command="{Binding InsertTableCommand}" ToolTip="Insert Table template">
+                                <TextBlock Text="📊 Table" />
+                            </Button>
+                            <Button Style="{StaticResource MarkdownToolButton}" Command="{Binding InsertLinkCommand}" ToolTip="Insert Link [text](url)">
+                                <TextBlock Text="🔗 Link" />
+                            </Button>
+                            <Button Style="{StaticResource MarkdownToolButton}" Command="{Binding InsertHorizontalRuleCommand}" ToolTip="Divider line (---)">
+                                <TextBlock Text="— Line" />
+                            </Button>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Border>
+
+                <!--  ── Row 2: Content Area (Edit Mode vs Read Mode) ──  -->
+                <Grid Grid.Row="2">
+                    <!--  EDIT MODE: Raw Markdown Text Editor  -->
+                    <Grid Visibility="{Binding IsEditMode, Converter={StaticResource BoolToVis}}">
+                        <TextBox
+                            x:Name="EditorTextBox"
+                            Text="{Binding CurrentContent, UpdateSourceTrigger=PropertyChanged}"
+                            AcceptsReturn="True"
+                            AcceptsTab="True"
+                            VerticalScrollBarVisibility="Auto"
+                            HorizontalScrollBarVisibility="Auto"
+                            FontFamily="Consolas, Cascadia Code, Segoe UI, Courier New"
+                            FontSize="13.5"
+                            Background="Transparent"
+                            BorderThickness="0"
+                            Foreground="{DynamicResource Brush.TextPrimary}"
+                            Padding="24,18"
+                            TextWrapping="Wrap"
+                            PreviewKeyDown="EditorTextBox_PreviewKeyDown" />
+                    </Grid>
+
+                    <!--  READ MODE: Rendered FlowDocument  -->
+                    <Grid Visibility="{Binding IsReadMode, Converter={StaticResource BoolToVis}}">
+                        <FlowDocumentScrollViewer
+                            x:Name="ReaderViewer"
+                            Document="{Binding ReadDocument}"
+                            VerticalScrollBarVisibility="Auto"
+                            HorizontalScrollBarVisibility="Disabled"
+                            IsToolBarVisible="False"
+                            Background="Transparent" />
+                    </Grid>
+                </Grid>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

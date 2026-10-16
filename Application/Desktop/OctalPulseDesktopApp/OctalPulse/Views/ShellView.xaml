@@ -55,6 +55,12 @@
         <DataTemplate DataType="{x:Type vm:MediaViewModel}">
             <views:MediaView />
         </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:NotesViewModel}">
+            <views:NotesView />
+        </DataTemplate>
+        <DataTemplate DataType="{x:Type vm:PapersViewModel}">
+            <views:PapersView />
+        </DataTemplate>
     </UserControl.Resources>
 
     <Grid>
@@ -315,6 +321,106 @@
                                         FontWeight="Bold"
                                         Foreground="{DynamicResource Brush.Primary}"
                                         Text="AGENT" />
+                                </Border>
+                            </Grid>
+                        </Button>
+
+                        <!--  Personal Notes  -->
+                        <Button
+                            Height="42"
+                            Margin="0,2"
+                            Padding="12,0"
+                            HorizontalContentAlignment="Left"
+                            Command="{Binding NavigateNotesCommand}"
+                            Style="{StaticResource Button.Ghost}">
+                            <Grid Width="200">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                    <Grid
+                                        Width="24"
+                                        Height="24"
+                                        Margin="0,0,12,0">
+                                        <Path
+                                            Width="18"
+                                            Height="18"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Data="{StaticResource Icon.Note}"
+                                            Fill="{DynamicResource Brush.TextSecondary}"
+                                            Stretch="Uniform" />
+                                    </Grid>
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        FontSize="14"
+                                        FontWeight="Medium"
+                                        Foreground="{DynamicResource Brush.TextPrimary}"
+                                        Text="Notes" />
+                                </StackPanel>
+                                <Border
+                                    Grid.Column="1"
+                                    Margin="4,0,0,0"
+                                    Padding="5,1"
+                                    Background="{DynamicResource Brush.SurfaceElevated}"
+                                    CornerRadius="4"
+                                    VerticalAlignment="Center">
+                                    <TextBlock
+                                        FontSize="9"
+                                        FontWeight="Bold"
+                                        Foreground="{DynamicResource Brush.TextMuted}"
+                                        Text="Alt+O" />
+                                </Border>
+                            </Grid>
+                        </Button>
+
+                        <!--  Papers (Markdown Research & Docs)  -->
+                        <Button
+                            Height="42"
+                            Margin="0,2"
+                            Padding="12,0"
+                            HorizontalContentAlignment="Left"
+                            Command="{Binding NavigatePapersCommand}"
+                            Style="{StaticResource Button.Ghost}">
+                            <Grid Width="200">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="*" />
+                                    <ColumnDefinition Width="Auto" />
+                                </Grid.ColumnDefinitions>
+                                <StackPanel Grid.Column="0" Orientation="Horizontal">
+                                    <Grid
+                                        Width="24"
+                                        Height="24"
+                                        Margin="0,0,12,0">
+                                        <Path
+                                            Width="18"
+                                            Height="18"
+                                            HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"
+                                            Data="{StaticResource Icon.Paper}"
+                                            Fill="{DynamicResource Brush.TextSecondary}"
+                                            Stretch="Uniform" />
+                                    </Grid>
+                                    <TextBlock
+                                        VerticalAlignment="Center"
+                                        FontSize="14"
+                                        FontWeight="Medium"
+                                        Foreground="{DynamicResource Brush.TextPrimary}"
+                                        Text="Papers" />
+                                </StackPanel>
+                                <Border
+                                    Grid.Column="1"
+                                    Margin="4,0,0,0"
+                                    Padding="5,1"
+                                    Background="{DynamicResource Brush.PrimarySoft}"
+                                    CornerRadius="4"
+                                    VerticalAlignment="Center">
+                                    <TextBlock
+                                        FontSize="9"
+                                        FontWeight="Bold"
+                                        Foreground="{DynamicResource Brush.Primary}"
+                                        Text=".MD" />
                                 </Border>
                             </Grid>
                         </Button>

@@ -401,6 +401,20 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
     }
 
     [RelayCommand]
+    private void NavigateNotes()
+    {
+        CurrentRoute = "Notes";
+        _navigationService.NavigateTo<NotesViewModel>();
+    }
+
+    [RelayCommand]
+    private void NavigatePapers()
+    {
+        CurrentRoute = "Papers";
+        _navigationService.NavigateTo<PapersViewModel>();
+    }
+
+    [RelayCommand]
     private void NavigateMedia()
     {
         CurrentRoute = "Media";

@@ -86,6 +86,11 @@ public partial class App : System.Windows.Application
                     services.AddTransient<MediaViewModel>();
                     services.AddTransient<FastAddViewModel>();
                     services.AddTransient<OctoViewModel>();
+                    services.AddTransient<NotesViewModel>();
+                    services.AddTransient<PapersViewModel>();
+
+                    // Storage Services
+                    services.AddSingleton<IPapersStorageService, PapersStorageService>();
 
                     // Float ViewModels
                     services.AddSingleton<MajorTasksFloatViewModel>();
