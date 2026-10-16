@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.SignalR.Client;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using OctalPulse.Application.Contracts;
 using OctalPulse.Application.Services;
@@ -23,6 +24,7 @@ public class SignalRRealtimeService : ISignalRRealtimeService
     private HubConnection? _hubConnection;
     private readonly HashSet<Guid> _joinedProjects = new();
     private readonly HashSet<Guid> _joinedTracks = new();
+    private Guid? _joinedUserId;
     private string? _currentAccessToken;
     private bool _isDisposed;
 
@@ -84,6 +86,18 @@ public class SignalRRealtimeService : ISignalRRealtimeService
                     }
                     return handler;
                 };
+                options.WebSocketConfiguration = sockets =>
+                {
+                    sockets.RemoteCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) =>
+                    {
+                        return true;
+                    };
+                };
+            })
+            .AddJsonProtocol(options =>
+            {
+                options.PayloadSerializerOptions.PropertyNameCaseInsensitive = true;
+                options.PayloadSerializerOptions.Converters.Add(new NotificationTypeFlexibleConverter());
             })
             .WithAutomaticReconnect(new SignalRInfiniteRetryPolicy())
             .Build();
@@ -248,11 +262,34 @@ public class SignalRRealtimeService : ISignalRRealtimeService
         }
     }
 
+    public async Task JoinUserGroupAsync(Guid userId, CancellationToken cancellationToken = default)
+    {
+        _joinedUserId = userId;
+        if (IsConnected && _hubConnection != null)
+        {
+            try
+            {
+                await _hubConnection.InvokeAsync("JoinUser", userId, cancellationToken);
+                _logger.LogInformation("Joined SignalR user group for {UserId}", userId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Failed to join SignalR user group for {UserId}", userId);
+            }
+        }
+    }
+
     public async Task RegisterGroupMembershipAsync(
         IReadOnlyList<Guid> projectIds,
         IReadOnlyList<Guid> trackIds,
+        Guid? userId = null,
         CancellationToken cancellationToken = default)
     {
+        if (userId.HasValue)
+        {
+            _joinedUserId = userId.Value;
+        }
+
         foreach (var projectId in projectIds)
         {
             _joinedProjects.Add(projectId);
@@ -264,6 +301,11 @@ public class SignalRRealtimeService : ISignalRRealtimeService
         }
 
         if (!IsConnected || _hubConnection == null) return;
+
+        if (userId.HasValue)
+        {
+            await JoinUserGroupAsync(userId.Value, cancellationToken);
+        }
 
         foreach (var projectId in projectIds)
         {
@@ -372,6 +414,19 @@ public class SignalRRealtimeService : ISignalRRealtimeService
     private async Task RejoinGroupsAsync()
     {
         if (!IsConnected || _hubConnection == null) return;
+
+        if (_joinedUserId.HasValue)
+        {
+            try
+            {
+                await _hubConnection.InvokeAsync("JoinUser", _joinedUserId.Value);
+                _logger.LogInformation("Rejoined SignalR user group for {UserId}", _joinedUserId.Value);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Error rejoining user group {UserId}", _joinedUserId.Value);
+            }
+        }
 
         foreach (var projectId in _joinedProjects)
         {

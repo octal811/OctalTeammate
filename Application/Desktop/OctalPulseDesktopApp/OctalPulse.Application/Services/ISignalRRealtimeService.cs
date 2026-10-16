@@ -12,7 +12,8 @@ public interface ISignalRRealtimeService : IAsyncDisposable
     Task LeaveProjectAsync(Guid projectId, CancellationToken cancellationToken = default);
     Task JoinTrackAsync(Guid trackId, CancellationToken cancellationToken = default);
     Task LeaveTrackAsync(Guid trackId, CancellationToken cancellationToken = default);
-    Task RegisterGroupMembershipAsync(IReadOnlyList<Guid> projectIds, IReadOnlyList<Guid> trackIds, CancellationToken cancellationToken = default);
+    Task JoinUserGroupAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task RegisterGroupMembershipAsync(IReadOnlyList<Guid> projectIds, IReadOnlyList<Guid> trackIds, Guid? userId = null, CancellationToken cancellationToken = default);
 
     event Action<Guid>? ProjectChanged;
     event Action<Guid, Guid>? TrackChanged;

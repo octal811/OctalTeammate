@@ -151,18 +151,31 @@ public class SignalRNotifier : IRealtimeNotifier
 
     public async Task SendNotificationAsync(Guid recipientUserId, NotificationDto notification, CancellationToken cancellationToken = default)
     {
+        // 1. Send via direct User identifier mapping
         await _hubContext.Clients
             .User(recipientUserId.ToString())
+            .SendAsync("receiveNotification", notification, cancellationToken);
+
+        // 2. Also send via User Group as a fallback to guarantee delivery
+        await _hubContext.Clients
+            .Group(CollaborationHub.UserGroupName(recipientUserId))
             .SendAsync("receiveNotification", notification, cancellationToken);
     }
 
     public async Task SendNotificationToUsersAsync(IEnumerable<Guid> recipientUserIds, NotificationDto notification, CancellationToken cancellationToken = default)
     {
-        var userIds = recipientUserIds.Select(u => u.ToString()).ToList();
+        var userIds = recipientUserIds.ToList();
         if (!userIds.Any()) return;
 
         await _hubContext.Clients
-            .Users(userIds)
+            .Users(userIds.Select(u => u.ToString()).ToList())
             .SendAsync("receiveNotification", notification, cancellationToken);
+
+        foreach (var userId in userIds)
+        {
+            await _hubContext.Clients
+                .Group(CollaborationHub.UserGroupName(userId))
+                .SendAsync("receiveNotification", notification, cancellationToken);
+        }
     }
 }

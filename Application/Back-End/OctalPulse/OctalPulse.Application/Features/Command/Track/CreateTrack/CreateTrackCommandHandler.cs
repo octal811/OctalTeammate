@@ -12,15 +12,18 @@ public class CreateTrackCommandHandler : IRequestHandler<CreateTrackCommand, Cre
     private readonly IUnitOfWork _unitOfWork;
     private readonly IRealtimeNotifier _realtimeNotifier;
     private readonly IBadgeService _badgeService;
+    private readonly IAppNotificationService _notificationService;
 
     public CreateTrackCommandHandler(
         IUnitOfWork unitOfWork,
         IRealtimeNotifier realtimeNotifier,
-        IBadgeService badgeService)
+        IBadgeService badgeService,
+        IAppNotificationService notificationService)
     {
         _unitOfWork = unitOfWork;
         _realtimeNotifier = realtimeNotifier;
         _badgeService = badgeService;
+        _notificationService = notificationService;
     }
 
     public async Task<CreateTrackResponse> Handle(CreateTrackCommand request, CancellationToken cancellationToken)
@@ -69,6 +72,15 @@ public class CreateTrackCommandHandler : IRequestHandler<CreateTrackCommand, Cre
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         await _realtimeNotifier.TrackChangedAsync(track.Id, track.ProjectId, cancellationToken);
+
+        await _notificationService.NotifyProjectMembersAsync(
+            track.ProjectId,
+            request.CreatedByUserId,
+            "New Track Created",
+            $"Created track '{track.Name}' in project '{project.Title}'.",
+            Domain.Enums.NotificationType.Track,
+            track.Id,
+            cancellationToken);
 
         return new CreateTrackResponse(
             track.Id,

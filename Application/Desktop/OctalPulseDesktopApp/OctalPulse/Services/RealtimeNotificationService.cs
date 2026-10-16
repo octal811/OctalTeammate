@@ -73,6 +73,8 @@ public sealed class RealtimeNotificationService : IDisposable
         }
     }
 
+    private readonly HashSet<Guid> _processedNotificationIds = new();
+
     public async Task SyncAllUserGroupsAsync()
     {
         try
@@ -97,9 +99,10 @@ public sealed class RealtimeNotificationService : IDisposable
                 catch { /* ignore inaccessible tracks */ }
             }
 
-            await _signalRService.RegisterGroupMembershipAsync(projectIds, trackIds);
-            _logger.LogInformation("Synced {ProjectCount} project groups and {TrackCount} track groups with SignalR.",
-                projectIds.Count, trackIds.Count);
+            var userId = _userSession.UserId != Guid.Empty ? _userSession.UserId : (Guid?)null;
+            await _signalRService.RegisterGroupMembershipAsync(projectIds, trackIds, userId);
+            _logger.LogInformation("Synced {ProjectCount} project groups, {TrackCount} track groups, and user group {UserId} with SignalR.",
+                projectIds.Count, trackIds.Count, userId);
         }
         catch (Exception ex)
         {
@@ -109,6 +112,24 @@ public sealed class RealtimeNotificationService : IDisposable
 
     private void OnNotificationReceived(NotificationItemDto notification)
     {
+        if (notification.Id != Guid.Empty)
+        {
+            lock (_processedNotificationIds)
+            {
+                if (!_processedNotificationIds.Add(notification.Id))
+                {
+                    _logger.LogDebug("Duplicate notification {NotificationId} ignored.", notification.Id);
+                    return;
+                }
+
+                if (_processedNotificationIds.Count > 1000)
+                {
+                    _processedNotificationIds.Clear();
+                    _processedNotificationIds.Add(notification.Id);
+                }
+            }
+        }
+
         _logger.LogInformation("Notification received for user: {Title} - {Message}", notification.Title, notification.Message);
 
         var title = !string.IsNullOrWhiteSpace(notification.Title) ? notification.Title : "OctalPulse Notification";

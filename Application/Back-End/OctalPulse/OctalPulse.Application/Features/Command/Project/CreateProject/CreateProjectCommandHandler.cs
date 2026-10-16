@@ -10,11 +10,16 @@ public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand,
 {
     private readonly IUnitOfWork _unitOfWork;
     private readonly IRealtimeNotifier _realtimeNotifier;
+    private readonly IAppNotificationService _notificationService;
 
-    public CreateProjectCommandHandler(IUnitOfWork unitOfWork, IRealtimeNotifier realtimeNotifier)
+    public CreateProjectCommandHandler(
+        IUnitOfWork unitOfWork,
+        IRealtimeNotifier realtimeNotifier,
+        IAppNotificationService notificationService)
     {
         _unitOfWork = unitOfWork;
         _realtimeNotifier = realtimeNotifier;
+        _notificationService = notificationService;
     }
 
     public async Task<CreateProjectResponse> Handle(CreateProjectCommand request, CancellationToken cancellationToken)
@@ -59,6 +64,14 @@ public class CreateProjectCommandHandler : IRequestHandler<CreateProjectCommand,
         await _unitOfWork.CompleteAsync(cancellationToken);
 
         await _realtimeNotifier.ProjectChangedAsync(project.Id, cancellationToken);
+
+        await _notificationService.NotifyWorkspaceUsersAsync(
+            request.CreatedByUserId,
+            "New Project Created",
+            $"Created project '{project.Title}'.",
+            Domain.Enums.NotificationType.Project,
+            project.Id,
+            cancellationToken);
 
         return new CreateProjectResponse(
             project.Id,

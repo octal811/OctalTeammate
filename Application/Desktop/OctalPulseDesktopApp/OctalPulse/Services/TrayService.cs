@@ -63,7 +63,26 @@ public sealed class TrayService : IDisposable
 
     public void ShowBalloonTip(string title, string message, int durationMs = 3000)
     {
-        _notifyIcon?.ShowBalloonTip(durationMs, title, message, WinForms.ToolTipIcon.Info);
+        var app = System.Windows.Application.Current;
+        if (app != null && !app.Dispatcher.CheckAccess())
+        {
+            app.Dispatcher.BeginInvoke(() => ShowBalloonTip(title, message, durationMs));
+            return;
+        }
+
+        try
+        {
+            if (_notifyIcon == null)
+            {
+                Initialize();
+            }
+
+            _notifyIcon?.ShowBalloonTip(durationMs, title, message, WinForms.ToolTipIcon.Info);
+        }
+        catch
+        {
+            // Ignore tray display failures
+        }
     }
 
     public void Dispose()

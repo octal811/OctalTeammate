@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Controls;
@@ -121,6 +122,7 @@ public partial class MainWindow : Window
             // Detach events so no double-dispose
             _trayService.ShowMainWindowRequested -= OnShowMainWindowRequested;
             _trayService.ExitRequested -= OnExitRequested;
+            Close();
             System.Windows.Application.Current.Shutdown();
         });
     }

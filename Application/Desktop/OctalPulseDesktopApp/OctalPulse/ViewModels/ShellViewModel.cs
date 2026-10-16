@@ -162,10 +162,25 @@ public partial class ShellViewModel : ObservableObject, INavigationAware
 
         void AddNotification()
         {
+            if (notification.Id != Guid.Empty && Notifications.Any(n => n.Id == notification.Id))
+            {
+                return;
+            }
+
             var itemVm = new NotificationItemViewModel(notification);
             Notifications.Insert(0, itemVm);
             UnreadNotificationsCount++;
             TotalNotificationsCount++;
+
+            var toastTitle = !string.IsNullOrWhiteSpace(notification.Title) ? notification.Title : "Notification";
+            var toastMsg = notification.Message;
+            if (!string.IsNullOrWhiteSpace(notification.ActorName) &&
+                !toastMsg.StartsWith(notification.ActorName, StringComparison.OrdinalIgnoreCase))
+            {
+                toastMsg = $"{notification.ActorName}: {toastMsg}";
+            }
+
+            _dialogService.ShowToast(toastTitle, toastMsg, ToastType.Info);
         }
 
         if (app.Dispatcher.CheckAccess())

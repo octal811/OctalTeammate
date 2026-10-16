@@ -89,15 +89,38 @@ public class AppNotificationService : IAppNotificationService
             var (projName, trkName) = await GetProjectAndTrackNameAsync(projectId, trackId, cancellationToken);
             var (actorName, actorPic) = await GetActorInfoAsync(actorUserId, cancellationToken);
 
+            var recipientUserIds = new HashSet<Guid>();
+
+            // 1. Explicit track members
             var trackMembers = await _unitOfWork.TrackMembers.FindAsync(
                 tm => tm.TrackId == trackId && tm.Status == MembershipStatus.Approved && tm.UserId != actorUserId,
                 cancellationToken);
+            foreach (var tm in trackMembers)
+            {
+                recipientUserIds.Add(tm.UserId);
+            }
 
-            var recipientUserIds = trackMembers.Select(tm => tm.UserId).Distinct().ToList();
+            // 2. Track lead
             if (track.TrackLeadUserId.HasValue && track.TrackLeadUserId.Value != Guid.Empty &&
-                track.TrackLeadUserId.Value != actorUserId && !recipientUserIds.Contains(track.TrackLeadUserId.Value))
+                track.TrackLeadUserId.Value != actorUserId)
             {
                 recipientUserIds.Add(track.TrackLeadUserId.Value);
+            }
+
+            // 3. Approved project members of this track's project
+            var projectMembers = await _unitOfWork.ProjectMembers.FindAsync(
+                pm => pm.ProjectId == projectId && pm.Status == MembershipStatus.Approved && pm.UserId != actorUserId,
+                cancellationToken);
+            foreach (var pm in projectMembers)
+            {
+                recipientUserIds.Add(pm.UserId);
+            }
+
+            // 4. Project creator
+            var project = await _unitOfWork.Projects.GetByIdAsync(projectId, cancellationToken);
+            if (project != null && project.CreatedByUserId != Guid.Empty && project.CreatedByUserId != actorUserId)
+            {
+                recipientUserIds.Add(project.CreatedByUserId);
             }
 
             if (!recipientUserIds.Any()) return;

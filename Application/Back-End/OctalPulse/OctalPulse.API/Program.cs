@@ -103,7 +103,13 @@ builder.Services
         };
     });
 
-builder.Services.AddSignalR();
+builder.Services.AddSignalR()
+    .AddJsonProtocol(options =>
+    {
+        options.PayloadSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
+
+builder.Services.AddSingleton<Microsoft.AspNetCore.SignalR.IUserIdProvider, OctalPulse.API.Hubs.CustomUserIdProvider>();
 
 builder.Services.AddScoped<OctalPulse.Application.Interface.Services.IRealtimeNotifier, OctalPulse.API.Notifications.SignalRNotifier>();
 
