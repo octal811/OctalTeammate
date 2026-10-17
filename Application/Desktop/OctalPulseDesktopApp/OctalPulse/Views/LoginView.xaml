@@ -10,6 +10,7 @@
 
     <UserControl.Resources>
         <converters:BooleanToVisibilityConverter x:Key="BoolToVis" />
+        <converters:BooleanToVisibilityConverter x:Key="InvertBoolToVis" Invert="True" />
         <converters:NullToVisibilityConverter x:Key="NullToVis" />
     </UserControl.Resources>
 
@@ -137,7 +138,74 @@
                                     FontSize="12" Height="Auto" Padding="0" HorizontalAlignment="Right" />
                         </Grid>
                         <Grid Margin="0,0,0,20">
-                            <PasswordBox x:Name="PwdBox" Style="{StaticResource PasswordBox.Modern}" PasswordChanged="PasswordBox_PasswordChanged" />
+                            <!-- Masked Password (Hidden by default) -->
+                            <PasswordBox
+                                x:Name="PwdBox"
+                                Height="42"
+                                Padding="12,0,42,0"
+                                VerticalContentAlignment="Center"
+                                Style="{StaticResource PasswordBox.Modern}"
+                                PasswordChanged="PasswordBox_PasswordChanged"
+                                Visibility="{Binding IsPasswordVisible, Converter={StaticResource InvertBoolToVis}}" />
+
+                            <!-- Plaintext Password (Visible when eye toggled) -->
+                            <TextBox
+                                x:Name="PwdTextBox"
+                                Height="42"
+                                Padding="12,0,42,0"
+                                VerticalContentAlignment="Center"
+                                Style="{StaticResource TextBox.Modern}"
+                                TextChanged="PwdTextBox_TextChanged"
+                                Visibility="{Binding IsPasswordVisible, Converter={StaticResource BoolToVis}}" />
+
+                            <!-- Eye Toggle Button -->
+                            <Button
+                                x:Name="TogglePasswordButton"
+                                Width="34"
+                                Height="34"
+                                Margin="0,0,4,0"
+                                Padding="0"
+                                HorizontalAlignment="Right"
+                                VerticalAlignment="Center"
+                                Command="{Binding TogglePasswordVisibilityCommand}"
+                                Style="{StaticResource Button.Ghost}"
+                                Cursor="Hand"
+                                Focusable="False">
+                                <Button.ToolTip>
+                                    <ToolTip>
+                                        <TextBlock>
+                                            <TextBlock.Style>
+                                                <Style TargetType="TextBlock">
+                                                    <Setter Property="Text" Value="Show password" />
+                                                    <Style.Triggers>
+                                                        <DataTrigger Binding="{Binding IsPasswordVisible}" Value="True">
+                                                            <Setter Property="Text" Value="Hide password" />
+                                                        </DataTrigger>
+                                                    </Style.Triggers>
+                                                </Style>
+                                            </TextBlock.Style>
+                                        </TextBlock>
+                                    </ToolTip>
+                                </Button.ToolTip>
+                                <Grid Width="34">
+                                    <!-- Eye Icon (shown when password is masked) -->
+                                    <Path
+                                        Width="16"
+                                        Height="16"
+                                        Data="{StaticResource Icon.Eye}"
+                                        Fill="{DynamicResource Brush.TextMuted}"
+                                        Stretch="Uniform"
+                                        Visibility="{Binding IsPasswordVisible, Converter={StaticResource InvertBoolToVis}}" />
+                                    <!-- EyeOff Icon (shown when password is plain text) -->
+                                    <Path
+                                        Width="16"
+                                        Height="16"
+                                        Data="{StaticResource Icon.EyeOff}"
+                                        Fill="{DynamicResource Brush.Primary}"
+                                        Stretch="Uniform"
+                                        Visibility="{Binding IsPasswordVisible, Converter={StaticResource BoolToVis}}" VerticalAlignment="Top" />
+                                </Grid>
+                            </Button>
                         </Grid>
 
                         <!-- Remember Me & Options -->

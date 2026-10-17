@@ -52,6 +52,39 @@ public partial class NoteItemViewModel : ObservableObject
         _ => "📝"
     };
 
+    public bool IsCompleted => Checked;
+    public string TypeDisplay => $"{TypeIcon} {Type}";
+    public string? ProjectName => RelatedToProject;
+    public ObservableCollection<string> Links => ListOfLinks;
+
+    partial void OnCheckedChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsCompleted));
+    }
+
+    partial void OnTypeChanged(NoteType value)
+    {
+        OnPropertyChanged(nameof(TypeIcon));
+        OnPropertyChanged(nameof(TypeDisplay));
+    }
+
+    partial void OnDurationDateChanged(DateTime? value)
+    {
+        OnPropertyChanged(nameof(FormattedDuration));
+        OnPropertyChanged(nameof(HasDuration));
+    }
+
+    partial void OnRelatedToProjectChanged(string? value)
+    {
+        OnPropertyChanged(nameof(HasProject));
+        OnPropertyChanged(nameof(ProjectName));
+    }
+
+    partial void OnDescriptionChanged(string? value)
+    {
+        OnPropertyChanged(nameof(HasDescription));
+    }
+
     public NoteItemViewModel(UserNote model)
     {
         Model = model;

@@ -10,5 +10,6 @@ public enum UserRole
     QA,
     ProjectManager,
     Ai,
-    SoftwareEngineer
+    SoftwareEngineer,
+    AiEngineer
 }

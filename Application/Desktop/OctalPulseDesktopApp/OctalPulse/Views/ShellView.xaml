@@ -280,10 +280,10 @@
                             Height="42"
                             Margin="0,2"
                             Padding="12,0"
-                            HorizontalContentAlignment="Left"
+                            HorizontalContentAlignment="Stretch"
                             Command="{Binding NavigateOctoCommand}"
                             Style="{StaticResource Button.Ghost}">
-                            <Grid Width="200">
+                            <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
@@ -311,8 +311,8 @@
                                 </StackPanel>
                                 <Border
                                     Grid.Column="1"
-                                    Margin="4,0,0,0"
-                                    Padding="6,1"
+                                    Margin="4,0,8,0"
+                                    Padding="6,2"
                                     Background="{DynamicResource Brush.PrimarySoft}"
                                     CornerRadius="4"
                                     VerticalAlignment="Center">
@@ -333,46 +333,27 @@
                             HorizontalContentAlignment="Left"
                             Command="{Binding NavigateNotesCommand}"
                             Style="{StaticResource Button.Ghost}">
-                            <Grid Width="200">
-                                <Grid.ColumnDefinitions>
-                                    <ColumnDefinition Width="*" />
-                                    <ColumnDefinition Width="Auto" />
-                                </Grid.ColumnDefinitions>
-                                <StackPanel Grid.Column="0" Orientation="Horizontal">
-                                    <Grid
-                                        Width="24"
-                                        Height="24"
-                                        Margin="0,0,12,0">
-                                        <Path
-                                            Width="18"
-                                            Height="18"
-                                            HorizontalAlignment="Center"
-                                            VerticalAlignment="Center"
-                                            Data="{StaticResource Icon.Note}"
-                                            Fill="{DynamicResource Brush.TextSecondary}"
-                                            Stretch="Uniform" />
-                                    </Grid>
-                                    <TextBlock
+                            <StackPanel Orientation="Horizontal">
+                                <Grid
+                                    Width="24"
+                                    Height="24"
+                                    Margin="0,0,12,0">
+                                    <Path
+                                        Width="18"
+                                        Height="18"
+                                        HorizontalAlignment="Center"
                                         VerticalAlignment="Center"
-                                        FontSize="14"
-                                        FontWeight="Medium"
-                                        Foreground="{DynamicResource Brush.TextPrimary}"
-                                        Text="Notes" />
-                                </StackPanel>
-                                <Border
-                                    Grid.Column="1"
-                                    Margin="4,0,0,0"
-                                    Padding="5,1"
-                                    Background="{DynamicResource Brush.SurfaceElevated}"
-                                    CornerRadius="4"
-                                    VerticalAlignment="Center">
-                                    <TextBlock
-                                        FontSize="9"
-                                        FontWeight="Bold"
-                                        Foreground="{DynamicResource Brush.TextMuted}"
-                                        Text="Alt+O" />
-                                </Border>
-                            </Grid>
+                                        Data="{StaticResource Icon.Note}"
+                                        Fill="{DynamicResource Brush.TextSecondary}"
+                                        Stretch="Uniform" />
+                                </Grid>
+                                <TextBlock
+                                    VerticalAlignment="Center"
+                                    FontSize="14"
+                                    FontWeight="Medium"
+                                    Foreground="{DynamicResource Brush.TextPrimary}"
+                                    Text="Notes" />
+                            </StackPanel>
                         </Button>
 
                         <!--  Papers (Markdown Research & Docs)  -->
@@ -380,10 +361,10 @@
                             Height="42"
                             Margin="0,2"
                             Padding="12,0"
-                            HorizontalContentAlignment="Left"
+                            HorizontalContentAlignment="Stretch"
                             Command="{Binding NavigatePapersCommand}"
                             Style="{StaticResource Button.Ghost}">
-                            <Grid Width="200">
+                            <Grid>
                                 <Grid.ColumnDefinitions>
                                     <ColumnDefinition Width="*" />
                                     <ColumnDefinition Width="Auto" />
@@ -411,8 +392,8 @@
                                 </StackPanel>
                                 <Border
                                     Grid.Column="1"
-                                    Margin="4,0,0,0"
-                                    Padding="5,1"
+                                    Margin="4,0,8,0"
+                                    Padding="6,2"
                                     Background="{DynamicResource Brush.PrimarySoft}"
                                     CornerRadius="4"
                                     VerticalAlignment="Center">

@@ -440,6 +440,18 @@ public partial class NotesFloatViewModel : ObservableObject
     }
 
     [RelayCommand]
+    private async Task ToggleNoteCompletedAsync(NoteItemViewModel item)
+    {
+        await ToggleCheckedAsync(item);
+    }
+
+    [RelayCommand]
+    private void OpenLink(string? url)
+    {
+        OpenExternalLink(url);
+    }
+
+    [RelayCommand]
     private void OpenEmergencyFolder()
     {
         try

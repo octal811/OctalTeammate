@@ -757,23 +757,32 @@
         </Setter>
     </Style>
 
-<!-- Ultra-thin Scrollbar (4px) â€” macOS/modern style -->
+    <!-- Modern Sleek Scrollbar (Vertical 6px & Horizontal 8px) -->
     <Style TargetType="ScrollBar">
         <Setter Property="Background"  Value="Transparent" />
-        <Setter Property="Width"       Value="4" />
-        <Setter Property="MinWidth"    Value="4" />
+        <Setter Property="Width"       Value="6" />
+        <Setter Property="MinWidth"    Value="6" />
         <Setter Property="Template">
             <Setter.Value>
                 <ControlTemplate TargetType="ScrollBar">
-                    <Grid x:Name="GridRoot" Background="Transparent" Width="4">
+                    <Grid x:Name="GridRoot" Background="Transparent" Width="6">
                         <Track x:Name="PART_Track" IsDirectionReversed="True">
                             <Track.Thumb>
                                 <Thumb>
                                     <Thumb.Template>
                                         <ControlTemplate TargetType="Thumb">
-                                            <Border Background="{DynamicResource Brush.TextMuted}"
-                                                    CornerRadius="2"
+                                            <Border x:Name="ThumbBorder"
+                                                    Background="{DynamicResource Brush.TextMuted}"
+                                                    CornerRadius="3"
                                                     Margin="1,2" />
+                                            <ControlTemplate.Triggers>
+                                                <Trigger Property="IsMouseOver" Value="True">
+                                                    <Setter TargetName="ThumbBorder" Property="Background" Value="{DynamicResource Brush.Primary}" />
+                                                </Trigger>
+                                                <Trigger Property="IsDragging" Value="True">
+                                                    <Setter TargetName="ThumbBorder" Property="Background" Value="{DynamicResource Brush.Primary}" />
+                                                </Trigger>
+                                            </ControlTemplate.Triggers>
                                         </ControlTemplate>
                                     </Thumb.Template>
                                 </Thumb>
@@ -784,7 +793,9 @@
                         <!-- Horizontal orientation -->
                         <Trigger Property="Orientation" Value="Horizontal">
                             <Setter TargetName="GridRoot" Property="Width"  Value="Auto" />
-                            <Setter TargetName="GridRoot" Property="Height" Value="4" />
+                            <Setter TargetName="GridRoot" Property="Height" Value="8" />
+                            <Setter Property="Height" Value="8" />
+                            <Setter Property="MinHeight" Value="8" />
                             <Setter TargetName="PART_Track" Property="IsDirectionReversed" Value="False" />
                         </Trigger>
                     </ControlTemplate.Triggers>

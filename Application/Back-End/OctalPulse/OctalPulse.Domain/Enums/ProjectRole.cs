@@ -9,5 +9,6 @@ public enum ProjectRole
     Designer,
     QA,
     ProjectManager,
-    TechLead
+    TechLead,
+    AiEngineer
 }

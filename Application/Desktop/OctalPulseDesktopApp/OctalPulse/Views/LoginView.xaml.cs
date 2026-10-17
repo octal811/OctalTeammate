@@ -1,6 +1,7 @@
 using System.ComponentModel;
 using System.Windows;
 using System.Windows.Controls;
+using TextBox = System.Windows.Controls.TextBox;
 using OctalPulse.ViewModels;
 
 namespace OctalPulse.Views;
@@ -53,17 +54,43 @@ public partial class LoginView : UserControl
 
         // Reflect the VM's initial password (e.g. filled from a saved account)
         _updatingPassword = true;
-        PwdBox.Password = vm.Password;
+        if (PwdBox != null) PwdBox.Password = vm.Password;
+        if (PwdTextBox != null) PwdTextBox.Text = vm.Password;
         _updatingPassword = false;
     }
 
     private void OnVmPropertyChanged(object? sender, PropertyChangedEventArgs e)
     {
-        if (e.PropertyName == nameof(LoginViewModel.Password) && sender is LoginViewModel vm)
+        if (sender is not LoginViewModel vm) return;
+
+        if (e.PropertyName == nameof(LoginViewModel.Password))
         {
+            if (_updatingPassword) return;
+
             _updatingPassword = true;
-            PwdBox.Password = vm.Password;
+            if (PwdBox != null && PwdBox.Password != vm.Password)
+                PwdBox.Password = vm.Password;
+            if (PwdTextBox != null && PwdTextBox.Text != vm.Password)
+                PwdTextBox.Text = vm.Password;
             _updatingPassword = false;
+        }
+        else if (e.PropertyName == nameof(LoginViewModel.IsPasswordVisible))
+        {
+            if (vm.IsPasswordVisible)
+            {
+                if (PwdTextBox != null)
+                {
+                    PwdTextBox.Focus();
+                    PwdTextBox.CaretIndex = PwdTextBox.Text.Length;
+                }
+            }
+            else
+            {
+                if (PwdBox != null)
+                {
+                    PwdBox.Focus();
+                }
+            }
         }
     }
 
@@ -76,7 +103,32 @@ public partial class LoginView : UserControl
 
         if (DataContext is LoginViewModel vm && sender is PasswordBox pwdBox)
         {
+            _updatingPassword = true;
             vm.Password = pwdBox.Password;
+            if (PwdTextBox != null && PwdTextBox.Text != pwdBox.Password)
+            {
+                PwdTextBox.Text = pwdBox.Password;
+            }
+            _updatingPassword = false;
+        }
+    }
+
+    private void PwdTextBox_TextChanged(object sender, TextChangedEventArgs e)
+    {
+        if (_updatingPassword)
+        {
+            return;
+        }
+
+        if (DataContext is LoginViewModel vm && sender is TextBox textBox)
+        {
+            _updatingPassword = true;
+            vm.Password = textBox.Text;
+            if (PwdBox != null && PwdBox.Password != textBox.Text)
+            {
+                PwdBox.Password = textBox.Text;
+            }
+            _updatingPassword = false;
         }
     }
 }

@@ -212,4 +212,10 @@ public partial class LoginViewModel : ObservableObject, INavigationAware
     {
         _navigationService.NavigateTo<VerifyEmailViewModel>(new VerifyEmailNavArgs(Email, false));
     }
+
+    [RelayCommand]
+    private void TogglePasswordVisibility()
+    {
+        IsPasswordVisible = !IsPasswordVisible;
+    }
 }

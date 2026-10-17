@@ -424,6 +424,121 @@
                     </TextBox.Style>
                 </TextBox>
 
+                <!--  Due Date & Links Input Row  -->
+                <Grid Margin="0,0,0,12">
+                    <Grid.ColumnDefinitions>
+                        <!--  Due Date Controls  -->
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="170" />
+                        <ColumnDefinition Width="14" />
+                        <!--  Links Adder Controls  -->
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <!--  Due Date Toggle Checkbox  -->
+                    <CheckBox
+                        Grid.Column="0"
+                        Margin="0,0,8,0"
+                        VerticalAlignment="Center"
+                        IsChecked="{Binding FloatVm.HasDurationDate, Mode=TwoWay}">
+                        <TextBlock
+                            FontSize="12"
+                            FontWeight="SemiBold"
+                            Foreground="{DynamicResource Brush.TextSecondary}"
+                            Text="📅 Due Date:" />
+                    </CheckBox>
+
+                    <!--  Due Date Picker  -->
+                    <DatePicker
+                        Grid.Column="1"
+                        Height="34"
+                        IsEnabled="{Binding FloatVm.HasDurationDate}"
+                        SelectedDate="{Binding FloatVm.DurationDateInput, Mode=TwoWay}" />
+
+                    <!--  New Link Input  -->
+                    <TextBox
+                        Grid.Column="3"
+                        Height="34"
+                        Margin="0,0,8,0"
+                        Padding="10,0"
+                        VerticalContentAlignment="Center"
+                        Text="{Binding FloatVm.NewLinkInput, UpdateSourceTrigger=PropertyChanged}">
+                        <TextBox.Resources>
+                            <VisualBrush x:Key="LinkCue" AlignmentX="Left" AlignmentY="Center" Stretch="None">
+                                <VisualBrush.Visual>
+                                    <TextBlock FontSize="12" Foreground="{DynamicResource Brush.TextMuted}" Text="Add link or reference (https://...)" />
+                                </VisualBrush.Visual>
+                            </VisualBrush>
+                        </TextBox.Resources>
+                        <TextBox.Style>
+                            <Style BasedOn="{StaticResource TextBox.Modern}" TargetType="TextBox">
+                                <Style.Triggers>
+                                    <Trigger Property="Text" Value="">
+                                        <Setter Property="Background" Value="{StaticResource LinkCue}" />
+                                    </Trigger>
+                                </Style.Triggers>
+                            </Style>
+                        </TextBox.Style>
+                    </TextBox>
+
+                    <!--  Add Link Button  -->
+                    <Button
+                        Grid.Column="4"
+                        Height="34"
+                        Padding="12,0"
+                        Command="{Binding FloatVm.AddLinkCommand}"
+                        Style="{StaticResource Button.Ghost}">
+                        <StackPanel Orientation="Horizontal">
+                            <TextBlock Text="🔗 " FontSize="11" VerticalAlignment="Center" />
+                            <TextBlock Text="+ Link" FontSize="12" FontWeight="SemiBold" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Button>
+                </Grid>
+
+                <!--  Link Chips in Composer  -->
+                <ItemsControl Margin="0,0,0,12" ItemsSource="{Binding FloatVm.LinksInput}">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel Orientation="Horizontal" />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border
+                                Margin="0,0,8,6"
+                                Padding="10,4"
+                                Background="{DynamicResource Brush.Surface}"
+                                BorderBrush="{DynamicResource Brush.Border}"
+                                BorderThickness="1"
+                                CornerRadius="12">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock VerticalAlignment="Center" FontSize="11" Text="🔗 " />
+                                    <TextBlock
+                                        MaxWidth="260"
+                                        VerticalAlignment="Center"
+                                        FontSize="11"
+                                        Foreground="{DynamicResource Brush.Primary}"
+                                        Text="{Binding}"
+                                        TextTrimming="CharacterEllipsis" />
+                                    <Button
+                                        Width="18"
+                                        Height="18"
+                                        Margin="6,0,0,0"
+                                        Padding="0"
+                                        VerticalAlignment="Center"
+                                        Command="{Binding Path=DataContext.FloatVm.RemoveLinkCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding}"
+                                        Style="{StaticResource Button.Ghost}"
+                                        ToolTip="Remove link">
+                                        <TextBlock FontSize="10" Foreground="{DynamicResource Brush.TextMuted}" Text="✕" />
+                                    </Button>
+                                </StackPanel>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
                 <!--  Color Palette Picker & Actions  -->
                 <Grid>
                     <Grid.ColumnDefinitions>
@@ -559,7 +674,7 @@
                                 <Grid>
                                     <Grid.RowDefinitions>
                                         <RowDefinition Height="Auto" />
-                                        <!--  Header: Type + Project + Complete Check  -->
+                                        <!--  Header: Type + Project + Due Date + Complete Check  -->
                                         <RowDefinition Height="Auto" />
                                         <!--  Title  -->
                                         <RowDefinition Height="*" />
@@ -577,84 +692,131 @@
                                             <ColumnDefinition Width="Auto" />
                                         </Grid.ColumnDefinitions>
 
+                                        <!--  Left: Badges (Category + Project)  -->
                                         <StackPanel Grid.Column="0" Orientation="Horizontal" VerticalAlignment="Center">
-                                            <!--  Type Tag  -->
+                                            <!--  Category Type Tag  -->
                                             <Border
-                                                Padding="6,2"
+                                                Padding="7,3"
                                                 Background="{DynamicResource Brush.SurfaceElevated}"
-                                                CornerRadius="4"
+                                                CornerRadius="6"
                                                 BorderBrush="{DynamicResource Brush.Border}"
                                                 BorderThickness="1"
                                                 Margin="0,0,6,0">
-                                                <TextBlock
-                                                    Text="{Binding TypeDisplay}"
-                                                    FontSize="10"
-                                                    FontWeight="Bold"
-                                                    Foreground="{DynamicResource Brush.TextPrimary}" />
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <TextBlock
+                                                        Text="{Binding TypeIcon}"
+                                                        FontSize="11"
+                                                        Margin="0,0,4,0"
+                                                        VerticalAlignment="Center" />
+                                                    <TextBlock
+                                                        Text="{Binding Type}"
+                                                        FontSize="11"
+                                                        FontWeight="Bold"
+                                                        Foreground="{DynamicResource Brush.TextPrimary}"
+                                                        VerticalAlignment="Center" />
+                                                </StackPanel>
                                             </Border>
 
                                             <!--  Project Pill  -->
                                             <Border
-                                                Padding="6,2"
+                                                Padding="7,3"
                                                 Background="{DynamicResource Brush.PrimarySoft}"
-                                                CornerRadius="4"
+                                                CornerRadius="6"
+                                                Margin="0,0,6,0"
                                                 Visibility="{Binding HasProject, Converter={StaticResource BoolToVis}}">
-                                                <TextBlock
-                                                    Text="{Binding ProjectName}"
-                                                    FontSize="10"
-                                                    FontWeight="SemiBold"
-                                                    Foreground="{DynamicResource Brush.Primary}"
-                                                    MaxWidth="110"
-                                                    TextTrimming="CharacterEllipsis" />
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <TextBlock Text="📁 " FontSize="10" VerticalAlignment="Center" />
+                                                    <TextBlock
+                                                        Text="{Binding RelatedToProject}"
+                                                        FontSize="10"
+                                                        FontWeight="SemiBold"
+                                                        Foreground="{DynamicResource Brush.Primary}"
+                                                        MaxWidth="105"
+                                                        TextTrimming="CharacterEllipsis"
+                                                        VerticalAlignment="Center" />
+                                                </StackPanel>
                                             </Border>
                                         </StackPanel>
 
-                                        <!--  Complete Checkbox Button  -->
-                                        <Button
-                                            Grid.Column="1"
-                                            Width="24"
-                                            Height="24"
-                                            Padding="0"
-                                            Command="{Binding Path=DataContext.FloatVm.ToggleNoteCompletedCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                            CommandParameter="{Binding}"
-                                            Style="{StaticResource Button.Ghost}">
+                                        <!--  Right: Due Date Badge + Complete Check Toggle  -->
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <!--  Due Date Badge  -->
                                             <Border
-                                                Width="18"
-                                                Height="18"
-                                                CornerRadius="9"
-                                                BorderThickness="1.5">
-                                                <Border.Style>
-                                                    <Style TargetType="Border">
-                                                        <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}" />
-                                                        <Setter Property="Background" Value="Transparent" />
-                                                        <Style.Triggers>
-                                                            <DataTrigger Binding="{Binding IsCompleted}" Value="True">
-                                                                <Setter Property="BorderBrush" Value="{DynamicResource Brush.Success}" />
-                                                                <Setter Property="Background" Value="{DynamicResource Brush.Success}" />
-                                                            </DataTrigger>
-                                                        </Style.Triggers>
-                                                    </Style>
-                                                </Border.Style>
-                                                <TextBlock
-                                                    Text="✓"
-                                                    FontSize="11"
-                                                    FontWeight="Bold"
-                                                    Foreground="White"
+                                                Padding="6,2"
+                                                Background="#22F43F5E"
+                                                BorderBrush="#44F43F5E"
+                                                BorderThickness="1"
+                                                CornerRadius="6"
+                                                Margin="0,0,6,0"
+                                                Visibility="{Binding HasDuration, Converter={StaticResource BoolToVis}}">
+                                                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                                    <TextBlock Text="⏰ " FontSize="9" VerticalAlignment="Center" Margin="0,0,2,0" />
+                                                    <TextBlock
+                                                        Text="{Binding FormattedDuration}"
+                                                        FontSize="10"
+                                                        FontWeight="Bold"
+                                                        Foreground="#F43F5E"
+                                                        VerticalAlignment="Center" />
+                                                </StackPanel>
+                                            </Border>
+
+                                            <!--  Complete Checkbox Button  -->
+                                            <Button
+                                                Width="24"
+                                                Height="24"
+                                                Padding="0"
+                                                VerticalAlignment="Center"
+                                                HorizontalContentAlignment="Center"
+                                                VerticalContentAlignment="Center"
+                                                Command="{Binding Path=DataContext.FloatVm.ToggleCheckedCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}"
+                                                Style="{StaticResource Button.Icon}"
+                                                ToolTip="Mark note completed / active">
+                                                <Border
+                                                    Width="18"
+                                                    Height="18"
+                                                    CornerRadius="9"
+                                                    BorderThickness="1.5"
                                                     HorizontalAlignment="Center"
                                                     VerticalAlignment="Center">
-                                                    <TextBlock.Style>
-                                                        <Style TargetType="TextBlock">
-                                                            <Setter Property="Visibility" Value="Collapsed" />
+                                                    <Border.Style>
+                                                        <Style TargetType="Border">
+                                                            <Setter Property="BorderBrush" Value="{DynamicResource Brush.Border}" />
+                                                            <Setter Property="Background" Value="Transparent" />
                                                             <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding IsCompleted}" Value="True">
-                                                                    <Setter Property="Visibility" Value="Visible" />
+                                                                <DataTrigger Binding="{Binding Checked}" Value="True">
+                                                                    <Setter Property="BorderBrush" Value="{DynamicResource Brush.Success}" />
+                                                                    <Setter Property="Background" Value="{DynamicResource Brush.Success}" />
                                                                 </DataTrigger>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter Property="BorderBrush" Value="{DynamicResource Brush.Primary}" />
+                                                                </Trigger>
                                                             </Style.Triggers>
                                                         </Style>
-                                                    </TextBlock.Style>
-                                                </TextBlock>
-                                            </Border>
-                                        </Button>
+                                                    </Border.Style>
+                                                    <Path
+                                                        Width="9"
+                                                        Height="9"
+                                                        Margin="0"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"
+                                                        Data="{StaticResource Icon.Check}"
+                                                        Fill="White"
+                                                        Stretch="Uniform">
+                                                        <Path.Style>
+                                                            <Style TargetType="Path">
+                                                                <Setter Property="Visibility" Value="Collapsed" />
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding Checked}" Value="True">
+                                                                        <Setter Property="Visibility" Value="Visible" />
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Path.Style>
+                                                    </Path>
+                                                </Border>
+                                            </Button>
+                                        </StackPanel>
                                     </Grid>
 
                                     <!--  Row 1: Title  -->
@@ -669,7 +831,7 @@
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsCompleted}" Value="True">
+                                                    <DataTrigger Binding="{Binding Checked}" Value="True">
                                                         <Setter Property="TextDecorations" Value="Strikethrough" />
                                                         <Setter Property="Opacity" Value="0.6" />
                                                     </DataTrigger>
@@ -686,11 +848,12 @@
                                         LineHeight="17"
                                         TextWrapping="Wrap"
                                         Margin="0,0,0,10"
-                                        Foreground="{Binding CardColor, Converter={StaticResource NoteColorConv}, ConverterParameter='subtext'}">
+                                        Foreground="{Binding CardColor, Converter={StaticResource NoteColorConv}, ConverterParameter='subtext'}"
+                                        Visibility="{Binding HasDescription, Converter={StaticResource BoolToVis}}">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
                                                 <Style.Triggers>
-                                                    <DataTrigger Binding="{Binding IsCompleted}" Value="True">
+                                                    <DataTrigger Binding="{Binding Checked}" Value="True">
                                                         <Setter Property="Opacity" Value="0.6" />
                                                     </DataTrigger>
                                                 </Style.Triggers>
@@ -701,21 +864,28 @@
                                     <!--  Row 3: Links  -->
                                     <ItemsControl
                                         Grid.Row="3"
-                                        ItemsSource="{Binding Links}"
+                                        ItemsSource="{Binding ListOfLinks}"
                                         Margin="0,0,0,10"
                                         Visibility="{Binding HasLinks, Converter={StaticResource BoolToVis}}">
+                                        <ItemsControl.ItemsPanel>
+                                            <ItemsPanelTemplate>
+                                                <WrapPanel Orientation="Horizontal" />
+                                            </ItemsPanelTemplate>
+                                        </ItemsControl.ItemsPanel>
                                         <ItemsControl.ItemTemplate>
                                             <DataTemplate>
                                                 <Button
-                                                    Margin="0,2"
+                                                    Margin="0,0,6,4"
                                                     HorizontalAlignment="Left"
-                                                    Command="{Binding Path=DataContext.FloatVm.OpenLinkCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                    Command="{Binding Path=DataContext.FloatVm.OpenExternalLinkCommand, RelativeSource={RelativeSource AncestorType=ItemsControl, AncestorLevel=2}}"
                                                     CommandParameter="{Binding}"
-                                                    Style="{StaticResource Button.Ghost}">
+                                                    Cursor="Hand"
+                                                    Style="{StaticResource Button.Ghost}"
+                                                    ToolTip="{Binding}">
                                                     <Border
                                                         Padding="8,2"
                                                         Background="{DynamicResource Brush.SurfaceElevated}"
-                                                        CornerRadius="8"
+                                                        CornerRadius="10"
                                                         BorderBrush="{DynamicResource Brush.Border}"
                                                         BorderThickness="1">
                                                         <StackPanel Orientation="Horizontal">
@@ -748,18 +918,28 @@
                                             VerticalAlignment="Center"
                                             Foreground="{Binding CardColor, Converter={StaticResource NoteColorConv}, ConverterParameter='subtext'}" />
 
-                                        <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                             <!--  Edit  -->
                                             <Button
                                                 Width="26"
                                                 Height="26"
                                                 Padding="0"
                                                 Margin="0,0,4,0"
+                                                VerticalAlignment="Center"
+                                                HorizontalContentAlignment="Center"
+                                                VerticalContentAlignment="Center"
                                                 Command="{Binding Path=DataContext.FloatVm.OpenEditComposerCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                 CommandParameter="{Binding}"
-                                                Style="{StaticResource Button.Ghost}"
+                                                Style="{StaticResource Button.Icon}"
                                                 ToolTip="Edit Note">
-                                                <Path Width="11" Height="11" Data="{StaticResource Icon.Edit}" Fill="{DynamicResource Brush.TextSecondary}" Stretch="Uniform" />
+                                                <Path
+                                                    Width="12"
+                                                    Height="12"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    Data="{StaticResource Icon.Edit}"
+                                                    Fill="{DynamicResource Brush.TextSecondary}"
+                                                    Stretch="Uniform" />
                                             </Button>
 
                                             <!--  Delete  -->
@@ -767,11 +947,21 @@
                                                 Width="26"
                                                 Height="26"
                                                 Padding="0"
+                                                VerticalAlignment="Center"
+                                                HorizontalContentAlignment="Center"
+                                                VerticalContentAlignment="Center"
                                                 Command="{Binding Path=DataContext.FloatVm.DeleteNoteCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                 CommandParameter="{Binding}"
-                                                Style="{StaticResource Button.Ghost}"
+                                                Style="{StaticResource Button.Icon}"
                                                 ToolTip="Delete Note">
-                                                <Path Width="11" Height="11" Data="{StaticResource Icon.Trash}" Fill="{DynamicResource Brush.Danger}" Stretch="Uniform" />
+                                                <Path
+                                                    Width="12"
+                                                    Height="12"
+                                                    HorizontalAlignment="Center"
+                                                    VerticalAlignment="Center"
+                                                    Data="{StaticResource Icon.Trash}"
+                                                    Fill="{DynamicResource Brush.Danger}"
+                                                    Stretch="Uniform" />
                                             </Button>
                                         </StackPanel>
                                     </Grid>

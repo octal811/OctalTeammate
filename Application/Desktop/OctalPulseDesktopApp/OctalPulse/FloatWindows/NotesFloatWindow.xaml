@@ -933,21 +933,25 @@
                                                 Foreground="{Binding CardColor, Converter={StaticResource NoteColorConv}, ConverterParameter='subtext'}"
                                                 Text="{Binding FormattedCreatedAt}" />
 
-                                            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                                            <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
                                                 <!--  Edit  -->
                                                 <Button
                                                     Width="26"
                                                     Height="26"
                                                     Margin="0,0,4,0"
                                                     Padding="0"
+                                                    VerticalAlignment="Center"
+                                                    HorizontalContentAlignment="Center"
+                                                    VerticalContentAlignment="Center"
                                                     Command="{Binding Path=DataContext.OpenEditComposerCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                     CommandParameter="{Binding}"
-                                                    Style="{StaticResource Button.Ghost}"
+                                                    Style="{StaticResource Button.Icon}"
                                                     ToolTip="Edit Note">
                                                     <Path
-                                                        Width="11"
-                                                        Height="11"
-                                                        Margin="7,0,0,0"
+                                                        Width="12"
+                                                        Height="12"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"
                                                         Data="{StaticResource Icon.Edit}"
                                                         Fill="{DynamicResource Brush.TextSecondary}"
                                                         Stretch="Uniform" />
@@ -958,14 +962,18 @@
                                                     Width="26"
                                                     Height="26"
                                                     Padding="0"
+                                                    VerticalAlignment="Center"
+                                                    HorizontalContentAlignment="Center"
+                                                    VerticalContentAlignment="Center"
                                                     Command="{Binding Path=DataContext.DeleteNoteCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
                                                     CommandParameter="{Binding}"
-                                                    Style="{StaticResource Button.Ghost}"
+                                                    Style="{StaticResource Button.Icon}"
                                                     ToolTip="Delete Note">
                                                     <Path
-                                                        Width="11"
-                                                        Height="11"
-                                                        Margin="7,0,0,0"
+                                                        Width="12"
+                                                        Height="12"
+                                                        HorizontalAlignment="Center"
+                                                        VerticalAlignment="Center"
                                                         Data="{StaticResource Icon.Trash}"
                                                         Fill="{DynamicResource Brush.Danger}"
                                                         Stretch="Uniform" />

@@ -414,6 +414,55 @@ public partial class PapersViewModel : ObservableObject, INavigationAware
     }
 
     [RelayCommand]
+    public void InsertPieChart()
+    {
+        var template = "\n```mermaid\npie showData title Distribution\n  \"Category A\" : 45\n  \"Category B\" : 30\n  \"Category C\" : 25\n```\n\n";
+        ApplyFormat(template, string.Empty, string.Empty);
+    }
+
+    [RelayCommand]
+    public void InsertFlowchart()
+    {
+        var template = "\n```mermaid\ngraph TD\n  Start([Start]) --> Step1[Process Step]\n  Step1 --> Decision{Is Valid?}\n  Decision -->|Yes| Finish([Done])\n  Decision -->|No| Fix[Fix Issue] --> Step1\n```\n\n";
+        ApplyFormat(template, string.Empty, string.Empty);
+    }
+
+    [RelayCommand]
+    public void InsertSequenceDiagram()
+    {
+        var template = "\n```mermaid\nsequenceDiagram\n  autonumber\n  actor User\n  participant Client\n  participant API\n  participant DB\n  User->>Client: Click Action\n  Client->>API: HTTP Request\n  API->>DB: Query Data\n  DB-->>API: Return Result\n  API-->>Client: 200 OK Response\n  Client-->>User: Display UI\n```\n\n";
+        ApplyFormat(template, string.Empty, string.Empty);
+    }
+
+    [RelayCommand]
+    public void InsertStateDiagram()
+    {
+        var template = "\n```mermaid\nstateDiagram-v2\n  [*] --> Idle\n  Idle --> Processing: Submit\n  Processing --> Success: Approved\n  Processing --> Failed: Error\n  Failed --> Idle: Retry\n  Success --> [*]\n```\n\n";
+        ApplyFormat(template, string.Empty, string.Empty);
+    }
+
+    [RelayCommand]
+    public void InsertErDiagram()
+    {
+        var template = "\n```mermaid\nerDiagram\n  USER ||--o{ PROJECT : manages\n  PROJECT ||--|{ TASK : contains\n  USER {\n    int id PK\n    string name\n    string email\n  }\n  PROJECT {\n    int id PK\n    string title\n    string status\n  }\n```\n\n";
+        ApplyFormat(template, string.Empty, string.Empty);
+    }
+
+    [RelayCommand]
+    public void InsertGanttChart()
+    {
+        var template = "\n```mermaid\ngantt\n  title Project Schedule\n  dateFormat YYYY-MM-DD\n  section Planning\n  Research :a1, 2026-10-01, 10d\n  Design   :after a1, 7d\n  section Development\n  Backend  :2026-10-18, 14d\n  Frontend :after a1, 14d\n```\n\n";
+        ApplyFormat(template, string.Empty, string.Empty);
+    }
+
+    [RelayCommand]
+    public void InsertMindmap()
+    {
+        var template = "\n```mermaid\nmindmap\n  root((Project))\n    Features\n      Dashboard\n      Papers Docs\n      Tasks Center\n    Tech Stack\n      DotNet 10\n      WPF\n      Mermaid\n```\n\n";
+        ApplyFormat(template, string.Empty, string.Empty);
+    }
+
+    [RelayCommand]
     public void InsertHorizontalRule() => ApplyFormat("\n---\n\n", string.Empty, string.Empty);
 
     [RelayCommand]

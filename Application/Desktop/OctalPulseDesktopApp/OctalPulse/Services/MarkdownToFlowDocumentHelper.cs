@@ -7,7 +7,12 @@ using System.Text.RegularExpressions;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Windows.Threading;
+using Button = System.Windows.Controls.Button;
+using ProgressBar = System.Windows.Controls.ProgressBar;
+using Orientation = System.Windows.Controls.Orientation;
 
 namespace OctalPulse.Services;
 
@@ -58,6 +63,12 @@ public static class MarkdownToFlowDocumentHelper
                     i++;
                 }
                 i++; // consume closing ```
+
+                if (lang.Equals("mermaid", StringComparison.OrdinalIgnoreCase))
+                {
+                    doc.Blocks.Add(CreateMermaidBlock(string.Join("\n", codeLines)));
+                    continue;
+                }
 
                 doc.Blocks.Add(CreateCodeBlock(string.Join("\n", codeLines), lang));
                 continue;
@@ -343,6 +354,315 @@ public static class MarkdownToFlowDocumentHelper
 
         border.Child = stack;
         return new BlockUIContainer(border);
+    }
+
+    private static Block CreateMermaidBlock(string code)
+    {
+        var typeName = MermaidDiagramService.DetectDiagramType(code);
+
+        var container = new Border
+        {
+            Background = GetBrush("Brush.SurfaceElevated", new SolidColorBrush(Color.FromRgb(30, 30, 30))),
+            BorderBrush = GetBrush("Brush.Border", Brushes.Gray),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(10),
+            Padding = new Thickness(14),
+            Margin = new Thickness(0, 12, 0, 16)
+        };
+
+        var mainStack = new StackPanel();
+
+        // 1. Header Row
+        var headerGrid = new Grid { Margin = new Thickness(0, 0, 0, 12) };
+        headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(1, GridUnitType.Star) });
+        headerGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = GridLength.Auto });
+
+        // Left Header: Badges & Title
+        var leftStack = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+
+        var diagramBadge = new Border
+        {
+            Background = GetBrush("Brush.PrimarySoft", new SolidColorBrush(Color.FromArgb(40, 99, 102, 241))),
+            CornerRadius = new CornerRadius(5),
+            Padding = new Thickness(8, 3, 8, 3),
+            Margin = new Thickness(0, 0, 8, 0),
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        var badgeText = new TextBlock
+        {
+            Text = "📊 " + typeName.ToUpperInvariant(),
+            FontSize = 10,
+            FontWeight = FontWeights.Bold,
+            Foreground = GetBrush("Brush.Primary", Brushes.DodgerBlue)
+        };
+        diagramBadge.Child = badgeText;
+        leftStack.Children.Add(diagramBadge);
+
+        var subText = new TextBlock
+        {
+            Text = "Mermaid Live Diagram",
+            FontSize = 11,
+            Foreground = GetBrush("Brush.TextMuted", Brushes.Gray),
+            VerticalAlignment = VerticalAlignment.Center
+        };
+        leftStack.Children.Add(subText);
+        Grid.SetColumn(leftStack, 0);
+        headerGrid.Children.Add(leftStack);
+
+        // Right Header: Actions (Toggle Code, Copy, Save Image)
+        var rightStack = new StackPanel { Orientation = Orientation.Horizontal, VerticalAlignment = VerticalAlignment.Center };
+
+        var toggleBtn = new Button
+        {
+            Content = "👁 View Code",
+            FontSize = 11,
+            FontWeight = FontWeights.SemiBold,
+            Height = 26,
+            Padding = new Thickness(8, 0, 8, 0),
+            Margin = new Thickness(4, 0, 0, 0),
+            Cursor = System.Windows.Input.Cursors.Hand
+        };
+        SetGhostButtonStyle(toggleBtn);
+        rightStack.Children.Add(toggleBtn);
+
+        var copyBtn = new Button
+        {
+            Content = "📋 Copy",
+            FontSize = 11,
+            FontWeight = FontWeights.SemiBold,
+            Height = 26,
+            Padding = new Thickness(8, 0, 8, 0),
+            Margin = new Thickness(4, 0, 0, 0),
+            Cursor = System.Windows.Input.Cursors.Hand
+        };
+        SetGhostButtonStyle(copyBtn);
+        copyBtn.Click += (s, e) =>
+        {
+            try
+            {
+                System.Windows.Clipboard.SetText(code);
+                copyBtn.Content = "✓ Copied!";
+                var timer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
+                timer.Tick += (ts, te) =>
+                {
+                    copyBtn.Content = "📋 Copy";
+                    timer.Stop();
+                };
+                timer.Start();
+            }
+            catch { }
+        };
+        rightStack.Children.Add(copyBtn);
+
+        var saveBtn = new Button
+        {
+            Content = "💾 Save Image",
+            FontSize = 11,
+            FontWeight = FontWeights.SemiBold,
+            Height = 26,
+            Padding = new Thickness(8, 0, 8, 0),
+            Margin = new Thickness(4, 0, 0, 0),
+            Cursor = System.Windows.Input.Cursors.Hand,
+            Visibility = Visibility.Collapsed
+        };
+        SetGhostButtonStyle(saveBtn);
+        rightStack.Children.Add(saveBtn);
+
+        Grid.SetColumn(rightStack, 1);
+        headerGrid.Children.Add(rightStack);
+        mainStack.Children.Add(headerGrid);
+
+        // 2. Diagram Display Card
+        var diagramCard = new Border
+        {
+            Background = Brushes.White,
+            CornerRadius = new CornerRadius(8),
+            BorderBrush = new SolidColorBrush(Color.FromRgb(226, 232, 240)),
+            BorderThickness = new Thickness(1),
+            Padding = new Thickness(16),
+            MinHeight = 120,
+            HorizontalAlignment = HorizontalAlignment.Stretch
+        };
+
+        var cardContentGrid = new Grid();
+
+        // Loading State
+        var loadingStack = new StackPanel
+        {
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 20, 0, 20)
+        };
+        var loadingText = new TextBlock
+        {
+            Text = "Rendering " + typeName + "...",
+            FontSize = 12,
+            Foreground = Brushes.DimGray,
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        var loadingBar = new ProgressBar
+        {
+            IsIndeterminate = true,
+            Width = 140,
+            Height = 4,
+            Margin = new Thickness(0, 8, 0, 0)
+        };
+        loadingStack.Children.Add(loadingText);
+        loadingStack.Children.Add(loadingBar);
+        cardContentGrid.Children.Add(loadingStack);
+
+        // Diagram Image
+        var diagramImage = new Image
+        {
+            Stretch = Stretch.Uniform,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            MaxHeight = 650,
+            Visibility = Visibility.Collapsed
+        };
+        RenderOptions.SetBitmapScalingMode(diagramImage, BitmapScalingMode.HighQuality);
+        cardContentGrid.Children.Add(diagramImage);
+
+        // Error / Offline Text
+        var errorPanel = new StackPanel
+        {
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            Margin = new Thickness(0, 20, 0, 20),
+            Visibility = Visibility.Collapsed
+        };
+        var errorText = new TextBlock
+        {
+            Text = "⚠️ Unable to render diagram preview (offline or invalid syntax).",
+            FontSize = 12,
+            Foreground = Brushes.DarkRed,
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        var retryBtn = new Button
+        {
+            Content = "🔄 Retry",
+            FontSize = 11,
+            Height = 26,
+            Padding = new Thickness(12, 0, 12, 0),
+            Margin = new Thickness(0, 8, 0, 0),
+            HorizontalAlignment = HorizontalAlignment.Center
+        };
+        SetGhostButtonStyle(retryBtn);
+        errorPanel.Children.Add(errorText);
+        errorPanel.Children.Add(retryBtn);
+        cardContentGrid.Children.Add(errorPanel);
+
+        diagramCard.Child = cardContentGrid;
+        mainStack.Children.Add(diagramCard);
+
+        // 3. Raw Code Viewer (collapsed by default)
+        var codeViewer = new Border
+        {
+            Background = GetBrush("Brush.Surface", new SolidColorBrush(Color.FromRgb(20, 20, 20))),
+            BorderBrush = GetBrush("Brush.Border", Brushes.Gray),
+            BorderThickness = new Thickness(1),
+            CornerRadius = new CornerRadius(6),
+            Padding = new Thickness(12),
+            Margin = new Thickness(0, 10, 0, 0),
+            Visibility = Visibility.Collapsed
+        };
+        var codeTb = new TextBlock
+        {
+            Text = code,
+            FontFamily = new FontFamily("Consolas, Cascadia Code, Courier New"),
+            FontSize = 12,
+            LineHeight = 18,
+            Foreground = GetBrush("Brush.TextPrimary", Brushes.LightGray),
+            TextWrapping = TextWrapping.Wrap
+        };
+        codeViewer.Child = codeTb;
+        mainStack.Children.Add(codeViewer);
+
+        // Toggle Code click handler
+        toggleBtn.Click += (s, e) =>
+        {
+            if (codeViewer.Visibility == Visibility.Visible)
+            {
+                codeViewer.Visibility = Visibility.Collapsed;
+                diagramCard.Visibility = Visibility.Visible;
+                toggleBtn.Content = "👁 View Code";
+            }
+            else
+            {
+                codeViewer.Visibility = Visibility.Visible;
+                toggleBtn.Content = "📊 View Diagram";
+            }
+        };
+
+        // Save Image click handler
+        saveBtn.Click += (s, e) =>
+        {
+            var sfd = new Microsoft.Win32.SaveFileDialog
+            {
+                Title = "Save Diagram Image",
+                FileName = $"{typeName.ToLowerInvariant().Replace(" ", "_")}.png",
+                Filter = "PNG Image (*.png)|*.png|All Files (*.*)|*.*"
+            };
+            if (sfd.ShowDialog() == true)
+            {
+                try
+                {
+                    var srcCache = MermaidDiagramService.GetCacheFilePath(code);
+                    if (File.Exists(srcCache))
+                    {
+                        File.Copy(srcCache, sfd.FileName, true);
+                    }
+                }
+                catch { }
+            }
+        };
+
+        // Async Loader
+        async void LoadDiagram()
+        {
+            loadingStack.Visibility = Visibility.Visible;
+            diagramImage.Visibility = Visibility.Collapsed;
+            errorPanel.Visibility = Visibility.Collapsed;
+
+            var bitmap = await MermaidDiagramService.GetDiagramBitmapAsync(code);
+            if (bitmap != null)
+            {
+                diagramImage.Source = bitmap;
+                diagramImage.Visibility = Visibility.Visible;
+                loadingStack.Visibility = Visibility.Collapsed;
+                saveBtn.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                loadingStack.Visibility = Visibility.Collapsed;
+                errorPanel.Visibility = Visibility.Visible;
+                codeViewer.Visibility = Visibility.Visible;
+                toggleBtn.Content = "📊 View Diagram";
+            }
+        }
+
+        retryBtn.Click += (s, e) => LoadDiagram();
+
+        container.Loaded += (s, e) => LoadDiagram();
+        LoadDiagram();
+
+        container.Child = mainStack;
+        return new BlockUIContainer(container);
+    }
+
+    private static void SetGhostButtonStyle(Button btn)
+    {
+        if (System.Windows.Application.Current != null && System.Windows.Application.Current.TryFindResource("Button.Ghost") is Style style)
+        {
+            btn.Style = style;
+        }
+        else
+        {
+            btn.Background = Brushes.Transparent;
+            btn.BorderThickness = new Thickness(1);
+            btn.BorderBrush = GetBrush("Brush.Border", Brushes.Gray);
+            btn.Foreground = GetBrush("Brush.TextSecondary", Brushes.LightGray);
+        }
     }
 
     private static Block CreateImageBlock(string alt, string pathOrUrl)
